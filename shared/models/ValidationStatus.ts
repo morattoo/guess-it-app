@@ -1,0 +1,10 @@
+// models/Validation.ts
+
+export type ValidationStatus = "valid" | "invalid" | "partial";
+
+export interface ValidationResult {
+  status: ValidationStatus;
+  confidence: number; // 0 → 1
+  reason?: string;
+  rawIAResponse?: unknown;
+}
