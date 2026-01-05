@@ -2,17 +2,13 @@
  * Firebase Functions v2 - TypeScript
  */
 
+import { initializeApp } from "firebase-admin/app";
 import { setGlobalOptions } from "firebase-functions/v2";
 import { onRequest } from "firebase-functions/v2/https";
-import * as logger from "firebase-functions/logger";
+import { gameSessionsApi } from "./api/gameSessions";
 
-// Opciones globales para control de costos
-setGlobalOptions({
-  maxInstances: 10,
-});
+initializeApp();
 
-// Ejemplo de función HTTP
-export const helloWorld = onRequest((req, res) => {
-  logger.info("Hello logs!", { structuredData: true });
-  res.send("Hello from Firebase (TypeScript) 🚀");
-});
+setGlobalOptions({ maxInstances: 10 });
+
+export const api = onRequest(gameSessionsApi);
