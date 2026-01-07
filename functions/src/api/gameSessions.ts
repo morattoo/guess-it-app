@@ -1,13 +1,14 @@
 import express from "express";
 import cors from "cors";
 import { getFirestore } from "firebase-admin/firestore";
+import { authMiddleware } from "../middlewares/auth";
 
 const db = getFirestore();
 export const gameSessionsApi = express();
 
 gameSessionsApi.use(cors({ origin: true }));
 gameSessionsApi.use(express.json());
-
+gameSessionsApi.use(authMiddleware);
 gameSessionsApi.post("/gameSessions", async (req, res) => {
   const { questionnaireId, userId } = req.body;
 
