@@ -1,6 +1,6 @@
 <template>
     <div class="home">
-        <h1>Welcome to GuessIt!</h1>
+        <h1>GuessIt!</h1>
         <p>Your ultimate guessing game experience.</p>
     </div>
     <div class="auth-links">
