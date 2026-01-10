@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import JoinGame from '@/components/JoinGame.vue';
+import { RouterView } from 'vue-router';
 </script>
 
 <template>
-  <JoinGame />
+  <RouterView />
 </template>
 
 <style scoped>
