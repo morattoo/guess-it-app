@@ -1,27 +1,37 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import JoinGame from '@/components/JoinGame.vue';
-import GameSession from '@/components/GameSession.vue';
-import AuthLayout from '@/components/layout/AuthLayout.vue';
-import LoginView from '@/views/LoginView.vue';
-import RegisterView from '@/views/RegisterView.vue';
 import HomeView from '@/views/HomeView.vue';
-
+import AuthLayout from '@/components/layout/AuthLayout.vue';
+import DashboardLayout from '@/components/layout/DashboardLayout.vue';
 
 const routes = [
   { path: '/', component: HomeView },
-  { path: '/join', component: JoinGame },
-  { path: '/game/:sessionId', component: GameSession },
+  { path: '/join', component: () => import('@/components/JoinGame.vue') },
+  { path: '/game/:sessionId', component: () => import('@/components/GameSession.vue') },
   {
-    path: "/auth",
+    path: '/auth',
     component: AuthLayout,
     children: [
       {
-        path: "login",
-        component: LoginView,
+        path: 'login',
+        component: () => import('@/views/LoginView.vue'),
       },
       {
-        path: "register",
-        component: RegisterView,
+        path: 'register',
+        component: () => import('@/views/RegisterView.vue'),
+      },
+    ],
+  },
+  {
+    path: '/dashboard',
+    component: DashboardLayout,
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/DashboardView.vue'),
+      },
+      {
+        path: 'questions-pool',
+        component: () => import('@/views/QuestionsPoolView.vue'),
       },
     ],
   },

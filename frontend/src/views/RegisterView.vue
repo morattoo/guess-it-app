@@ -1,37 +1,93 @@
 <template>
   <div class="auth-card">
-    <h1>Register</h1>
+    <h1 id="register-title">Register</h1>
     <p class="subtitle">Start creating your interactive quizzes</p>
 
-    <input type="text" placeholder="Nom" v-model="name" autocomplete="name" />
-    <input type="email" placeholder="Email" v-model="email" autocomplete="email" />
+    <form @submit.prevent="onSubmit" novalidate aria-labelledby="register-title">
+      <div class="form-group">
+        <label for="name-input">Nom</label>
+        <input
+          id="name-input"
+          type="text"
+          placeholder="Votre nom complet"
+          v-model="name"
+          autocomplete="name"
+          required
+          aria-required="true"
+          aria-describedby="name-hint"
+        />
+        <span id="name-hint" class="hint">Minimum 2 caractères</span>
+      </div>
 
-    <input
-      type="password"
-      placeholder="Mot de passe (6+ caractères)"
-      v-model="password"
-      autocomplete="new-password"
-    />
+      <div class="form-group">
+        <label for="email-input">Email</label>
+        <input
+          id="email-input"
+          type="email"
+          placeholder="exemple@email.com"
+          v-model="email"
+          autocomplete="email"
+          required
+          aria-required="true"
+        />
+      </div>
 
-    <input
-      type="password"
-      placeholder="Confirmer le mot de passe"
-      v-model="confirmPassword"
-      autocomplete="new-password"
-    />
+      <div class="form-group">
+        <label for="password-input">Mot de passe</label>
+        <input
+          id="password-input"
+          type="password"
+          placeholder="Minimum 6 caractères"
+          v-model="password"
+          autocomplete="new-password"
+          required
+          aria-required="true"
+          aria-describedby="password-hint"
+        />
+        <span id="password-hint" class="hint">Minimum 6 caractères</span>
+      </div>
 
-    <p v-if="confirmPassword && !passwordsMatch" class="error">
-      Les mots de passe ne correspondent pas
-    </p>
+      <div class="form-group">
+        <label for="confirm-password-input">Confirmer le mot de passe</label>
+        <input
+          id="confirm-password-input"
+          type="password"
+          placeholder="Confirmer le mot de passe"
+          v-model="confirmPassword"
+          autocomplete="new-password"
+          required
+          aria-required="true"
+          :aria-invalid="confirmPassword && !passwordsMatch ? 'true' : 'false'"
+          :aria-describedby="
+            confirmPassword && !passwordsMatch ? 'password-match-error' : undefined
+          "
+        />
+      </div>
 
-    <p v-if="error" class="error">
-      {{ error }}
-    </p>
+      <div
+        v-if="confirmPassword && !passwordsMatch"
+        id="password-match-error"
+        class="error"
+        role="alert"
+        aria-live="polite"
+      >
+        Les mots de passe ne correspondent pas
+      </div>
 
-    <button class="primary" :disabled="!canSubmit || loading" @click="onSubmit">
-      <span v-if="!loading">Créer le compte</span>
-      <span v-else>Création…</span>
-    </button>
+      <div v-if="error" class="error" role="alert" aria-live="assertive">
+        {{ error }}
+      </div>
+
+      <button
+        type="submit"
+        class="primary"
+        :disabled="!canSubmit || loading"
+        :aria-busy="loading ? 'true' : 'false'"
+      >
+        <span v-if="!loading">Créer le compte</span>
+        <span v-else>Création…</span>
+      </button>
+    </form>
 
     <p class="switch">
       Déjà un compte ?
@@ -84,51 +140,6 @@ const onSubmit = async () => {
   }
 };
 </script>
-<style scoped>
-.auth-card {
-  width: 100%;
-  max-width: 360px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.subtitle {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 4px;
-}
-
-input {
-  padding: 12px;
-  font-size: 16px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-}
-
-button.primary {
-  margin-top: 8px;
-  padding: 12px;
-  font-size: 16px;
-  border-radius: 6px;
-  border: none;
-  background: #2f8cff;
-  color: white;
-  cursor: pointer;
-}
-
-button.primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.error {
-  font-size: 13px;
-  color: #d33;
-}
-
-.switch {
-  text-align: center;
-  font-size: 14px;
-}
+<style scoped lang="scss">
+@import '@/styles/forms';
 </style>
