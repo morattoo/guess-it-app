@@ -9,6 +9,7 @@ import {
   deleteDoc,
   query,
   where,
+  orderBy,
   serverTimestamp,
 } from 'firebase/firestore';
 import { app } from './init';
@@ -57,7 +58,11 @@ export const getQuestions = async (): Promise<QuestionDocument[]> => {
  * Obtener preguntas creadas por un usuario específico
  */
 export const getQuestionsByUser = async (userId: string): Promise<QuestionDocument[]> => {
-  const q = query(questionsCollection, where('createdBy', '==', userId));
+  const q = query(
+    questionsCollection,
+    where('createdBy', '==', userId),
+    orderBy('createdAt', 'desc')
+  );
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(doc => ({
     id: doc.id,

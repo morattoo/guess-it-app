@@ -101,7 +101,7 @@ const emit = defineEmits<{
 const form = ref({
   title: '',
   description: '',
-  points: 100,
+  points: 1,
   timeLimitSec: undefined as number | undefined,
   options: [
     { id: crypto.randomUUID(), label: '' },

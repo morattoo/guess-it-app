@@ -108,7 +108,7 @@ const emit = defineEmits<{
 const form = ref({
   title: '',
   description: '',
-  points: 100,
+  points: 1,
   timeLimitSec: undefined as number | undefined,
   expectedValue: undefined as number | undefined,
   tolerance: undefined as number | undefined,

@@ -87,8 +87,8 @@ const emit = defineEmits<{
 const form = ref({
   title: '',
   description: '',
-  points: 100,
-  timeLimitSec: undefined as number | undefined,
+  points: 1,
+  timeLimitSec: 0,
   expectedAnswer: '',
   caseSensitive: false,
 });
