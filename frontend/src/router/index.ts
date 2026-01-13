@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '@/views/HomeView.vue';
 import AuthLayout from '@/components/layout/AuthLayout.vue';
 import DashboardLayout from '@/components/layout/DashboardLayout.vue';
+import { getCurrentUser } from '@/firebase/auth';
 
 const routes = [
   { path: '/', component: HomeView },
@@ -24,6 +25,7 @@ const routes = [
   {
     path: '/dashboard',
     component: DashboardLayout,
+    meta: { requiresAuth: true },
     children: [
       {
         path: '',
@@ -33,6 +35,10 @@ const routes = [
         path: 'questions-pool',
         component: () => import('@/views/QuestionsPoolView.vue'),
       },
+      {
+        path: 'question',
+        component: () => import('@/views/QuestionView.vue'),
+      },
     ],
   },
 ];
@@ -40,4 +46,20 @@ const routes = [
 export const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+// Navigation guard para proteger rutas que requieren autenticación
+router.beforeEach(async (to, _from, next) => {
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+
+  if (requiresAuth) {
+    const user = await getCurrentUser();
+    if (user) {
+      next();
+    } else {
+      next({ path: '/auth/login', query: { redirect: to.fullPath } });
+    }
+  } else {
+    next();
+  }
 });

@@ -35,14 +35,6 @@
       </button>
     </header>
 
-    <!-- Overlay for mobile -->
-    <div
-      v-if="isSidebarOpen"
-      class="sidebar-overlay"
-      @click="closeSidebar"
-      aria-hidden="true"
-    ></div>
-
     <!-- Sidebar -->
     <aside id="sidebar-nav" class="dashboard-sidebar" :class="{ 'is-open': isSidebarOpen }">
       <div>
@@ -127,44 +119,6 @@
                 <span>Questions Pool</span>
               </router-link>
             </li>
-            <li>
-              <router-link
-                to="/dashboard/sessions"
-                class="nav-link"
-                @click="closeSidebar"
-                active-class="active"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M14 2H6C4.89543 2 4 2.89543 4 4V16C4 17.1046 4.89543 18 6 18H14C15.1046 18 16 17.1046 16 16V4C16 2.89543 15.1046 2 14 2Z"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                  <path d="M8 6H12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                  <path
-                    d="M8 10H12"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  />
-                  <path
-                    d="M8 14H10"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  />
-                </svg>
-                <span>Sessions</span>
-              </router-link>
-            </li>
           </ul>
         </nav>
 
@@ -214,15 +168,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { auth, logout } from '@/firebase/auth';
+import { getUserProfile } from '@/firebase/users';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const router = useRouter();
 const isSidebarOpen = ref(false);
 
-// Mock user data - à remplacer avec les vraies données de Firebase Auth
-const userName = ref('John Doe');
-const userEmail = ref('john.doe@example.com');
+const userName = ref('');
+const userEmail = ref('');
+
+// Escuchar cambios en el estado de autenticación
+onMounted(() => {
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      userEmail.value = user.email || '';
+      const profile = await getUserProfile(user.uid);
+      if (profile) {
+        userName.value = profile.name;
+      }
+    } else {
+      // Si no hay usuario, redirigir al login
+      router.push('/auth/login');
+    }
+  });
+});
 
 const userInitials = computed(() => {
   return userName.value
@@ -254,7 +226,12 @@ const goBack = () => {
 };
 
 const handleLogout = async () => {
-  router.push('/');
+  try {
+    await logout();
+    router.push('/');
+  } catch {
+    throw new Error('Erreur lors de la déconnexion');
+  }
 };
 </script>
 

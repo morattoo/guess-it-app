@@ -29,6 +29,9 @@ export default [
         ecmaVersion: 'latest',
         sourceType: 'module',
       },
+      globals: {
+        crypto: 'readonly',
+      },
     },
     rules: {
       'vue/multi-word-component-names': 'off',
