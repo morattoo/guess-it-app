@@ -1,9 +1,7 @@
 import { ensureAuth } from './auth';
+import { API_ENDPOINTS } from './config';
 
-const API_URL =
-  import.meta.env.DEV
-    ? 'http://127.0.0.1:5001/YOUR_PROJECT/us-central1/gameSessionsApi'
-    : 'https://us-central1-YOUR_PROJECT.cloudfunctions.net/gameSessionsApi';
+const API_URL = API_ENDPOINTS.gameSessions;
 
 async function callApi(path: string, body?: unknown) {
   const user = await ensureAuth();
@@ -26,9 +24,23 @@ async function callApi(path: string, body?: unknown) {
 }
 
 export const api = {
-  joinSession: (sessionId: string) =>
-    callApi('/join', { sessionId }),
+  createGameSession: (questionnaireId: string, userId: string) =>
+    callApi('/gameSessions', { questionnaireId, userId }),
 
-  submitAnswer: (sessionId: string, answer: string) =>
-    callApi('/answer', { sessionId, answer }),
+  joinSession: (sessionId: string, userId: string) =>
+    callApi(`/gameSessions/${sessionId}/join`, { userId }),
+
+  validateAnswer: (sessionId: string, userId: string, answer: string) =>
+    callApi(`/gameSessions/${sessionId}/validate-answer`, { userId, answer }),
+
+  getRanking: async (sessionId: string) => {
+    const user = await ensureAuth();
+    const token = await user.getIdToken();
+    const res = await fetch(`${API_URL}/gameSessions/${sessionId}/ranking`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  },
 };
