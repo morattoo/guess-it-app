@@ -43,7 +43,7 @@
             id="timeLimit"
             v-model.number="form.timeLimitSec"
             type="number"
-            min="5"
+            min="0"
             placeholder="30"
           />
         </div>
@@ -83,7 +83,9 @@
 
       <div class="form-actions">
         <button type="button" class="btn-secondary" @click="cancel">Cancelar</button>
-        <button type="submit" class="btn-primary" :disabled="!isFormValid">Crear Pregunta</button>
+        <button type="submit" class="btn-primary" :disabled="!isFormValid">
+          {{ isEdit ? 'Actualizar Pregunta' : 'Crear Pregunta' }}
+        </button>
       </div>
     </form>
   </div>
@@ -91,23 +93,30 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import type { ChoiceQuestion } from '@shared/models/Question';
+import type { ChoiceQuestion, Question } from '@shared/models/Question';
+
+const props = defineProps<{
+  initialData?: Question;
+  isEdit?: boolean;
+}>();
 
 const emit = defineEmits<{
   submit: [question: ChoiceQuestion];
   cancel: [];
 }>();
 
+const initialChoice = props.initialData as ChoiceQuestion | undefined;
+
 const form = ref({
-  title: '',
-  description: '',
-  points: 1,
-  timeLimitSec: undefined as number | undefined,
-  options: [
+  title: props.initialData?.title || '',
+  description: props.initialData?.description || '',
+  points: props.initialData?.points || 1,
+  timeLimitSec: props.initialData?.timeLimitSec,
+  options: initialChoice?.options || [
     { id: crypto.randomUUID(), label: '' },
     { id: crypto.randomUUID(), label: '' },
   ],
-  correctOptionId: '',
+  correctOptionId: initialChoice?.expectedAnswer.optionId || '',
 });
 
 const isFormValid = computed(() => {

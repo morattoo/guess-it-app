@@ -43,7 +43,7 @@
             id="timeLimit"
             v-model.number="form.timeLimitSec"
             type="number"
-            min="5"
+            min="0"
             placeholder="30"
           />
         </div>
@@ -90,7 +90,9 @@
 
       <div class="form-actions">
         <button type="button" class="btn-secondary" @click="cancel">Cancelar</button>
-        <button type="submit" class="btn-primary">Crear Pregunta</button>
+        <button type="submit" class="btn-primary">
+          {{ isEdit ? 'Actualizar Pregunta' : 'Crear Pregunta' }}
+        </button>
       </div>
     </form>
   </div>
@@ -98,20 +100,27 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import type { NumberQuestion } from '@shared/models/Question';
+import type { NumberQuestion, Question } from '@shared/models/Question';
+
+const props = defineProps<{
+  initialData?: Question;
+  isEdit?: boolean;
+}>();
 
 const emit = defineEmits<{
   submit: [question: NumberQuestion];
   cancel: [];
 }>();
 
+const initialNumber = props.initialData as NumberQuestion | undefined;
+
 const form = ref({
-  title: '',
-  description: '',
-  points: 1,
-  timeLimitSec: undefined as number | undefined,
-  expectedValue: undefined as number | undefined,
-  tolerance: undefined as number | undefined,
+  title: props.initialData?.title || '',
+  description: props.initialData?.description || '',
+  points: props.initialData?.points || 1,
+  timeLimitSec: props.initialData?.timeLimitSec,
+  expectedValue: initialNumber?.expectedAnswer.value,
+  tolerance: initialNumber?.expectedAnswer.tolerance,
 });
 
 const submitForm = () => {

@@ -119,6 +119,31 @@
                 <span>Questions Pool</span>
               </router-link>
             </li>
+            <li>
+              <router-link
+                to="/dashboard/questionnaires"
+                class="nav-link"
+                @click="closeSidebar"
+                active-class="active"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M4 5H16M4 9H16M4 13H16M4 17H10"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                <span>Cuestionarios</span>
+              </router-link>
+            </li>
           </ul>
         </nav>
 

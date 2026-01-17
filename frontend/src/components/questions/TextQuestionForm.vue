@@ -43,7 +43,7 @@
             id="timeLimit"
             v-model.number="form.timeLimitSec"
             type="number"
-            min="5"
+            min="0"
             placeholder="30"
           />
         </div>
@@ -69,7 +69,9 @@
 
       <div class="form-actions">
         <button type="button" class="btn-secondary" @click="cancel">Cancelar</button>
-        <button type="submit" class="btn-primary">Crear Pregunta</button>
+        <button type="submit" class="btn-primary">
+          {{ isEdit ? 'Actualizar Pregunta' : 'Crear Pregunta' }}
+        </button>
       </div>
     </form>
   </div>
@@ -77,20 +79,27 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import type { TextQuestion } from '@shared/models/Question';
+import type { TextQuestion, Question } from '@shared/models/Question';
+
+const props = defineProps<{
+  initialData?: Question;
+  isEdit?: boolean;
+}>();
 
 const emit = defineEmits<{
   submit: [question: TextQuestion];
   cancel: [];
 }>();
 
+const initialText = props.initialData as TextQuestion | undefined;
+
 const form = ref({
-  title: '',
-  description: '',
-  points: 1,
-  timeLimitSec: 0,
-  expectedAnswer: '',
-  caseSensitive: false,
+  title: props.initialData?.title || '',
+  description: props.initialData?.description || '',
+  points: props.initialData?.points || 1,
+  timeLimitSec: props.initialData?.timeLimitSec || 0,
+  expectedAnswer: initialText?.expectedAnswer.text || '',
+  caseSensitive: initialText?.expectedAnswer.caseSensitive || false,
 });
 
 const submitForm = () => {

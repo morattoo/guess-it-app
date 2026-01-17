@@ -1,0 +1,27 @@
+[debug] [2026-01-17T00:42:41.200Z] ----------------------------------------------------------------------
+[debug] [2026-01-17T00:42:41.204Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\JAMOR178\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js emulators:start
+[debug] [2026-01-17T00:42:41.204Z] CLI Version:   15.3.1
+[debug] [2026-01-17T00:42:41.204Z] Platform:      win32
+[debug] [2026-01-17T00:42:41.204Z] Node Version:  v24.13.0
+[debug] [2026-01-17T00:42:41.204Z] Time:          Fri Jan 16 2026 19:42:41 GMT-0500 (heure normale de l’Est)
+[debug] [2026-01-17T00:42:41.205Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-01-17T00:42:42.476Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-17T00:42:42.476Z] > authorizing via signed-in user (javiermorato@gmail.com)
+[debug] [2026-01-17T00:42:42.695Z] java version "21.0.5" 2024-10-15 LTS
+Java(TM) SE Runtime Environment (build 21.0.5+9-LTS-239)
+Java HotSpot(TM) 64-Bit Server VM (build 21.0.5+9-LTS-239, mixed mode, sharing)
+
+[debug] [2026-01-17T00:42:42.753Z] Parsed Java major version: 21
+[info] i  emulators: Starting emulators: functions, firestore, hosting, extensions {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: functions, firestore, hosting, extensions"}}
+[debug] [2026-01-17T00:42:42.758Z] Checked if tokens are valid: true, expires at: 1768613800292
+[debug] [2026-01-17T00:42:42.758Z] Checked if tokens are valid: true, expires at: 1768613800292
+[debug] [2026-01-17T00:42:42.760Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/guess-it-app-c553b [none]
+[debug] [2026-01-17T00:42:42.993Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/guess-it-app-c553b 200
+[debug] [2026-01-17T00:42:42.993Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/guess-it-app-c553b {"projectNumber":"159180229656","projectId":"guess-it-app-c553b","lifecycleState":"ACTIVE","name":"guess-it-app-c553b","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2026-01-04T13:19:56.846072Z"}
+[debug] [2026-01-17T00:42:43.014Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-01-17T00:42:43.014Z] [firestore] Firestore Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-01-17T00:42:43.014Z] [firestore.websocket] websocket server for firestore only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-01-17T00:42:43.014Z] [hosting] Hosting Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-01-17T00:42:43.014Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}],"hosting":[{"address":"127.0.0.1","family":"IPv4","port":5000}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2026-01-17T00:42:43.018Z] Write emulator hub locator at C:\Users\JAMOR178\AppData\Local\Temp\hub-guess-it-app-c553b.json

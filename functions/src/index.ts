@@ -13,6 +13,8 @@ setGlobalOptions({ maxInstances: 10 });
 // Importar después de initializeApp()
 import { gameSessionsApi } from "./api/gameSessions";
 import { questionsApi } from "./api/questions";
+import { questionnairesApi } from "./api/questionnaires";
 
 export const gameSessions = onRequest(gameSessionsApi);
 export const questions = onRequest(questionsApi);
+export const questionnaires = onRequest(questionnairesApi);

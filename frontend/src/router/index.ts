@@ -39,6 +39,18 @@ const routes = [
         path: 'question',
         component: () => import('@/views/QuestionView.vue'),
       },
+      {
+        path: 'question/:id',
+        component: () => import('@/views/EditQuestionView.vue'),
+      },
+      {
+        path: 'questionnaires',
+        component: () => import('@/views/QuestionnairesView.vue'),
+      },
+      {
+        path: 'questionnaire/:id',
+        component: () => import('@/views/QuestionnaireFormView.vue'),
+      },
     ],
   },
 ];

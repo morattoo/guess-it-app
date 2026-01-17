@@ -1,8 +1,8 @@
 <template>
-  <div class="questions-pool-view">
+  <div class="questionnaires-view">
     <div class="header">
-      <h2>Mis Preguntas</h2>
-      <router-link to="/dashboard/question" class="btn-add">
+      <h2>Mis Cuestionarios</h2>
+      <router-link to="/dashboard/questionnaire/new" class="btn-add">
         <svg
           width="20"
           height="20"
@@ -17,45 +17,41 @@
             stroke-linecap="round"
           />
         </svg>
-        Crear Pregunta
+        Crear Cuestionario
       </router-link>
     </div>
 
-    <div v-if="loading" class="loading">Cargando preguntas...</div>
+    <div v-if="loading" class="loading">Cargando cuestionarios...</div>
 
-    <div v-else-if="questions.length === 0" class="empty-state">
-      <p>No tienes preguntas creadas aún.</p>
-      <router-link to="/dashboard/question" class="btn-primary"
-        >Crear tu primera pregunta</router-link
-      >
+    <div v-else-if="questionnaires.length === 0" class="empty-state">
+      <p>No tienes cuestionarios creados aún.</p>
+      <router-link to="/dashboard/questionnaire/new" class="btn-primary">
+        Crear tu primer cuestionario
+      </router-link>
     </div>
 
-    <div v-else class="questions-list">
-      <div v-for="question in questions" :key="question.id" class="question-card">
-        <div class="question-header">
-          <span class="question-type" :class="`type-${question.type.toLowerCase()}`">
-            {{ getTypeLabel(question.type) }}
+    <div v-else class="questionnaires-list">
+      <div
+        v-for="questionnaire in questionnaires"
+        :key="questionnaire.id"
+        class="questionnaire-card"
+      >
+        <div class="questionnaire-header">
+          <h3 class="questionnaire-title">{{ questionnaire.title }}</h3>
+          <span class="question-count">
+            {{ questionnaire.questionIds.length }}
+            {{ questionnaire.questionIds.length === 1 ? 'pregunta' : 'preguntas' }}
           </span>
-          <span class="question-points">{{ question.points }} pts</span>
         </div>
 
-        <h3 class="question-title">{{ question.title }}</h3>
-
-        <p v-if="question.description" class="question-description">
-          {{ question.description }}
-        </p>
-
-        <div class="question-footer">
-          <span v-if="question.timeLimitSec" class="time-limit">
-            ⏱️ {{ question.timeLimitSec }}s
-          </span>
+        <div class="questionnaire-footer">
           <span class="created-date">
-            {{ formatDate(question.createdAt) }}
+            {{ formatDate(questionnaire.createdAt) }}
           </span>
         </div>
 
-        <div class="question-actions">
-          <button class="btn-icon" title="Editar" @click="handleEdit(question.id!)">
+        <div class="questionnaire-actions">
+          <button class="btn-icon" title="Editar" @click="handleEdit(questionnaire.id)">
             <svg
               width="18"
               height="18"
@@ -72,7 +68,11 @@
               />
             </svg>
           </button>
-          <button class="btn-icon btn-delete" title="Eliminar" @click="handleDelete(question.id!)">
+          <button
+            class="btn-icon btn-delete"
+            title="Eliminar"
+            @click="handleDelete(questionnaire.id)"
+          >
             <svg
               width="18"
               height="18"
@@ -104,50 +104,39 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { getQuestionsByUser, deleteQuestion } from '@/firebase/question';
+import { getQuestionnairesByUser, deleteQuestionnaire } from '@/firebase/questionnaire';
 import { auth } from '@/firebase/auth';
-import type { QuestionDocument } from '@shared/models/Question';
+import type { Questionnaire } from '@shared/models/Questionnaire';
 
 const router = useRouter();
-const questions = ref<QuestionDocument[]>([]);
+const questionnaires = ref<Questionnaire[]>([]);
 const loading = ref(true);
 
-const loadQuestions = async () => {
+const loadQuestionnaires = async () => {
   try {
-    const currentUser = auth.currentUser;
-    if (!currentUser) return;
-
-    questions.value = await getQuestionsByUser(currentUser.uid);
+    const currentUser = auth.currentUser!;
+    questionnaires.value = await getQuestionnairesByUser(currentUser.uid);
   } catch (error) {
-    console.error('Error al cargar preguntas:', error);
+    console.error('Error al cargar cuestionarios:', error);
   } finally {
     loading.value = false;
   }
 };
 
-const handleEdit = (questionId: string) => {
-  router.push(`/dashboard/question/${questionId}`);
+const handleEdit = (questionnaireId: string) => {
+  router.push(`/dashboard/questionnaire/${questionnaireId}`);
 };
 
-const handleDelete = async (questionId: string) => {
-  if (!confirm('¿Estás seguro de eliminar esta pregunta?')) return;
+const handleDelete = async (questionnaireId: string) => {
+  if (!confirm('¿Estás seguro de eliminar este cuestionario?')) return;
 
   try {
-    await deleteQuestion(questionId);
-    questions.value = questions.value.filter(q => q.id !== questionId);
+    await deleteQuestionnaire(questionnaireId);
+    questionnaires.value = questionnaires.value.filter(q => q.id !== questionnaireId);
   } catch (error) {
-    console.error('Error al eliminar pregunta:', error);
-    alert('Error al eliminar la pregunta');
+    console.error('Error al eliminar cuestionario:', error);
+    alert('Error al eliminar el cuestionario');
   }
-};
-
-const getTypeLabel = (type: string) => {
-  const labels: Record<string, string> = {
-    TEXT: 'Texto',
-    NUMBER: 'Número',
-    CHOICE: 'Selección',
-  };
-  return labels[type] || type;
 };
 
 const formatDate = (timestamp: any) => {
@@ -172,12 +161,12 @@ const formatDate = (timestamp: any) => {
 };
 
 onMounted(() => {
-  loadQuestions();
+  loadQuestionnaires();
 });
 </script>
 
 <style scoped>
-.questions-pool-view {
+.questionnaires-view {
   max-width: 1200px;
   margin: 0 auto;
   padding: 1rem;
@@ -240,13 +229,13 @@ h2 {
   background-color: #1a7ae8;
 }
 
-.questions-list {
+.questionnaires-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.5rem;
 }
 
-.question-card {
+.questionnaire-card {
   position: relative;
   background-color: white;
   padding: 1.5rem;
@@ -257,85 +246,47 @@ h2 {
     box-shadow 0.2s;
 }
 
-.question-card:hover {
+.questionnaire-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.question-header {
+.questionnaire-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 1rem;
+  gap: 1rem;
 }
 
-.question-type {
-  padding: 0.25rem 0.75rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.type-text {
-  background-color: #e3f2ff;
-  color: #2f8cff;
-}
-
-.type-number {
-  background-color: #fff3e0;
-  color: #ff8c00;
-}
-
-.type-choice {
-  background-color: #f3e5f5;
-  color: #9c27b0;
-}
-
-.question-points {
-  font-weight: 600;
-  color: #666;
-  font-size: 0.875rem;
-}
-
-.question-title {
-  margin: 0 0 0.75rem 0;
-  font-size: 1.125rem;
+.questionnaire-title {
+  margin: 0;
+  font-size: 1.25rem;
   color: #333;
   line-height: 1.4;
+  flex: 1;
 }
 
-.question-description {
-  margin: 0 0 1rem 0;
-  color: #666;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.question-count {
+  padding: 0.25rem 0.75rem;
+  background-color: #e3f2ff;
+  color: #2f8cff;
+  border-radius: 12px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-.question-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.questionnaire-footer {
   padding-top: 1rem;
   border-top: 1px solid #e0e0e0;
   font-size: 0.8125rem;
   color: #999;
 }
 
-.time-limit {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.question-actions {
+.questionnaire-actions {
   position: absolute;
-  bottom: 1rem;
+  top: 1rem;
   right: 1rem;
   display: flex;
   gap: 0.5rem;
@@ -343,7 +294,7 @@ h2 {
   transition: opacity 0.2s;
 }
 
-.question-card:hover .question-actions {
+.questionnaire-card:hover .questionnaire-actions {
   opacity: 1;
 }
 
@@ -384,11 +335,11 @@ h2 {
     justify-content: center;
   }
 
-  .questions-list {
+  .questionnaires-list {
     grid-template-columns: 1fr;
   }
 
-  .question-actions {
+  .questionnaire-actions {
     opacity: 1;
   }
 }
