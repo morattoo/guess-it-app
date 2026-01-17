@@ -51,6 +51,14 @@ const routes = [
         path: 'questionnaire/:id',
         component: () => import('@/views/QuestionnaireFormView.vue'),
       },
+      {
+        path: 'game-sessions',
+        component: () => import('@/views/GameSessionsView.vue'),
+      },
+      {
+        path: 'game-session/:id',
+        component: () => import('@/views/GameSessionFormView.vue'),
+      },
     ],
   },
 ];

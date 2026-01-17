@@ -2,9 +2,9 @@
 
 export type MediaType = "text" | "image" | "audio";
 
-export interface Media {
+export type Media = {
   type: MediaType;
-  value: string; 
+  value: string;
   // text → texto
   // image → URL (Firebase Storage)
   // audio → URL (Firebase Storage)
@@ -12,4 +12,4 @@ export interface Media {
     duration?: number; // audio
     language?: string;
   };
-}
+};

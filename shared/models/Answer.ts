@@ -2,9 +2,9 @@
 
 import { Media } from "./Media";
 
-export interface Answer {
+export type Answer = {
   questionId: string;
   userId: string;
   submittedAt: number;
   media: Media;
-}
+};

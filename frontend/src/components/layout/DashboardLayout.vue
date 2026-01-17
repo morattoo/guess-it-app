@@ -144,6 +144,25 @@
                 <span>Cuestionarios</span>
               </router-link>
             </li>
+            <li>
+              <router-link
+                to="/dashboard/game-sessions"
+                class="nav-link"
+                @click="closeSidebar"
+                active-class="active"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M5 3L19 10L5 17V3Z" fill="currentColor" />
+                </svg>
+                <span>Sesiones de Juego</span>
+              </router-link>
+            </li>
           </ul>
         </nav>
 

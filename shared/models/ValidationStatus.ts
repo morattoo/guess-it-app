@@ -2,9 +2,9 @@
 
 export type ValidationStatus = "valid" | "invalid" | "partial";
 
-export interface ValidationResult {
+export type ValidationResult = {
   status: ValidationStatus;
   confidence: number; // 0 → 1
   reason?: string;
   rawIAResponse?: unknown;
-}
+};

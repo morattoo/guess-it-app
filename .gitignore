@@ -4,3 +4,6 @@ node_modules
 *.env
 .firebase
 dist
+firebase-debug.log
+firestore-debug.log
+functions/lib
