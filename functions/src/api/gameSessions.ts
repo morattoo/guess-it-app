@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { getFirestore } from "firebase-admin/firestore";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { authMiddleware } from "../middlewares/auth";
 
 const db = getFirestore();
@@ -10,6 +10,7 @@ gameSessionsApi.use(cors({ origin: true }));
 gameSessionsApi.use(express.json());
 gameSessionsApi.use(authMiddleware);
 
+// Crear nueva sesión de juego copiando las preguntas del cuestionario
 gameSessionsApi.post("/gameSessions", async (req, res) => {
   const { questionnaireId, userId } = req.body;
 
@@ -17,16 +18,241 @@ gameSessionsApi.post("/gameSessions", async (req, res) => {
     return res.status(400).send("Missing data");
   }
 
-  const gameSessionRef = db.collection("gameSessions").doc();
+  try {
+    // Obtener el cuestionario
+    const questionnaireSnap = await db
+      .collection("questionnaires")
+      .doc(questionnaireId)
+      .get();
 
-  await gameSessionRef.set({
-    questionnaireId,
-    createdBy: userId,
-    startedAt: Date.now(),
-    isOpen: true,
+    if (!questionnaireSnap.exists) {
+      return res.status(404).send("Questionnaire not found");
+    }
+
+    const questionnaire = questionnaireSnap.data()!;
+
+    // Obtener todas las preguntas del cuestionario
+    const questionIds = questionnaire.questionIds || [];
+    const questions = [];
+
+    for (const questionId of questionIds) {
+      const questionSnap = await db
+        .collection("questions")
+        .doc(questionId)
+        .get();
+      if (questionSnap.exists) {
+        const questionData = questionSnap.data()!;
+        questions.push({
+          id: questionSnap.id,
+          type: questionData.type,
+          title: questionData.title,
+          description: questionData.description,
+          points: questionData.points,
+          penaltySeconds: questionData.timeLimitSec || 0,
+          validation: {
+            type: questionData.type,
+            expectedAnswer: questionData.expectedAnswer,
+          },
+        });
+      }
+    }
+
+    const gameSessionRef = db.collection("gameSessions").doc();
+
+    await gameSessionRef.set({
+      questionnaireId,
+      questions,
+      status: "WAITING",
+      createdBy: userId,
+      startedAt: FieldValue.serverTimestamp(),
+      isOpen: true,
+    });
+
+    res.json({ gameSessionId: gameSessionRef.id });
+  } catch (error) {
+    console.error("Error creating game session:", error);
+    res.status(500).send("Error creating game session");
+  }
+});
+
+// Obtener todas las sesiones del usuario
+gameSessionsApi.get("/gameSessions", async (req, res) => {
+  const userId = req.query.userId as string;
+
+  if (!userId) {
+    return res.status(400).send("Missing userId");
+  }
+
+  const snap = await db
+    .collection("gameSessions")
+    .where("createdBy", "==", userId)
+    .orderBy("startedAt", "desc")
+    .get();
+
+  const gameSessions = snap.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+
+  res.json(gameSessions);
+});
+
+// Obtener una sesión específica
+gameSessionsApi.get("/gameSessions/:id", async (req, res) => {
+  const { id } = req.params;
+
+  const gameSessionSnap = await db.collection("gameSessions").doc(id).get();
+
+  if (!gameSessionSnap.exists) {
+    return res.status(404).send("Game session not found");
+  }
+
+  res.json({
+    id: gameSessionSnap.id,
+    ...gameSessionSnap.data(),
   });
+});
 
-  res.json({ gameSessionId: gameSessionRef.id });
+// Actualizar estado de la sesión
+gameSessionsApi.put("/gameSessions/:id/status", async (req, res) => {
+  const { id } = req.params;
+  const { status, userId } = req.body;
+
+  if (!status || !userId) {
+    return res.status(400).send("Missing data");
+  }
+
+  const gameSessionRef = db.collection("gameSessions").doc(id);
+  const gameSessionSnap = await gameSessionRef.get();
+
+  if (!gameSessionSnap.exists) {
+    return res.status(404).send("Game session not found");
+  }
+
+  const gameSessionData = gameSessionSnap.data()!;
+
+  // Verificar que el usuario sea el creador
+  if (gameSessionData.createdBy !== userId) {
+    return res.status(403).send("Unauthorized");
+  }
+
+  const updates: any = { status };
+
+  if (status === "FINISHED") {
+    updates.endedAt = FieldValue.serverTimestamp();
+    updates.isOpen = false;
+  }
+
+  await gameSessionRef.update(updates);
+
+  res.json({ success: true });
+});
+
+// Recopiar preguntas del cuestionario (solo en WAITING)
+gameSessionsApi.put("/gameSessions/:id/refresh-questions", async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).send("Missing userId");
+  }
+
+  try {
+    const gameSessionRef = db.collection("gameSessions").doc(id);
+    const gameSessionSnap = await gameSessionRef.get();
+
+    if (!gameSessionSnap.exists) {
+      return res.status(404).send("Game session not found");
+    }
+
+    const gameSessionData = gameSessionSnap.data()!;
+
+    // Verificar que el usuario sea el creador
+    if (gameSessionData.createdBy !== userId) {
+      return res.status(403).send("Unauthorized");
+    }
+
+    // Solo se puede actualizar en estado WAITING
+    if (gameSessionData.status !== "WAITING") {
+      return res.status(400).send("Cannot refresh questions in current state");
+    }
+
+    // Obtener el cuestionario
+    const questionnaireSnap = await db
+      .collection("questionnaires")
+      .doc(gameSessionData.questionnaireId)
+      .get();
+
+    if (!questionnaireSnap.exists) {
+      return res.status(404).send("Questionnaire not found");
+    }
+
+    const questionnaire = questionnaireSnap.data()!;
+    const questionIds = questionnaire.questionIds || [];
+    const questions = [];
+
+    for (const questionId of questionIds) {
+      const questionSnap = await db
+        .collection("questions")
+        .doc(questionId)
+        .get();
+      if (questionSnap.exists) {
+        const questionData = questionSnap.data()!;
+        questions.push({
+          id: questionSnap.id,
+          type: questionData.type,
+          title: questionData.title,
+          description: questionData.description,
+          points: questionData.points,
+          penaltySeconds: questionData.timeLimitSec || 0,
+          validation: {
+            type: questionData.type,
+            expectedAnswer: questionData.expectedAnswer,
+          },
+        });
+      }
+    }
+
+    await gameSessionRef.update({ questions });
+
+    res.json({ success: true, questionCount: questions.length });
+  } catch (error) {
+    console.error("Error refreshing questions:", error);
+    res.status(500).send("Error refreshing questions");
+  }
+});
+
+// Eliminar sesión (solo en WAITING)
+gameSessionsApi.delete("/gameSessions/:id", async (req, res) => {
+  const { id } = req.params;
+  const userId = req.query.userId as string;
+
+  if (!userId) {
+    return res.status(400).send("Missing userId");
+  }
+
+  const gameSessionRef = db.collection("gameSessions").doc(id);
+  const gameSessionSnap = await gameSessionRef.get();
+
+  if (!gameSessionSnap.exists) {
+    return res.status(404).send("Game session not found");
+  }
+
+  const gameSessionData = gameSessionSnap.data()!;
+
+  // Verificar que el usuario sea el creador
+  if (gameSessionData.createdBy !== userId) {
+    return res.status(403).send("Unauthorized");
+  }
+
+  // Solo se puede eliminar en estado WAITING
+  if (gameSessionData.status !== "WAITING") {
+    return res.status(400).send("Cannot delete session in current state");
+  }
+
+  await gameSessionRef.delete();
+
+  res.json({ success: true });
 });
 
 gameSessionsApi.post("/gameSessions/:id/join", async (req, res) => {
