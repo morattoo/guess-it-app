@@ -1,6 +1,11 @@
+<script setup lang="ts">
+import HeaderLogo from '@/components/layout/HeaderLogo.vue';
+</script>
+
 <template>
   <div class="home">
-    <section>
+    <HeaderLogo />
+    <section class="home__container">
       <div class="intro">
         <h1>GuessIt!</h1>
         <p>Your ultimate guessing game experience.</p>
@@ -12,68 +17,81 @@
     </section>
   </div>
 </template>
-<script setup lang="ts"></script>
 
-<style scoped>
+<style scoped lang="scss">
+@import '@/styles/variables';
+
 .home {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  min-height: 100vh;
-}
-
-.intro {
-  margin-bottom: 2rem;
-
-  h1 {
-    font-size: 2.5rem;
-    margin: 0 0 1rem;
-    color: #2f8cff;
-  }
-
-  p {
-    font-size: 1.125rem;
-    color: #666;
-    margin: 0;
-  }
-}
-
-.auth-links {
-  display: flex;
-  justify-content: center;
   flex-direction: column;
-  gap: 1rem;
+  background-image: url('@/assets/bg-1.png');
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  height: 100%;
+  width: 100%;
 
-  a {
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.2s;
+  &__container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
 
-    &:first-child {
-      background-color: #2f8cff;
-      color: white;
+  .intro {
+    margin-bottom: $spacing-lg;
 
-      &:hover {
-        background-color: #1a7ae8;
-      }
+    h1 {
+      font-size: $font-size-xl;
+      margin: 0 0 $spacing-sm;
+      color: $title-color;
+      text-align: center;
     }
 
-    &:last-child {
-      background-color: transparent;
-      color: #2f8cff;
-      border: 2px solid #2f8cff;
-
-      &:hover {
-        background-color: #e3f2ff;
-      }
+    p {
+      font-size: $font-size-md;
+      color: $text-secondary;
+      margin: 0;
     }
+  }
 
-    &:focus {
-      outline: 2px solid #2f8cff;
-      outline-offset: 2px;
+  .auth-links {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    gap: $spacing-sm;
+
+    a {
+      padding: $button-padding;
+      border-radius: $border-radius;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all $transition-fast;
+      text-align: center;
+
+      &:first-child {
+        background-color: $action-blue;
+        color: white;
+
+        &:hover {
+          background-color: $action-blue-hover;
+        }
+      }
+
+      &:last-child {
+        background-color: transparent;
+        color: $action-blue;
+        border: $border-width solid $action-blue;
+
+        &:hover {
+          background-color: $action-blue-light;
+        }
+      }
+
+      &:focus {
+        outline: $border-width solid $action-blue;
+        outline-offset: $border-width;
+      }
     }
   }
 }

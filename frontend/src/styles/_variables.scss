@@ -6,26 +6,57 @@ $background-dark: #242424;
 $background-light: #ffffff;
 $text-dark: rgba(255, 255, 255, 0.87);
 $text-light: #213547;
+$text-secondary: #666;
 $button-bg-dark: #1a1a1a;
 $button-bg-light: #f9f9f9;
+$title-color: #1a4ca0;
+
+// Action colors
+$action-blue: #2f8cff;
+$action-blue-hover: #1a7ae8;
+$action-blue-light: #e3f2ff;
+
+// Form colors
+$text-label: #333;
+$border-input: #ddd;
+$error-color: #d33;
+$error-bg: #fee;
+$focus-shadow-color: rgba(47, 140, 255, 0.1);
+$focus-shadow-strong: rgba(47, 140, 255, 0.3);
 
 // Spacing
-$spacing-xs: 0.5rem;
-$spacing-sm: 1rem;
-$spacing-md: 1.5rem;
-$spacing-lg: 2rem;
-$spacing-xl: 3rem;
+$spacing-xxs: 0.25rem; // 4px
+$spacing-xs: 0.5rem;   // 8px
+$spacing-sm: 0.75rem;  // 12px
+$spacing-md: 0.875rem; // 14px
+$spacing-base: 1rem;   // 16px
+$spacing-lg: 1.125rem; // 18px
+$spacing-xl: 2rem;     // 32px
 
 // Typography
 $font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-$font-size-base: 1em;
-$font-size-lg: 1.2em;
-$font-size-xl: 3.2em;
+$font-size-xs: 0.75rem;    // 12px
+$font-size-sm: 0.8125rem;  // 13px
+$font-size-md: 0.875rem;   // 14px
+$font-size-base: 1rem;     // 16px
+$font-size-lg: 1.125rem;   // 18px
+$font-size-xl: 3.2rem;
 $line-height: 1.5;
 
+// Component sizes
+$logo-size: 150px;
+$form-max-width: 360px;
+$input-padding: 0.75rem;   // 12px
+$button-padding: 0.75rem 1.5rem;
+$border-width: 2px;
+$border-width-sm: 1px;
+$border-width-error: 3px;
+
 // Borders
-$border-radius: 8px;
+$border-radius-xs: 2px;
 $border-radius-sm: 4px;
+$border-radius: 6px;
+$border-radius-md: 8px;
 $border-radius-lg: 12px;
 
 // Transitions

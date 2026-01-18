@@ -1,13 +1,13 @@
-@use './styles/variables';
+@import './styles/variables';
 
 :root {
-  font-family: variables.$font-family;
-  line-height: variables.$line-height;
+  font-family: $font-family;
+  line-height: $line-height;
   font-weight: 400;
 
   color-scheme: light dark;
-  color: variables.$text-dark;
-  background-color: variables.$background-dark;
+  color: $text-dark;
+  background-color: $background-dark;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -17,11 +17,11 @@
 
 a {
   font-weight: 500;
-  color: variables.$primary-color;
+  color: $primary-color;
   text-decoration: inherit;
 
   &:hover {
-    color: variables.$primary-hover;
+    color: $primary-hover;
   }
 }
 
@@ -32,45 +32,54 @@ body {
   min-height: 100vh;
 }
 
+html,
+body {
+  height: 100%;
+}
+
 #app {
   width: 100%;
-  min-height: 100vh;
+  height: 100%;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  display: grid;
 }
 
 h1 {
-  font-size: variables.$font-size-xl;
+  font-size: $font-size-xl;
   line-height: 1.1;
+  text-align: center;
 }
 
 button {
-  @include variables.button-base;
-  background-color: variables.$button-bg-dark;
+  @include button-base;
+  background-color: $button-bg-dark;
 
   &:hover {
-    border-color: variables.$primary-color;
+    border-color: $primary-color;
   }
 
   &:focus,
   &:focus-visible {
-    @include variables.focus-visible;
+    @include focus-visible;
   }
 }
 
 .card {
-  @include variables.card;
+  @include card;
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: variables.$text-light;
-    background-color: variables.$background-light;
+    color: $text-light;
+    background-color: $background-light;
   }
 
   a:hover {
-    color: variables.$primary-light;
+    color: $primary-light;
   }
 
   button {
-    background-color: variables.$button-bg-light;
+    background-color: $button-bg-light;
   }
 }
