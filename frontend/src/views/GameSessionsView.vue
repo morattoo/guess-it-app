@@ -128,6 +128,11 @@
             </svg>
           </button>
         </div>
+        <div>
+          <router-link v-if="session.status !== 'WAITING'" :to="`/game/${session.id}`"
+            >Watch game</router-link
+          >
+        </div>
       </div>
     </div>
   </div>
@@ -142,7 +147,7 @@ import {
   updateGameSessionStatus,
 } from '@/firebase/gameSession';
 import { auth } from '@/firebase/auth';
-import type { GameSession } from '@shared/models/GameSession';
+import type { FirebaseTimestamp, GameSession } from '@shared/models/GameSession';
 
 const router = useRouter();
 const gameSessions = ref<GameSession[]>([]);
@@ -196,18 +201,22 @@ const getStatusLabel = (status: string) => {
   return labels[status] || status;
 };
 
-const formatDate = (timestamp: any) => {
+const formatDate = (timestamp: FirebaseTimestamp) => {
   if (!timestamp) return '';
 
   let date: Date;
-  if (timestamp.toDate) {
-    date = timestamp.toDate();
+  if (typeof timestamp === 'number') {
+    date = new Date(timestamp);
   } else if (timestamp instanceof Date) {
     date = timestamp;
-  } else if (typeof timestamp === 'number') {
-    date = new Date(timestamp);
-  } else if (timestamp.seconds) {
-    date = new Date(timestamp.seconds * 1000);
+  } else if (
+    typeof timestamp === 'object' &&
+    'toDate' in timestamp &&
+    typeof timestamp.toDate === 'function'
+  ) {
+    date = timestamp.toDate();
+  } else if (typeof timestamp === 'object' && '_seconds' in timestamp) {
+    date = new Date(timestamp._seconds * 1000);
   } else {
     return '';
   }
@@ -394,9 +403,6 @@ h2 {
 }
 
 .session-actions {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
   display: flex;
   gap: 0.5rem;
   opacity: 0;

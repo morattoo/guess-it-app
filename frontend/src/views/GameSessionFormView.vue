@@ -162,8 +162,9 @@ const formatDate = (timestamp: any) => {
     date = timestamp;
   } else if (typeof timestamp === 'number') {
     date = new Date(timestamp);
-  } else if (timestamp.seconds) {
-    date = new Date(timestamp.seconds * 1000);
+  } else if (timestamp._seconds !== undefined) {
+    // Formato JSON de Firestore desde API
+    date = new Date(timestamp._seconds * 1000);
   } else {
     return '';
   }

@@ -284,13 +284,10 @@ const handleLogout = async () => {
 .dashboard-layout {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  height: 100vh;
+  height: 100%;
   width: 100%;
-  min-width: 320px;
-  margin: 0 auto;
-  overflow: hidden;
   background-color: #f5f5f5;
+  overflow: hidden;
 }
 
 // Header

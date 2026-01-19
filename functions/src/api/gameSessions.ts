@@ -31,6 +31,15 @@ gameSessionsApi.post("/gameSessions", async (req, res) => {
 
     const questionnaire = questionnaireSnap.data()!;
 
+    // Verificar que el usuario sea el creador del cuestionario
+    if (questionnaire.createdBy !== userId) {
+      return res
+        .status(403)
+        .send(
+          "Unauthorized: You can only create sessions from your own questionnaires"
+        );
+    }
+
     // Obtener todas las preguntas del cuestionario
     const questionIds = questionnaire.questionIds || [];
     const questions = [];
@@ -40,8 +49,20 @@ gameSessionsApi.post("/gameSessions", async (req, res) => {
         .collection("questions")
         .doc(questionId)
         .get();
+
+      console.log("Question Snap:", questionSnap.id, questionSnap.exists);
+
       if (questionSnap.exists) {
         const questionData = questionSnap.data()!;
+
+        // Verificar que la pregunta pertenezca al mismo usuario
+        if (questionData.createdBy !== userId) {
+          console.warn(
+            `Question ${questionId} does not belong to user ${userId}, skipping`
+          );
+          continue;
+        }
+
         questions.push({
           id: questionSnap.id,
           type: questionData.type,
@@ -52,6 +73,9 @@ gameSessionsApi.post("/gameSessions", async (req, res) => {
           validation: {
             type: questionData.type,
             expectedAnswer: questionData.expectedAnswer,
+            ...(questionData.type === "CHOICE" && questionData.options
+              ? { options: questionData.options }
+              : {}),
           },
         });
       }
@@ -97,9 +121,10 @@ gameSessionsApi.get("/gameSessions", async (req, res) => {
   res.json(gameSessions);
 });
 
-// Obtener una sesión específica
+// Obtener una sesión específica (requiere autenticación del autor)
 gameSessionsApi.get("/gameSessions/:id", async (req, res) => {
   const { id } = req.params;
+  const userId = req.query.userId as string;
 
   const gameSessionSnap = await db.collection("gameSessions").doc(id).get();
 
@@ -107,9 +132,16 @@ gameSessionsApi.get("/gameSessions/:id", async (req, res) => {
     return res.status(404).send("Game session not found");
   }
 
+  const gameSessionData = gameSessionSnap.data()!;
+
+  // Verificar que el usuario sea el creador para ver respuestas
+  if (userId && gameSessionData.createdBy !== userId) {
+    return res.status(403).send("Unauthorized");
+  }
+
   res.json({
     id: gameSessionSnap.id,
-    ...gameSessionSnap.data(),
+    ...gameSessionData,
   });
 });
 
@@ -198,6 +230,15 @@ gameSessionsApi.put("/gameSessions/:id/refresh-questions", async (req, res) => {
         .get();
       if (questionSnap.exists) {
         const questionData = questionSnap.data()!;
+
+        // Verificar que la pregunta pertenezca al mismo usuario
+        if (questionData.createdBy !== userId) {
+          console.warn(
+            `Question ${questionId} does not belong to user ${userId}, skipping`
+          );
+          continue;
+        }
+
         questions.push({
           id: questionSnap.id,
           type: questionData.type,
@@ -208,6 +249,9 @@ gameSessionsApi.put("/gameSessions/:id/refresh-questions", async (req, res) => {
           validation: {
             type: questionData.type,
             expectedAnswer: questionData.expectedAnswer,
+            ...(questionData.type === "CHOICE" && questionData.options
+              ? { options: questionData.options }
+              : {}),
           },
         });
       }

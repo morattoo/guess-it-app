@@ -99,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import type { NumberQuestion, Question } from '@shared/models/Question';
 
 const props = defineProps<{
@@ -123,8 +123,18 @@ const form = ref({
   tolerance: initialNumber?.expectedAnswer.tolerance,
 });
 
+const isFormValid = computed(() => {
+  return (
+    form.value.title &&
+    form.value.description &&
+    form.value.timeLimitSec !== undefined &&
+    form.value.points &&
+    form.value.expectedValue !== undefined
+  );
+});
+
 const submitForm = () => {
-  if (form.value.expectedValue === undefined) return;
+  if (!isFormValid.value) return;
 
   const question: NumberQuestion = {
     type: 'NUMBER',
@@ -133,7 +143,7 @@ const submitForm = () => {
     points: form.value.points,
     timeLimitSec: form.value.timeLimitSec,
     expectedAnswer: {
-      value: form.value.expectedValue,
+      value: form.value.expectedValue!,
       tolerance: form.value.tolerance,
     },
   };

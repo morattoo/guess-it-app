@@ -6,8 +6,8 @@ import { getCurrentUser } from '@/firebase/auth';
 
 const routes = [
   { path: '/', component: HomeView },
-  { path: '/join', component: () => import('@/components/JoinGame.vue') },
-  { path: '/game/:sessionId', component: () => import('@/components/GameSession.vue') },
+  { path: '/game/:sessionId', component: () => import('@/components/JoinGameView.vue') },
+  { path: '/game/:sessionId/play', component: () => import('@/components/PlayGameView.vue') },
   {
     path: '/auth',
     component: AuthLayout,

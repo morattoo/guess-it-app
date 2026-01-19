@@ -1,0 +1,380 @@
+<template>
+  <div class="join-game-view">
+    <div class="container">
+      <HeaderLogo />
+
+      <div v-if="loading" class="loading">
+        <p>Cargando sesión...</p>
+      </div>
+
+      <div v-else-if="error" class="error-message">
+        <h2>Error</h2>
+        <p>{{ error }}</p>
+        <router-link to="/" class="btn btn-primary">Volver al inicio</router-link>
+      </div>
+
+      <div v-else-if="gameSession" class="join-card">
+        <h1>Unirse al juego</h1>
+
+        <div class="session-info">
+          <p class="info-text">
+            <strong>Estado:</strong>
+            <span :class="`status-${gameSession.status.toLowerCase()}`">
+              {{ statusText }}
+            </span>
+          </p>
+          <p class="info-text"><strong>Preguntas:</strong> {{ gameSession.questions.length }}</p>
+        </div>
+
+        <form v-if="!hasJoined" @submit.prevent="handleJoin" class="join-form">
+          <div v-if="showNameInput" class="form-group">
+            <label for="displayName">Ingresa tu nombre</label>
+            <input
+              id="displayName"
+              v-model="displayName"
+              type="text"
+              class="form-input"
+              placeholder="Tu nombre"
+              required
+              maxlength="50"
+            />
+          </div>
+
+          <div v-else class="welcome-message">
+            <p>
+              Bienvenido, <strong>{{ currentUserName }}</strong>
+            </p>
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary btn-large"
+            :disabled="joining || (showNameInput && !displayName.trim())"
+          >
+            {{ joining ? 'Uniéndose...' : 'Unirse al juego' }}
+          </button>
+        </form>
+
+        <div v-else class="joined-message">
+          <div class="success-icon">✓</div>
+          <h2>¡Te has unido exitosamente!</h2>
+          <p>Prepárate para comenzar a jugar</p>
+          <button @click="goToPlay" class="btn btn-success btn-large">Ir a jugar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { getCurrentUser } from '@/firebase/auth';
+import {
+  getPublicGameSession,
+  joinPublicGameSession,
+  getPublicPlayerProgress,
+} from '@/firebase/publicGame';
+import type { GameSession } from '@shared/models/GameSession';
+import HeaderLogo from '@/components/layout/HeaderLogo.vue';
+
+const router = useRouter();
+const route = useRoute();
+
+const gameSession = ref<GameSession | null>(null);
+const loading = ref(true);
+const error = ref('');
+const displayName = ref('');
+const currentUserName = ref('');
+const showNameInput = ref(false);
+const joining = ref(false);
+const hasJoined = ref(false);
+
+const sessionId = computed(() => route.params.sessionId as string);
+
+const statusText = computed(() => {
+  if (!gameSession.value) return '';
+  const status = gameSession.value.status;
+  return status === 'WAITING' ? 'En espera' : status === 'RUNNING' ? 'En curso' : 'Finalizado';
+});
+
+onMounted(async () => {
+  try {
+    // Cargar la sesión (sin necesidad de autenticación)
+    const session = await getPublicGameSession(sessionId.value);
+
+    if (!session) {
+      error.value = 'La sesión de juego no existe o ya no está disponible.';
+      loading.value = false;
+      return;
+    }
+
+    if (session.status === 'FINISHED') {
+      error.value = 'Esta sesión ya ha finalizado.';
+      loading.value = false;
+      return;
+    }
+
+    if (!session.isOpen) {
+      error.value = 'Esta sesión no acepta nuevos jugadores.';
+      loading.value = false;
+      return;
+    }
+
+    gameSession.value = session;
+
+    // Verificar autenticación (puede ser null)
+    const user = await getCurrentUser();
+
+    if (!user) {
+      // Usuario no autenticado, mostrar input de nombre
+      showNameInput.value = true;
+    } else if (user.isAnonymous && !user.displayName) {
+      // Usuario anónimo sin nombre
+      showNameInput.value = true;
+    } else {
+      // Usuario autenticado con nombre
+      currentUserName.value = user.displayName || 'Jugador';
+      showNameInput.value = false;
+    }
+
+    // Verificar si ya se unió (solo si hay usuario)
+    if (user) {
+      const progress = await getPublicPlayerProgress(sessionId.value);
+      if (progress) {
+        hasJoined.value = true;
+      }
+    }
+
+    loading.value = false;
+  } catch (err: any) {
+    console.error('Error al cargar la sesión:', err);
+    error.value = err.message || 'Error al cargar la sesión de juego.';
+    loading.value = false;
+  }
+});
+
+const handleJoin = async () => {
+  if (joining.value) return;
+
+  try {
+    joining.value = true;
+
+    const nameToUse = showNameInput.value ? displayName.value.trim() : currentUserName.value;
+
+    // Esta función maneja la autenticación anónima automáticamente si es necesario
+    await joinPublicGameSession(sessionId.value, nameToUse);
+
+    hasJoined.value = true;
+    joining.value = false;
+  } catch (err: any) {
+    console.error('Error al unirse:', err);
+    alert('Error al unirse al juego: ' + (err.message || 'Error desconocido'));
+    joining.value = false;
+  }
+};
+
+const goToPlay = () => {
+  router.push(`/game/${sessionId.value}/play`);
+};
+</script>
+
+<style scoped lang="scss">
+.join-game-view {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.container {
+  max-width: 500px;
+  width: 100%;
+}
+
+.loading,
+.error-message {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.error-message {
+  h2 {
+    color: #e53e3e;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    margin-bottom: 1.5rem;
+    color: #4a5568;
+  }
+}
+
+.join-card {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+
+  h1 {
+    text-align: center;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    font-size: 1.875rem;
+  }
+}
+
+.session-info {
+  background: #f7fafc;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+
+  .info-text {
+    margin: 0.5rem 0;
+    color: #4a5568;
+
+    strong {
+      color: #2d3748;
+    }
+  }
+}
+
+.status-waiting {
+  color: #d69e2e;
+  font-weight: 600;
+}
+
+.status-running {
+  color: #38a169;
+  font-weight: 600;
+}
+
+.status-finished {
+  color: #718096;
+  font-weight: 600;
+}
+
+.join-form {
+  .form-group {
+    margin-bottom: 1.5rem;
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #2d3748;
+      font-weight: 600;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+
+      &:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+    }
+  }
+
+  .welcome-message {
+    background: #f7fafc;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    text-align: center;
+
+    p {
+      margin: 0;
+      color: #4a5568;
+      font-size: 1.125rem;
+
+      strong {
+        color: #667eea;
+      }
+    }
+  }
+}
+
+.joined-message {
+  text-align: center;
+  padding: 1rem 0;
+
+  .success-icon {
+    width: 60px;
+    height: 60px;
+    background: #38a169;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 1rem;
+  }
+
+  h2 {
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: #718096;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: #5568d3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+}
+
+.btn-success {
+  background: #38a169;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: #2f855a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(56, 161, 105, 0.4);
+  }
+}
+
+.btn-large {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.125rem;
+}
+</style>

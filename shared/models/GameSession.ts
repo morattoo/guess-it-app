@@ -8,8 +8,8 @@ export type GameSession = {
   questions: GameSessionQuestion[];
   status: GameSessionStatus;
   createdBy: string;
-  startedAt: number;
-  endedAt?: number;
+  startedAt: FirebaseTimestamp;
+  endedAt?: FirebaseTimestamp;
   isOpen: boolean;
 };
 
@@ -18,7 +18,7 @@ export type GameSessionStatus = "WAITING" | "RUNNING" | "FINISHED";
 export type FirebaseTimestamp =
   | number
   | Date
-  | { seconds: number; nanoseconds: number };
+  | { _seconds: number; _nanoseconds: number };
 
 /* gameSessions/{gameSessionId}/players/
   {userId}

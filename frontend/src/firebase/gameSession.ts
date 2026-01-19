@@ -96,3 +96,60 @@ export const deleteGameSession = async (gameSessionId: string): Promise<void> =>
   const user = await ensureAuth();
   await callGameSessionsApi(`/gameSessions/${gameSessionId}?userId=${user.uid}`, 'DELETE');
 };
+
+/**
+ * Unirse a una sesión de juego (crear progreso del jugador)
+ */
+export const joinGameSession = async (
+  gameSessionId: string,
+  displayName?: string
+): Promise<void> => {
+  const user = await ensureAuth();
+
+  // Si hay displayName y el usuario es anónimo, actualizarlo
+  if (displayName && user.isAnonymous) {
+    const { updateProfile } = await import('firebase/auth');
+    await updateProfile(user, { displayName });
+  }
+
+  await callGameSessionsApi(`/gameSessions/${gameSessionId}/players`, 'POST', {
+    userId: user.uid,
+    displayName: displayName || user.displayName || 'Jugador Anónimo',
+  });
+};
+
+/**
+ * Obtener el progreso del jugador en una sesión
+ */
+export const getPlayerProgress = async (gameSessionId: string): Promise<any | null> => {
+  try {
+    const user = await ensureAuth();
+    const response = await callGameSessionsApi(
+      `/gameSessions/${gameSessionId}/players/${user.uid}`,
+      'GET'
+    );
+    return response;
+  } catch (error) {
+    return null;
+  }
+};
+
+/**
+ * Enviar una respuesta a una pregunta
+ */
+export const submitAnswer = async (
+  gameSessionId: string,
+  questionIndex: number,
+  answer: string | number
+): Promise<{ correct: boolean; message?: string }> => {
+  const user = await ensureAuth();
+  const response = await callGameSessionsApi(
+    `/gameSessions/${gameSessionId}/players/${user.uid}/answer`,
+    'POST',
+    {
+      questionIndex,
+      answer,
+    }
+  );
+  return response;
+};

@@ -29,13 +29,26 @@ exports.gameSessionsApi.post("/gameSessions", async (req, res) => {
             return res.status(404).send("Questionnaire not found");
         }
         const questionnaire = questionnaireSnap.data();
+        // Verificar que el usuario sea el creador del cuestionario
+        if (questionnaire.createdBy !== userId) {
+            return res.status(403).send("Unauthorized: You can only create sessions from your own questionnaires");
+        }
         // Obtener todas las preguntas del cuestionario
         const questionIds = questionnaire.questionIds || [];
         const questions = [];
         for (const questionId of questionIds) {
-            const questionSnap = await db.collection("questions").doc(questionId).get();
+            const questionSnap = await db
+                .collection("questions")
+                .doc(questionId)
+                .get();
+            console.log("Question Snap:", questionSnap.id, questionSnap.exists);
             if (questionSnap.exists) {
                 const questionData = questionSnap.data();
+                // Verificar que la pregunta pertenezca al mismo usuario
+                if (questionData.createdBy !== userId) {
+                    console.warn(`Question ${questionId} does not belong to user ${userId}, skipping`);
+                    continue;
+                }
                 questions.push({
                     id: questionSnap.id,
                     type: questionData.type,
@@ -46,6 +59,7 @@ exports.gameSessionsApi.post("/gameSessions", async (req, res) => {
                     validation: {
                         type: questionData.type,
                         expectedAnswer: questionData.expectedAnswer,
+                        ...(questionData.type === "CHOICE" && questionData.options ? { options: questionData.options } : {}),
                     },
                 });
             }
@@ -83,16 +97,22 @@ exports.gameSessionsApi.get("/gameSessions", async (req, res) => {
     }));
     res.json(gameSessions);
 });
-// Obtener una sesión específica
+// Obtener una sesión específica (requiere autenticación del autor)
 exports.gameSessionsApi.get("/gameSessions/:id", async (req, res) => {
     const { id } = req.params;
+    const userId = req.query.userId;
     const gameSessionSnap = await db.collection("gameSessions").doc(id).get();
     if (!gameSessionSnap.exists) {
         return res.status(404).send("Game session not found");
     }
+    const gameSessionData = gameSessionSnap.data();
+    // Verificar que el usuario sea el creador para ver respuestas
+    if (userId && gameSessionData.createdBy !== userId) {
+        return res.status(403).send("Unauthorized");
+    }
     res.json({
         id: gameSessionSnap.id,
-        ...gameSessionSnap.data(),
+        ...gameSessionData,
     });
 });
 // Actualizar estado de la sesión
@@ -154,9 +174,17 @@ exports.gameSessionsApi.put("/gameSessions/:id/refresh-questions", async (req, r
         const questionIds = questionnaire.questionIds || [];
         const questions = [];
         for (const questionId of questionIds) {
-            const questionSnap = await db.collection("questions").doc(questionId).get();
+            const questionSnap = await db
+                .collection("questions")
+                .doc(questionId)
+                .get();
             if (questionSnap.exists) {
                 const questionData = questionSnap.data();
+                // Verificar que la pregunta pertenezca al mismo usuario
+                if (questionData.createdBy !== userId) {
+                    console.warn(`Question ${questionId} does not belong to user ${userId}, skipping`);
+                    continue;
+                }
                 questions.push({
                     id: questionSnap.id,
                     type: questionData.type,
@@ -167,6 +195,7 @@ exports.gameSessionsApi.put("/gameSessions/:id/refresh-questions", async (req, r
                     validation: {
                         type: questionData.type,
                         expectedAnswer: questionData.expectedAnswer,
+                        ...(questionData.type === "CHOICE" && questionData.options ? { options: questionData.options } : {}),
                     },
                 });
             }

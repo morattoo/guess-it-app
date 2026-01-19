@@ -78,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import type { TextQuestion, Question } from '@shared/models/Question';
 
 const props = defineProps<{
@@ -102,7 +102,19 @@ const form = ref({
   caseSensitive: initialText?.expectedAnswer.caseSensitive || false,
 });
 
+const isFormValid = computed(() => {
+  return (
+    form.value.title &&
+    form.value.description &&
+    form.value.timeLimitSec !== undefined &&
+    form.value.points &&
+    form.value.expectedAnswer !== undefined
+  );
+});
+
 const submitForm = () => {
+  if (!isFormValid.value) return;
+
   const question: TextQuestion = {
     type: 'TEXT',
     title: form.value.title,

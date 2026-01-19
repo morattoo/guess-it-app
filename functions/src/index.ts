@@ -14,7 +14,9 @@ setGlobalOptions({ maxInstances: 10 });
 import { gameSessionsApi } from "./api/gameSessions";
 import { questionsApi } from "./api/questions";
 import { questionnairesApi } from "./api/questionnaires";
+import { publicGameApi } from "./api/publicGame";
 
 export const gameSessions = onRequest(gameSessionsApi);
 export const questions = onRequest(questionsApi);
 export const questionnaires = onRequest(questionnairesApi);
+export const publicGame = onRequest(publicGameApi);

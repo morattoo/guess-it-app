@@ -122,6 +122,7 @@ const form = ref({
 const isFormValid = computed(() => {
   return (
     form.value.title &&
+    form.value.description &&
     form.value.options.every(opt => opt.label.trim()) &&
     form.value.correctOptionId
   );
