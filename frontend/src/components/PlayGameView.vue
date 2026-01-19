@@ -153,7 +153,9 @@
           </div>
         </div>
 
-        <router-link to="/" class="btn btn-primary btn-large"> Volver al inicio </router-link>
+        <router-link :to="`/game/${sessionId}/ranking`" class="btn btn-primary btn-large">
+          Ver ranking
+        </router-link>
       </div>
     </div>
   </div>
@@ -301,8 +303,9 @@ const handleSubmitAnswer = async () => {
 <style scoped lang="scss">
 .play-game-view {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .container {

@@ -16,6 +16,12 @@ service cloud.firestore {
                   && isPlayer(resource);
 
       allow create, update, delete: if false;
+
+      // Permitir lectura de los jugadores en una sesión
+      match /players/{playerId} {
+        allow read: if true; // Cualquiera puede ver el ranking
+        allow write: if false; // Solo el backend puede escribir
+      }
     }
 
     match /answers/{answerId} {
