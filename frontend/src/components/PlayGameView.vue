@@ -163,7 +163,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { useRoute } from 'vue-router';
 import {
   getPublicGameSession,
   getPublicPlayerProgress,
@@ -172,7 +172,6 @@ import {
 import type { GameSession, GameSessionQuestion, PlayerProgress } from '@shared/models/GameSession';
 import HeaderLogo from '@/components/layout/HeaderLogo.vue';
 
-const router = useRouter();
 const route = useRoute();
 
 const gameSession = ref<GameSession | null>(null);
