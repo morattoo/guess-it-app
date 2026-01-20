@@ -31,7 +31,9 @@ exports.gameSessionsApi.post("/gameSessions", async (req, res) => {
         const questionnaire = questionnaireSnap.data();
         // Verificar que el usuario sea el creador del cuestionario
         if (questionnaire.createdBy !== userId) {
-            return res.status(403).send("Unauthorized: You can only create sessions from your own questionnaires");
+            return res
+                .status(403)
+                .send("Unauthorized: You can only create sessions from your own questionnaires");
         }
         // Obtener todas las preguntas del cuestionario
         const questionIds = questionnaire.questionIds || [];
@@ -59,7 +61,9 @@ exports.gameSessionsApi.post("/gameSessions", async (req, res) => {
                     validation: {
                         type: questionData.type,
                         expectedAnswer: questionData.expectedAnswer,
-                        ...(questionData.type === "CHOICE" && questionData.options ? { options: questionData.options } : {}),
+                        ...(questionData.type === "CHOICE" && questionData.options
+                            ? { options: questionData.options }
+                            : {}),
                     },
                 });
             }
@@ -195,7 +199,9 @@ exports.gameSessionsApi.put("/gameSessions/:id/refresh-questions", async (req, r
                     validation: {
                         type: questionData.type,
                         expectedAnswer: questionData.expectedAnswer,
-                        ...(questionData.type === "CHOICE" && questionData.options ? { options: questionData.options } : {}),
+                        ...(questionData.type === "CHOICE" && questionData.options
+                            ? { options: questionData.options }
+                            : {}),
                     },
                 });
             }

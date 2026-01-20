@@ -69,8 +69,8 @@
 
       <div class="form-actions">
         <button type="button" class="btn-secondary" @click="cancel">Cancelar</button>
-        <button type="submit" class="btn-primary">
-          {{ isEdit ? 'Actualizar Pregunta' : 'Crear Pregunta' }}
+        <button type="submit" class="btn-primary" :disabled="isSubmitting">
+          {{ isSubmitting ? 'Guardando...' : isEdit ? 'Actualizar Pregunta' : 'Crear Pregunta' }}
         </button>
       </div>
     </form>
@@ -102,6 +102,8 @@ const form = ref({
   caseSensitive: initialText?.expectedAnswer.caseSensitive || false,
 });
 
+const isSubmitting = ref(false);
+
 const isFormValid = computed(() => {
   return (
     form.value.title &&
@@ -113,7 +115,9 @@ const isFormValid = computed(() => {
 });
 
 const submitForm = () => {
-  if (!isFormValid.value) return;
+  if (!isFormValid.value || isSubmitting.value) return;
+
+  isSubmitting.value = true;
 
   const question: TextQuestion = {
     type: 'TEXT',

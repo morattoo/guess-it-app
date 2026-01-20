@@ -13,8 +13,9 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        api: 'modern-compiler', // Usar el compilador moderno de Sass
-        silenceDeprecations: ['import'], // Silenciar warnings de @import
+        // @ts-ignore - api and silenceDeprecations options are supported but not typed yet
+        api: 'modern-compiler',
+        silenceDeprecations: ['import'],
       },
     },
   },

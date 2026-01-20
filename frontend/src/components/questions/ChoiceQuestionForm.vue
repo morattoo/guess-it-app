@@ -83,8 +83,8 @@
 
       <div class="form-actions">
         <button type="button" class="btn-secondary" @click="cancel">Cancelar</button>
-        <button type="submit" class="btn-primary" :disabled="!isFormValid">
-          {{ isEdit ? 'Actualizar Pregunta' : 'Crear Pregunta' }}
+        <button type="submit" class="btn-primary" :disabled="!isFormValid || isSubmitting">
+          {{ isSubmitting ? 'Guardando...' : isEdit ? 'Actualizar Pregunta' : 'Crear Pregunta' }}
         </button>
       </div>
     </form>
@@ -119,6 +119,8 @@ const form = ref({
   correctOptionId: initialChoice?.expectedAnswer.optionId || '',
 });
 
+const isSubmitting = ref(false);
+
 const isFormValid = computed(() => {
   return (
     form.value.title &&
@@ -146,7 +148,9 @@ const removeOption = (index: number) => {
 };
 
 const submitForm = () => {
-  if (!isFormValid.value) return;
+  if (!isFormValid.value || isSubmitting.value) return;
+
+  isSubmitting.value = true;
 
   const question: ChoiceQuestion = {
     type: 'CHOICE',
