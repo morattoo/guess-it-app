@@ -285,21 +285,28 @@ publicGameApi.get("/game/:id/ranking", async (req, res) => {
       .collection("gameSessions")
       .doc(gameSessionId)
       .collection("players")
-      .orderBy("score", "desc")
-      .orderBy("totalPenaltySeconds", "asc")
       .get();
 
-    const ranking = playersSnap.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        userId: doc.id,
-        displayName: data.displayName,
-        score: data.score,
-        totalPenaltySeconds: data.totalPenaltySeconds,
-        finishedAt: data.finishedAt,
-        currentQuestionIndex: data.currentQuestionIndex,
-      };
-    });
+    const ranking = playersSnap.docs
+      .map((doc) => {
+        const data = doc.data();
+        return {
+          userId: doc.id,
+          displayName: data.displayName,
+          score: data.score,
+          totalPenaltySeconds: data.totalPenaltySeconds,
+          finishedAt: data.finishedAt,
+          currentQuestionIndex: data.currentQuestionIndex,
+        };
+      })
+      .sort((a, b) => {
+        // Primero ordenar por score (descendente)
+        if (b.score !== a.score) {
+          return b.score - a.score;
+        }
+        // Si tienen el mismo score, ordenar por penaltySeconds (ascendente)
+        return a.totalPenaltySeconds - b.totalPenaltySeconds;
+      });
 
     res.json(ranking);
   } catch (error) {
