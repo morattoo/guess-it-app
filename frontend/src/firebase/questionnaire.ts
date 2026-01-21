@@ -33,12 +33,12 @@ async function callQuestionnairesApi(
  */
 export const createQuestionnaire = async (
   title: string,
-  questionIds: string[],
-  userId: string
+  questionIds: string[]
 ): Promise<string> => {
+  const user = await ensureAuth();
   const response = await callQuestionnairesApi('/questionnaires', 'POST', {
     questionnaire: { title, questionIds },
-    userId,
+    userId: user.uid,
   });
   return response.questionnaireId;
 };

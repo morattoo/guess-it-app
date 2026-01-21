@@ -157,15 +157,13 @@ const handleSubmit = async () => {
   if (!isFormValid.value) return;
 
   try {
-    const currentUser = auth.currentUser!;
-
     if (isEdit.value) {
       await updateQuestionnaire(questionnaireId, {
         title: form.value.title,
         questionIds: form.value.questionIds,
       });
     } else {
-      await createQuestionnaire(form.value.title, form.value.questionIds, currentUser.uid);
+      await createQuestionnaire(form.value.title, form.value.questionIds);
     }
 
     router.push('/dashboard/questionnaires');

@@ -101,7 +101,7 @@
             class="btn-secondary"
             @click="router.push('/dashboard/game-sessions')"
           >
-            Cancelar
+            Volver
           </button>
           <button
             v-if="!isEdit"

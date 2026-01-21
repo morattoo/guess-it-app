@@ -141,7 +141,8 @@ publicGameApi.get("/game/:id/players/:userId", async (req, res) => {
       .get();
 
     if (!playerSnap.exists) {
-      return res.status(404).send("Player not found");
+      // Retornar null en lugar de 404 para indicar que el jugador no se ha unido
+      return res.json(null);
     }
 
     res.json({

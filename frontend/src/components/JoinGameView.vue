@@ -77,6 +77,7 @@ import {
 } from '@/firebase/publicGame';
 import type { GameSession } from '@shared/models/GameSession';
 import HeaderLogo from '@/components/layout/HeaderLogo.vue';
+import { getUserProfile } from '@/firebase/users';
 
 const router = useRouter();
 const route = useRoute();
@@ -134,7 +135,8 @@ onMounted(async () => {
       showNameInput.value = true;
     } else {
       // Usuario autenticado con nombre
-      currentUserName.value = user.displayName || 'Jugador';
+      const profile = await getUserProfile(user.uid);
+      currentUserName.value = profile?.name || 'Jugador';
       showNameInput.value = false;
     }
 
