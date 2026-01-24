@@ -1,5 +1,7 @@
 import { ensureAuth } from './auth';
 import { API_ENDPOINTS } from './config';
+import { getToken } from 'firebase/app-check';
+import { getAppCheck } from './appCheck';
 
 const API_URL = API_ENDPOINTS.gameSessions;
 
@@ -7,12 +9,25 @@ async function callApi(path: string, body?: unknown) {
   const user = await ensureAuth();
   const token = await user.getIdToken();
 
+  // Obtener token de App Check
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
+
+  const appCheck = getAppCheck();
+  if (appCheck) {
+    try {
+      const appCheckToken = await getToken(appCheck, false);
+      headers['X-Firebase-AppCheck'] = appCheckToken.token;
+    } catch (error) {
+      console.warn('Error getting App Check token:', error);
+    }
+  }
+
   const res = await fetch(`${API_URL}${path}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
     body: body ? JSON.stringify(body) : undefined,
   });
 
@@ -36,9 +51,25 @@ export const api = {
   getRanking: async (sessionId: string) => {
     const user = await ensureAuth();
     const token = await user.getIdToken();
+
+    // Obtener token de App Check
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${token}`,
+    };
+
+    const appCheck = getAppCheck();
+    if (appCheck) {
+      try {
+        const appCheckToken = await getToken(appCheck, false);
+        headers['X-Firebase-AppCheck'] = appCheckToken.token;
+      } catch (error) {
+        console.warn('Error getting App Check token:', error);
+      }
+    }
+
     const res = await fetch(`${API_URL}/gameSessions/${sessionId}/ranking`, {
       method: 'GET',
-      headers: { Authorization: `Bearer ${token}` },
+      headers,
     });
     if (!res.ok) throw new Error(await res.text());
     return res.json();

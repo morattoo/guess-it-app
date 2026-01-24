@@ -4,8 +4,14 @@ import type { FirebaseApp } from 'firebase/app';
 // Para desarrollo/testing, puedes habilitar debug mode
 // descomentar esto en desarrollo y agregar el token que aparece en la consola a Firebase Console
 if (import.meta.env.DEV) {
+  const debugToken = import.meta.env.VITE_APP_CHECK_DEBUG_TOKEN || true;
+  console.log('🔍 App Check Debug Mode:', {
+    isDev: import.meta.env.DEV,
+    debugToken: debugToken,
+    recaptchaKey: import.meta.env.VITE_RECAPTCHA_SITE_KEY,
+  });
   // @ts-ignore
-  self.FIREBASE_APPCHECK_DEBUG_TOKEN = import.meta.env.VITE_APP_CHECK_DEBUG_TOKEN || true;
+  self.FIREBASE_APPCHECK_DEBUG_TOKEN = debugToken;
 }
 
 let appCheckInstance: AppCheck | null = null;

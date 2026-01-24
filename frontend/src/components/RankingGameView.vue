@@ -347,7 +347,6 @@ onUnmounted(() => {
     background: rgba(255, 255, 255, 0.2);
     border: none;
     border-radius: 50%;
-    color: white;
     cursor: pointer;
     transition: background 0.2s;
 
@@ -363,7 +362,6 @@ onUnmounted(() => {
 
   h1 {
     margin: 0;
-    color: white;
     font-size: 1.5rem;
     font-weight: 700;
   }
@@ -376,7 +374,6 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding: 3rem 1rem;
-  color: white;
   text-align: center;
 }
 
@@ -408,7 +405,6 @@ onUnmounted(() => {
   backdrop-filter: blur(10px);
   border-radius: 12px;
   margin-bottom: 1.5rem;
-  color: white;
 
   .session-status {
     display: flex;
@@ -421,7 +417,6 @@ onUnmounted(() => {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: white;
     }
 
     &.running .status-dot {
@@ -620,7 +615,6 @@ onUnmounted(() => {
 .empty-state {
   padding: 3rem 1rem;
   text-align: center;
-  color: white;
   font-size: 1.125rem;
   opacity: 0.8;
 }
@@ -636,7 +630,6 @@ onUnmounted(() => {
   backdrop-filter: blur(10px);
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
-  color: white;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;

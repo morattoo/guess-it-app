@@ -1,6 +1,8 @@
 import { API_ENDPOINTS } from './config';
 import { getCurrentUser, auth } from './auth';
 import { signInAnonymously, updateProfile } from 'firebase/auth';
+import { getToken } from 'firebase/app-check';
+import { getAppCheck } from './appCheck';
 import type { GameSession } from '@shared/models/GameSession';
 
 const API_URL = API_ENDPOINTS.publicGame;
@@ -13,11 +15,23 @@ async function callPublicGameApi(
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
   body?: unknown
 ) {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  const appCheck = getAppCheck();
+  if (appCheck) {
+    try {
+      const appCheckToken = await getToken(appCheck, false);
+      headers['X-Firebase-AppCheck'] = appCheckToken.token;
+    } catch (error) {
+      console.warn('Error getting App Check token:', error);
+    }
+  }
+
   const res = await fetch(`${API_URL}${path}`, {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: body ? JSON.stringify(body) : undefined,
   });
 

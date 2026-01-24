@@ -1,5 +1,7 @@
 import { ensureAuth } from './auth';
 import { API_ENDPOINTS } from './config';
+import { getToken } from 'firebase/app-check';
+import { getAppCheck } from './appCheck';
 import type { Question, QuestionDocument } from '@shared/models/Question';
 
 const API_URL = API_ENDPOINTS.questions;
@@ -12,12 +14,24 @@ async function callQuestionsApi(
   const user = await ensureAuth();
   const token = await user.getIdToken();
 
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
+
+  const appCheck = getAppCheck();
+  if (appCheck) {
+    try {
+      const appCheckToken = await getToken(appCheck, false);
+      headers['X-Firebase-AppCheck'] = appCheckToken.token;
+    } catch (error) {
+      console.warn('Error getting App Check token:', error);
+    }
+  }
+
   const res = await fetch(`${API_URL}${path}`, {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
     body: body ? JSON.stringify(body) : undefined,
   });
 
