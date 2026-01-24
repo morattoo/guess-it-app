@@ -2,12 +2,14 @@ import express from "express";
 import cors from "cors";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { authMiddleware } from "../middlewares/auth";
+import { appCheckMiddleware } from "../middlewares/appCheck";
 
 const db = getFirestore();
 export const gameSessionsApi = express();
 
 gameSessionsApi.use(cors({ origin: true }));
 gameSessionsApi.use(express.json());
+gameSessionsApi.use(appCheckMiddleware);
 gameSessionsApi.use(authMiddleware);
 
 // Crear nueva sesión de juego copiando las preguntas del cuestionario

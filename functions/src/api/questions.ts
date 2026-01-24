@@ -2,12 +2,14 @@ import express from "express";
 import cors from "cors";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { authMiddleware } from "../middlewares/auth";
+import { appCheckMiddleware } from "../middlewares/appCheck";
 
 const db = getFirestore();
 export const questionsApi = express();
 
 questionsApi.use(cors({ origin: true }));
 questionsApi.use(express.json());
+questionsApi.use(appCheckMiddleware);
 questionsApi.use(authMiddleware);
 
 // Crear nueva pregunta

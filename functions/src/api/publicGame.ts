@@ -1,12 +1,14 @@
 import express from "express";
 import cors from "cors";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { appCheckMiddleware } from "../middlewares/appCheck";
 
 const db = getFirestore();
 export const publicGameApi = express();
 
 publicGameApi.use(cors({ origin: true }));
 publicGameApi.use(express.json());
+publicGameApi.use(appCheckMiddleware);
 
 // NO usa authMiddleware - es público
 

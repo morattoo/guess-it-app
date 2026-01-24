@@ -2,12 +2,14 @@ import express from "express";
 import cors from "cors";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { authMiddleware } from "../middlewares/auth";
+import { appCheckMiddleware } from "../middlewares/appCheck";
 
 const db = getFirestore();
 export const questionnairesApi = express();
 
 questionnairesApi.use(cors({ origin: true }));
 questionnairesApi.use(express.json());
+questionnairesApi.use(appCheckMiddleware);
 questionnairesApi.use(authMiddleware);
 
 // Crear nuevo cuestionario
