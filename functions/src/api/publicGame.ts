@@ -117,6 +117,14 @@ publicGameApi.post("/game/:id/join", async (req, res) => {
         totalPenaltySeconds: 0,
         startedAt: FieldValue.serverTimestamp(),
       });
+
+      // Agregar el userId al array players del documento principal de la sesión
+      await db
+        .collection("gameSessions")
+        .doc(gameSessionId)
+        .update({
+          players: FieldValue.arrayUnion(userId),
+        });
     }
 
     res.json({ success: true });

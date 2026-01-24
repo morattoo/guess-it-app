@@ -90,6 +90,7 @@ gameSessionsApi.post("/gameSessions", async (req, res) => {
       createdBy: userId,
       startedAt: FieldValue.serverTimestamp(),
       isOpen: true,
+      players: [],
     });
 
     res.json({ gameSessionId: gameSessionRef.id });

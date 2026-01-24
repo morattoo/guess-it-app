@@ -7,19 +7,16 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isPlayer(session) {
-      return request.auth.uid in session.data.players;
-    }
-
     match /gameSessions/{sessionId} {
       allow read: if isAuthenticated()
-                  && isPlayer(resource);
+                  && request.auth.uid in resource.data.players;
 
       allow create, update, delete: if false;
 
       // Permitir lectura de los jugadores en una sesión
       match /players/{playerId} {
-        allow read: if true; // Cualquiera puede ver el ranking
+        allow read: if isAuthenticated() 
+                   && request.auth.uid in get(/databases/$(database)/documents/gameSessions/$(sessionId)).data.players;
         allow write: if false; // Solo el backend puede escribir
       }
     }
