@@ -203,6 +203,44 @@ gameSessionsApi.put("/gameSessions/:id/status", async (req, res) => {
   }
 });
 
+// Actualizar isOpen de la sesión (toggle para abrir/cerrar inscripciones)
+gameSessionsApi.put("/gameSessions/:id/toggle-open", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId, isOpen } = req.body;
+
+    if (!userId || typeof isOpen !== "boolean") {
+      return res.status(400).send("Missing data");
+    }
+
+    const gameSessionRef = db.collection("gameSessions").doc(id);
+    const gameSessionSnap = await gameSessionRef.get();
+
+    if (!gameSessionSnap.exists) {
+      return res.status(404).send("Game session not found");
+    }
+
+    const gameSessionData = gameSessionSnap.data()!;
+
+    // Verificar que el usuario sea el creador
+    if (gameSessionData.createdBy !== userId) {
+      return res.status(403).send("Unauthorized");
+    }
+
+    // No se puede abrir una sesión finalizada
+    if (gameSessionData.status === "FINISHED" && isOpen) {
+      return res.status(400).send("Cannot open a finished session");
+    }
+
+    await gameSessionRef.update({ isOpen });
+
+    res.json({ success: true, isOpen });
+  } catch (error) {
+    console.error("Error toggling game session open state:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 // Recopiar preguntas del cuestionario (solo en WAITING)
 gameSessionsApi.put("/gameSessions/:id/refresh-questions", async (req, res) => {
   const { id } = req.params;

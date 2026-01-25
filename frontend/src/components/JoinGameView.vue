@@ -127,15 +127,23 @@ onMounted(async () => {
     // Verificar autenticación (puede ser null)
     const user = await getCurrentUser();
 
+    console.log('User data:', user);
+
     if (!user) {
       // Usuario no autenticado, mostrar input de nombre
       showNameInput.value = true;
     } else if (user.isAnonymous && !user.displayName) {
       // Usuario anónimo sin nombre
       showNameInput.value = true;
+    } else if (user.isAnonymous && user.displayName) {
+      // Usuario anónimo con nombre válido
+      currentUserName.value = user.displayName;
+      showNameInput.value = false;
     } else {
       // Usuario autenticado con nombre
       const profile = await getUserProfile(user.uid);
+
+      console.log('User profile:', profile);
       currentUserName.value = profile?.name || 'Jugador';
       showNameInput.value = false;
     }

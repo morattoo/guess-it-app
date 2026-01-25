@@ -136,23 +136,6 @@
         <div class="trophy-icon">🏆</div>
         <h1>¡Juego completado!</h1>
 
-        <div class="final-stats">
-          <div class="stat-item">
-            <span class="stat-value">{{ playerProgress?.score || 0 }}</span>
-            <span class="stat-label">Puntos totales</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-value">{{ totalQuestions }}</span>
-            <span class="stat-label">Preguntas respondidas</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-value"
-              >{{ Math.round((playerProgress?.totalPenaltySeconds || 0) / 60) }} min</span
-            >
-            <span class="stat-label">Tiempo total</span>
-          </div>
-        </div>
-
         <router-link :to="`/game/${sessionId}/ranking`" class="btn btn-primary btn-large">
           Ver ranking
         </router-link>

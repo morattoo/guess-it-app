@@ -91,6 +91,20 @@ export const updateGameSessionStatus = async (
 };
 
 /**
+ * Toggle para abrir/cerrar inscripciones a la sesión
+ */
+export const toggleGameSessionOpen = async (
+  gameSessionId: string,
+  isOpen: boolean
+): Promise<void> => {
+  const user = await ensureAuth();
+  await callGameSessionsApi(`/gameSessions/${gameSessionId}/toggle-open`, 'PUT', {
+    isOpen,
+    userId: user.uid,
+  });
+};
+
+/**
  * Recopiar las preguntas del cuestionario (solo en WAITING)
  */
 export const refreshGameSessionQuestions = async (gameSessionId: string): Promise<number> => {

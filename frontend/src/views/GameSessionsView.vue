@@ -55,8 +55,19 @@
             <span class="detail-value">{{ formatDate(session.endedAt) }}</span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Abierta:</span>
-            <span class="detail-value">{{ session.isOpen ? 'Sí' : 'No' }}</span>
+            <span class="detail-label">Inscripciones:</span>
+            <span class="detail-value">
+              <label class="toggle-switch">
+                <input
+                  type="checkbox"
+                  :checked="session.isOpen"
+                  @change="handleToggleOpen(session.id!, $event)"
+                  :disabled="session.status === 'FINISHED'"
+                />
+                <span class="toggle-slider"></span>
+              </label>
+              {{ session.isOpen ? 'Abiertas' : 'Cerradas' }}
+            </span>
           </div>
         </div>
 
@@ -100,6 +111,75 @@
             </svg>
           </button>
           <button
+            v-if="session.status !== 'FINISHED'"
+            class="btn-icon btn-finish"
+            title="Finalizar sesión"
+            @click="handleFinish(session.id!)"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16 4L7 13L3 9"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+          <button
+            v-if="session.status !== 'WAITING'"
+            class="btn-icon btn-ranking"
+            title="Ver ranking"
+            @click="handleViewRanking(session.id!)"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M9 2L11 8H17L12 12L14 18L9 14L4 18L6 12L1 8H7L9 2Z"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+          <button
+            v-if="session.status !== 'WAITING'"
+            class="btn-icon btn-copy"
+            title="Copiar enlace del juego"
+            @click="handleCopyLink(session.id!)"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10 13C10.93 13 11.395 13 11.776 12.869C12.376 12.66 12.86 12.176 13.069 11.576C13.2 11.195 13.2 10.73 13.2 9.8V6.2C13.2 5.27 13.2 4.805 13.069 4.424C12.86 3.824 12.376 3.34 11.776 3.131C11.395 3 10.93 3 10 3H6.4C5.47 3 5.005 3 4.624 3.131C4.024 3.34 3.54 3.824 3.331 4.424C3.2 4.805 3.2 5.27 3.2 6.2V9.8C3.2 10.73 3.2 11.195 3.331 11.576C3.54 12.176 4.024 12.66 4.624 12.869C5.005 13 5.47 13 6.4 13H10Z"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <path
+                d="M6.8 13V13.8C6.8 14.73 6.8 15.195 6.931 15.576C7.14 16.176 7.624 16.66 8.224 16.869C8.605 17 9.07 17 10 17H13.6C14.53 17 14.995 17 15.376 16.869C15.976 16.66 16.46 16.176 16.669 15.576C16.8 15.195 16.8 14.73 16.8 13.8V10.2C16.8 9.27 16.8 8.805 16.669 8.424C16.46 7.824 15.976 7.34 15.376 7.131C14.995 7 14.53 7 13.6 7H13"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+            </svg>
+          </button>
+          <button
             v-if="session.status === 'WAITING'"
             class="btn-icon btn-delete"
             title="Eliminar"
@@ -128,11 +208,6 @@
             </svg>
           </button>
         </div>
-        <div>
-          <router-link v-if="session.status !== 'WAITING'" :to="`/game/${session.id}`"
-            >Watch game</router-link
-          >
-        </div>
       </div>
     </div>
   </div>
@@ -145,6 +220,7 @@ import {
   getGameSessionsByUser,
   deleteGameSession,
   updateGameSessionStatus,
+  toggleGameSessionOpen,
 } from '@/firebase/gameSession';
 import { auth } from '@/firebase/auth';
 import type { FirebaseTimestamp, GameSession } from '@shared/models/GameSession';
@@ -180,6 +256,37 @@ const handleStart = async (sessionId: string) => {
   }
 };
 
+const handleFinish = async (sessionId: string) => {
+  if (!confirm('¿Finalizar esta sesión de juego? Esta acción no se puede deshacer.')) return;
+
+  try {
+    await updateGameSessionStatus(sessionId, 'FINISHED');
+    await loadGameSessions();
+  } catch (error) {
+    console.error('Error al finalizar sesión:', error);
+    alert('Error al finalizar la sesión');
+  }
+};
+
+const handleToggleOpen = async (sessionId: string, event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const newValue = target.checked;
+
+  try {
+    await toggleGameSessionOpen(sessionId, newValue);
+    // Actualizar localmente
+    const session = gameSessions.value.find(s => s.id === sessionId);
+    if (session) {
+      session.isOpen = newValue;
+    }
+  } catch (error) {
+    console.error('Error al cambiar estado de inscripciones:', error);
+    alert('Error al cambiar estado de inscripciones');
+    // Revertir el checkbox
+    target.checked = !newValue;
+  }
+};
+
 const handleDelete = async (sessionId: string) => {
   if (!confirm('¿Estás seguro de eliminar esta sesión?')) return;
 
@@ -189,6 +296,32 @@ const handleDelete = async (sessionId: string) => {
   } catch (error) {
     console.error('Error al eliminar sesión:', error);
     alert('Error al eliminar la sesión');
+  }
+};
+
+const handleViewRanking = (sessionId: string) => {
+  router.push(`/ranking/${sessionId}`);
+};
+
+const handleCopyLink = async (sessionId: string) => {
+  const gameUrl = `${window.location.origin}/game/${sessionId}`;
+  try {
+    await navigator.clipboard.writeText(gameUrl);
+    alert('¡Enlace copiado al portapapeles!');
+  } catch (error) {
+    console.error('Error al copiar enlace:', error);
+    // Fallback para navegadores que no soportan clipboard API
+    const textArea = document.createElement('textarea');
+    textArea.value = gameUrl;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      alert('¡Enlace copiado al portapapeles!');
+    } catch (err) {
+      alert('No se pudo copiar el enlace');
+    }
+    document.body.removeChild(textArea);
   }
 };
 
@@ -390,6 +523,7 @@ h2 {
 .detail-item {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 0.875rem;
 }
 
@@ -400,17 +534,66 @@ h2 {
 .detail-value {
   color: #333;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  margin: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 20px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: '';
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #4caf50;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.toggle-switch input:disabled + .toggle-slider {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .session-actions {
   display: flex;
   gap: 0.5rem;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.session-card:hover .session-actions {
-  opacity: 1;
 }
 
 .btn-icon {
@@ -439,6 +622,24 @@ h2 {
   color: #2f8cff;
 }
 
+.btn-finish:hover {
+  background-color: #e8f5e9;
+  border-color: #4caf50;
+  color: #4caf50;
+}
+
+.btn-ranking:hover {
+  background-color: #fff9e6;
+  border-color: #fbbf24;
+  color: #f59e0b;
+}
+
+.btn-copy:hover {
+  background-color: #f0f4ff;
+  border-color: #818cf8;
+  color: #6366f1;
+}
+
 .btn-delete:hover {
   background-color: #fff5f5;
   border-color: #fcc;
@@ -458,10 +659,6 @@ h2 {
 
   .sessions-list {
     grid-template-columns: 1fr;
-  }
-
-  .session-actions {
-    opacity: 1;
   }
 }
 </style>
