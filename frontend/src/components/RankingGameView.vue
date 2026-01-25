@@ -11,7 +11,7 @@
         >
           <path
             d="M19 12H5M5 12L12 19M5 12L12 5"
-            stroke="currentColor"
+            stroke="#000000"
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -129,8 +129,8 @@
                 <span class="stat-value points">{{ player.score }}</span>
               </div>
               <div class="stat">
-                <span class="stat-label">Preguntas</span>
-                <span class="stat-value">{{ player.currentQuestionIndex + 1 }}</span>
+                <span class="stat-label">Pregunta actual</span>
+                <span class="stat-value">{{ player.currentQuestionIndex }}</span>
               </div>
               <div class="stat">
                 <span class="stat-label">Tiempo</span>
@@ -185,15 +185,13 @@ import { useRoute, useRouter } from 'vue-router';
 import { collection, doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/firebase/init';
 import { getCurrentUser } from '@/firebase/auth';
-import type { PlayerProgress, GameSession } from '@shared/models/GameSession';
+import type { PlayerProgress, GameSession, FirebaseTimestamp } from '@shared/models/GameSession';
 
 const route = useRoute();
 const router = useRouter();
 const sessionId = route.params.sessionId as string;
 
-const players = ref<
-  (PlayerProgress & { displayName?: string; totalTime: number; progressPercentage: number })[]
->([]);
+const players = ref<(PlayerProgress & { totalTime: number; progressPercentage: number })[]>([]);
 const gameSession = ref<GameSession | null>(null);
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -232,24 +230,36 @@ const rankedPlayers = computed(() => {
 });
 
 const formatTime = (seconds: number): string => {
+  if (!seconds || isNaN(seconds) || seconds < 0) {
+    return '0:00';
+  }
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
 const calculateTotalTime = (player: PlayerProgress): number => {
+  // Validar que exista startedAt
+  if (!player.startedAt || !player.startedAt.seconds) {
+    console.warn('No startedAt timestamp for player', player.userId);
+    return 0;
+  }
+
   const startTime = convertFirebaseTimestamp(player.startedAt);
   const endTime = player.finishedAt ? convertFirebaseTimestamp(player.finishedAt) : Date.now();
 
   const elapsedSeconds = (endTime - startTime) / 1000;
-  return elapsedSeconds + player.totalPenaltySeconds;
+  const penalty = player.totalPenaltySeconds || 0;
+
+  return Math.max(0, elapsedSeconds + penalty);
 };
 
-const convertFirebaseTimestamp = (timestamp: any): number => {
-  if (timestamp instanceof Date) return timestamp.getTime();
-  if (typeof timestamp === 'number') return timestamp;
-  if (timestamp?._seconds) return timestamp._seconds * 1000;
-  return Date.now();
+const convertFirebaseTimestamp = (timestamp: FirebaseTimestamp): number => {
+  if (!timestamp || typeof timestamp.seconds !== 'number') {
+    console.warn('Invalid timestamp:', timestamp);
+    return Date.now();
+  }
+  return timestamp.seconds * 1000; // Convertir segundos a milisegundos
 };
 
 const calculateProgress = (player: PlayerProgress): number => {
@@ -287,7 +297,7 @@ const loadRanking = async () => {
           const data = doc.data() as PlayerProgress;
           return {
             ...data,
-            displayName: data.userId, // TODO: Fetch actual user names
+            displayName: data.displayName,
             totalTime: calculateTotalTime(data),
             progressPercentage: calculateProgress(data),
           };
@@ -344,18 +354,18 @@ onUnmounted(() => {
     justify-content: center;
     width: 40px;
     height: 40px;
-    background: rgba(255, 255, 255, 0.2);
+    background: transparent;
     border: none;
-    border-radius: 50%;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: opacity 0.2s;
+    padding: 0;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.3);
+      opacity: 0.7;
     }
 
     &:focus {
-      outline: 2px solid white;
+      outline: 2px solid #667eea;
       outline-offset: 2px;
     }
   }
