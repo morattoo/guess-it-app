@@ -15,10 +15,7 @@ export type GameSession = {
 
 export type GameSessionStatus = "WAITING" | "RUNNING" | "FINISHED";
 
-export type FirebaseTimestamp =
-  | number
-  | Date
-  | { _seconds: number; _nanoseconds: number };
+export type FirebaseTimestamp = { seconds: number; nanoseconds: number };
 
 /* gameSessions/{gameSessionId}/players/
   {userId}
@@ -26,6 +23,7 @@ export type FirebaseTimestamp =
 
 export type PlayerProgress = {
   userId: string;
+  displayName: string;
   currentQuestionIndex: number;
   score: number;
   totalPenaltySeconds: number;
