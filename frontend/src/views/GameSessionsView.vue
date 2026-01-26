@@ -349,7 +349,7 @@ const formatDate = (timestamp: FirebaseTimestamp) => {
   ) {
     date = timestamp.toDate();
   } else if (typeof timestamp === 'object' && '_seconds' in timestamp) {
-    date = new Date(timestamp._seconds * 1000);
+    date = new Date(timestamp.seconds * 1000);
   } else {
     return '';
   }

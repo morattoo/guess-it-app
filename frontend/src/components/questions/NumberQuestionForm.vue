@@ -128,7 +128,6 @@ const isSubmitting = ref(false);
 const isFormValid = computed(() => {
   return (
     form.value.title &&
-    form.value.description &&
     form.value.timeLimitSec !== undefined &&
     form.value.points &&
     form.value.expectedValue !== undefined

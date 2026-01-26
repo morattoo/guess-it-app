@@ -5,13 +5,13 @@
     <form @submit.prevent="submitForm">
       <div class="form-group">
         <label for="title">Título *</label>
-        <input
+        <textarea
           id="title"
           v-model="form.title"
           type="text"
           placeholder="¿Cuál es la capital de Francia?"
           required
-        />
+        ></textarea>
       </div>
 
       <div class="form-group">
@@ -107,7 +107,6 @@ const isSubmitting = ref(false);
 const isFormValid = computed(() => {
   return (
     form.value.title &&
-    form.value.description &&
     form.value.timeLimitSec !== undefined &&
     form.value.points &&
     form.value.expectedAnswer !== undefined

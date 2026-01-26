@@ -10,7 +10,13 @@ export const appCheckMiddleware = async (
   res: Response,
   next: NextFunction,
 ) => {
-  // En desarrollo, puedes comentar esto para facilitar las pruebas
+  // TEMPORAL: Deshabilitado mientras se configura en Firebase Console
+  console.warn(
+    "⚠️ App Check validation temporarily disabled - Configuring reCAPTCHA",
+  );
+  return next();
+
+  /* Habilitar después de registrar la app en Firebase App Check:
   const appCheckToken = req.header("X-Firebase-AppCheck");
 
   if (!appCheckToken) {
@@ -18,13 +24,11 @@ export const appCheckMiddleware = async (
   }
 
   try {
-    // Verificar el token de App Check
     await getAppCheck().verifyToken(appCheckToken);
-
-    // Token válido, continuar
     next();
   } catch (error) {
     console.error("Error verifying App Check token:", error);
     return res.status(401).send("Unauthorized: Invalid App Check token");
   }
+  */
 };
