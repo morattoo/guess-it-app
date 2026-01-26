@@ -335,24 +335,9 @@ const getStatusLabel = (status: string) => {
 };
 
 const formatDate = (timestamp: FirebaseTimestamp) => {
-  if (!timestamp) return '';
+  if (!timestamp || !timestamp.seconds) return '';
 
-  let date: Date;
-  if (typeof timestamp === 'number') {
-    date = new Date(timestamp);
-  } else if (timestamp instanceof Date) {
-    date = timestamp;
-  } else if (
-    typeof timestamp === 'object' &&
-    'toDate' in timestamp &&
-    typeof timestamp.toDate === 'function'
-  ) {
-    date = timestamp.toDate();
-  } else if (typeof timestamp === 'object' && '_seconds' in timestamp) {
-    date = new Date(timestamp.seconds * 1000);
-  } else {
-    return '';
-  }
+  const date = new Date(timestamp.seconds * 1000);
 
   return new Intl.DateTimeFormat('es-ES', {
     year: 'numeric',

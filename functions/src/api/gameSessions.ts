@@ -7,6 +7,18 @@ import { appCheckMiddleware } from "../middlewares/appCheck";
 const db = getFirestore();
 export const gameSessionsApi = express();
 
+// Helper para convertir Firestore Timestamp a formato simple
+const convertTimestamp = (timestamp: any) => {
+  if (!timestamp) return null;
+  if (timestamp.toDate) {
+    return {
+      seconds: timestamp.seconds,
+      nanoseconds: timestamp.nanoseconds,
+    };
+  }
+  return timestamp;
+};
+
 gameSessionsApi.use(cors({ origin: true }));
 gameSessionsApi.use(express.json());
 gameSessionsApi.use(appCheckMiddleware);
@@ -117,13 +129,18 @@ gameSessionsApi.get("/gameSessions", async (req, res) => {
       .get();
 
     const gameSessions = snap.docs
-      .map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }))
+      .map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          startedAt: convertTimestamp(data.startedAt),
+          endedAt: convertTimestamp(data.endedAt),
+        };
+      })
       .sort((a: any, b: any) => {
-        const aTime = a.startedAt?.toMillis() || 0;
-        const bTime = b.startedAt?.toMillis() || 0;
+        const aTime = a.startedAt?.seconds ? a.startedAt.seconds * 1000 : 0;
+        const bTime = b.startedAt?.seconds ? b.startedAt.seconds * 1000 : 0;
         return bTime - aTime;
       });
 
@@ -156,6 +173,8 @@ gameSessionsApi.get("/gameSessions/:id", async (req, res) => {
     res.json({
       id: gameSessionSnap.id,
       ...gameSessionData,
+      startedAt: convertTimestamp(gameSessionData.startedAt),
+      endedAt: convertTimestamp(gameSessionData.endedAt),
     });
   } catch (error) {
     console.error("Error getting game session:", error);
