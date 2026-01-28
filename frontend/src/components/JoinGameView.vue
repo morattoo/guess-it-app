@@ -3,38 +3,55 @@
     <div class="container">
       <HeaderLogo />
 
+      <!-- Language Selector -->
+      <div class="language-selector">
+        <label for="language">{{ t.language.select }}:</label>
+        <select id="language" v-model="selectedLanguage" @change="handleLanguageChange">
+          <option value="en">{{ t.language.en }}</option>
+          <option value="es">{{ t.language.es }}</option>
+          <option value="fr">{{ t.language.fr }}</option>
+        </select>
+      </div>
+
       <div v-if="loading" class="loading">
-        <p>Cargando sesión...</p>
+        <p>{{ t.join.loading }}</p>
       </div>
 
       <div v-else-if="error" class="error-message">
-        <h2>Error</h2>
+        <h2>{{ t.join.error }}</h2>
         <p>{{ error }}</p>
-        <router-link to="/" class="btn btn-primary">Volver al inicio</router-link>
+        <router-link v-if="!gameSession" to="/" class="btn btn-primary">{{
+          t.join.backToHome
+        }}</router-link>
+        <router-link v-else :to="`/game/${sessionId}/ranking`" class="btn btn-primary">
+          {{ t.play.viewRanking }}
+        </router-link>
       </div>
 
       <div v-else-if="gameSession" class="join-card">
-        <h1>Unirse al juego</h1>
+        <h1>{{ t.join.joinGame }}</h1>
 
         <div class="session-info">
           <p class="info-text">
-            <strong>Estado:</strong>
+            <strong>{{ t.join.status }}:</strong>
             <span :class="`status-${gameSession.status.toLowerCase()}`">
               {{ statusText }}
             </span>
           </p>
-          <p class="info-text"><strong>Preguntas:</strong> {{ gameSession.questions.length }}</p>
+          <p class="info-text">
+            <strong>{{ t.join.questions }}:</strong> {{ gameSession.questions.length }}
+          </p>
         </div>
 
         <form v-if="!hasJoined" @submit.prevent="handleJoin" class="join-form">
           <div v-if="showNameInput" class="form-group">
-            <label for="displayName">Ingresa tu nombre</label>
+            <label for="displayName">{{ t.join.enterName }}</label>
             <input
               id="displayName"
               v-model="displayName"
               type="text"
               class="form-input"
-              placeholder="Tu nombre"
+              :placeholder="t.join.yourName"
               required
               maxlength="50"
             />
@@ -42,7 +59,7 @@
 
           <div v-else class="welcome-message">
             <p>
-              Bienvenido, <strong>{{ currentUserName }}</strong>
+              {{ t.join.welcome }}, <strong>{{ currentUserName }}</strong>
             </p>
           </div>
 
@@ -51,15 +68,15 @@
             class="btn btn-primary btn-large"
             :disabled="joining || (showNameInput && !displayName.trim())"
           >
-            {{ joining ? 'Uniéndose...' : 'Unirse al juego' }}
+            {{ joining ? t.join.joining : t.join.joinButton }}
           </button>
         </form>
 
         <div v-else class="joined-message">
           <div class="success-icon">✓</div>
-          <h2>¡Te has unido exitosamente!</h2>
-          <p>Prepárate para comenzar a jugar</p>
-          <button @click="goToPlay" class="btn btn-success btn-large">Ir a jugar</button>
+          <h2>{{ t.join.joinedSuccess }}</h2>
+          <p>{{ t.join.getReadyToPlay }}</p>
+          <button @click="goToPlay" class="btn btn-success btn-large">{{ t.join.goToPlay }}</button>
         </div>
       </div>
     </div>
@@ -78,6 +95,14 @@ import {
 import type { GameSession } from '@shared/models/GameSession';
 import HeaderLogo from '@/components/layout/HeaderLogo.vue';
 import { getUserProfile } from '@/firebase/users';
+import { useI18n, type Language } from '@/composables/useI18n';
+
+const { t, language, setLanguage } = useI18n();
+const selectedLanguage = ref<Language>(language.value);
+
+const handleLanguageChange = () => {
+  setLanguage(selectedLanguage.value);
+};
 
 const router = useRouter();
 const route = useRoute();
@@ -96,7 +121,9 @@ const sessionId = computed(() => route.params.sessionId as string);
 const statusText = computed(() => {
   if (!gameSession.value) return '';
   const status = gameSession.value.status;
-  return status === 'WAITING' ? 'En espera' : status === 'RUNNING' ? 'En curso' : 'Finalizado';
+  if (status === 'WAITING') return t.value.join.statusWaiting;
+  if (status === 'RUNNING') return t.value.join.statusRunning;
+  return t.value.join.statusFinished;
 });
 
 onMounted(async () => {
@@ -104,25 +131,25 @@ onMounted(async () => {
     // Cargar la sesión (sin necesidad de autenticación)
     const session = await getPublicGameSession(sessionId.value);
 
+    gameSession.value = session;
+
     if (!session) {
-      error.value = 'La sesión de juego no existe o ya no está disponible.';
+      error.value = t.value.join.errors.sessionNotFound;
       loading.value = false;
       return;
     }
 
     if (session.status === 'FINISHED') {
-      error.value = 'Esta sesión ya ha finalizado.';
+      error.value = t.value.join.errors.sessionFinished;
       loading.value = false;
       return;
     }
 
     if (!session.isOpen) {
-      error.value = 'Esta sesión no acepta nuevos jugadores.';
+      error.value = t.value.join.errors.sessionClosed;
       loading.value = false;
       return;
     }
-
-    gameSession.value = session;
 
     // Verificar autenticación (puede ser null)
     const user = await getCurrentUser();
@@ -159,7 +186,7 @@ onMounted(async () => {
     loading.value = false;
   } catch (err: any) {
     console.error('Error al cargar la sesión:', err);
-    error.value = err.message || 'Error al cargar la sesión de juego.';
+    error.value = err.message || t.value.join.errors.loadError;
     loading.value = false;
   }
 });
@@ -201,6 +228,50 @@ const goToPlay = () => {
 .container {
   max-width: 500px;
   width: 100%;
+}
+
+.language-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+  label {
+    color: #4a5568;
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+
+  select {
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #2d3748;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234a5568' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+
+    &:hover {
+      border-color: #cbd5e0;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+  }
 }
 
 .loading,

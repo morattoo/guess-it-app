@@ -4,30 +4,32 @@
       <HeaderLogo />
 
       <div v-if="loading" class="loading-card">
-        <p>Cargando juego...</p>
+        <p>{{ t.play.loading }}</p>
       </div>
 
       <div v-else-if="error" class="error-card">
-        <h2>Error</h2>
+        <h2>{{ t.play.error }}</h2>
         <p>{{ error }}</p>
-        <router-link :to="`/game/${sessionId}`" class="btn btn-primary"> Volver </router-link>
+        <router-link :to="`/game/${sessionId}`" class="btn btn-primary">
+          {{ t.play.back }}
+        </router-link>
       </div>
 
       <!-- Pantalla inicial antes de comenzar -->
       <div v-else-if="!gameStarted" class="start-card">
-        <h1>¡Listo para jugar!</h1>
+        <h1>{{ t.play.readyToPlay }}</h1>
 
         <div class="game-info">
           <div class="info-item">
-            <span class="info-label">Total de preguntas:</span>
+            <span class="info-label">{{ t.play.totalQuestions }}:</span>
             <span class="info-value">{{ totalQuestions }}</span>
           </div>
           <div class="info-item">
-            <span class="info-label">Tu puntaje actual:</span>
-            <span class="info-value">{{ playerProgress?.score || 0 }} puntos</span>
+            <span class="info-label">{{ t.play.yourCurrentScore }}:</span>
+            <span class="info-value">{{ playerProgress?.score || 0 }} {{ t.play.points }}</span>
           </div>
           <div v-if="playerProgress && playerProgress.currentQuestionIndex > 0" class="info-item">
-            <span class="info-label">Progreso:</span>
+            <span class="info-label">{{ t.play.progress }}:</span>
             <span class="info-value">
               {{ playerProgress.currentQuestionIndex }} / {{ totalQuestions }}
             </span>
@@ -35,7 +37,11 @@
         </div>
 
         <button @click="startGame" class="btn btn-primary btn-large">
-          {{ playerProgress && playerProgress.currentQuestionIndex > 0 ? 'Continuar' : 'Comenzar' }}
+          {{
+            playerProgress && playerProgress.currentQuestionIndex > 0
+              ? t.play.continue
+              : t.play.start
+          }}
         </button>
       </div>
 
@@ -50,9 +56,10 @@
 
         <div class="question-header">
           <span class="question-number">
-            Pregunta {{ currentQuestionIndex + 1 }} de {{ totalQuestions }}
+            {{ t.play.question }} {{ currentQuestionIndex + 1 }} {{ t.play.of }}
+            {{ totalQuestions }}
           </span>
-          <span class="question-points">{{ currentQuestion.points }} puntos</span>
+          <span class="question-points">{{ currentQuestion.points }} {{ t.play.points }}</span>
         </div>
 
         <h2 class="question-title">{{ currentQuestion.title }}</h2>
@@ -65,13 +72,13 @@
         <form @submit.prevent="handleSubmitAnswer" class="answer-form">
           <!-- Pregunta de texto -->
           <div v-if="currentQuestion.type === 'TEXT'" class="form-group">
-            <label for="answer">Tu respuesta:</label>
+            <label for="answer">{{ t.play.yourAnswer }}:</label>
             <input
               id="answer"
               v-model="currentAnswer"
               type="text"
               class="form-input"
-              placeholder="Escribe tu respuesta"
+              :placeholder="t.play.writeAnswer"
               required
               :disabled="submitting"
             />
@@ -79,14 +86,14 @@
 
           <!-- Pregunta numérica -->
           <div v-else-if="currentQuestion.type === 'NUMBER'" class="form-group">
-            <label for="answer">Tu respuesta:</label>
+            <label for="answer">{{ t.play.yourAnswer }}:</label>
             <input
               id="answer"
               v-model.number="currentAnswer"
               type="number"
               step="any"
               class="form-input"
-              placeholder="Ingresa un número"
+              :placeholder="t.play.enterNumber"
               required
               :disabled="submitting"
             />
@@ -126,7 +133,7 @@
             class="btn btn-primary btn-large"
             :disabled="submitting || !currentAnswer"
           >
-            {{ submitting ? 'Enviando...' : 'Enviar respuesta' }}
+            {{ submitting ? t.play.sending : t.play.sendAnswer }}
           </button>
         </form>
       </div>
@@ -134,10 +141,10 @@
       <!-- Juego completado -->
       <div v-else-if="gameCompleted" class="completed-card">
         <div class="trophy-icon">🏆</div>
-        <h1>¡Juego completado!</h1>
+        <h1>{{ t.play.gameCompleted }}</h1>
 
         <router-link :to="`/game/${sessionId}/ranking`" class="btn btn-primary btn-large">
-          Ver ranking
+          {{ t.play.viewRanking }}
         </router-link>
       </div>
     </div>
@@ -154,6 +161,9 @@ import {
 } from '@/firebase/publicGame';
 import type { GameSession, GameSessionQuestion, PlayerProgress } from '@shared/models/GameSession';
 import HeaderLogo from '@/components/layout/HeaderLogo.vue';
+import { useI18n } from '@/composables/useI18n';
+
+const { t } = useI18n();
 
 const route = useRoute();
 
@@ -190,13 +200,13 @@ onMounted(async () => {
     ]);
 
     if (!session) {
-      error.value = 'La sesión de juego no existe.';
+      error.value = t.value.play.errors.sessionNotFound;
       loading.value = false;
       return;
     }
 
     if (!progress) {
-      error.value = 'No te has unido a esta sesión. Por favor, únete primero.';
+      error.value = t.value.play.errors.notJoined;
       loading.value = false;
       return;
     }
@@ -212,7 +222,7 @@ onMounted(async () => {
     loading.value = false;
   } catch (err: any) {
     console.error('Error al cargar el juego:', err);
-    error.value = err.message || 'Error al cargar el juego.';
+    error.value = err.message || t.value.play.errors.loadError;
     loading.value = false;
   }
 });
@@ -245,7 +255,7 @@ const handleSubmitAnswer = async () => {
 
     if (result.correct) {
       feedbackType.value = 'success';
-      feedbackMessage.value = '¡Correcto! 🎉';
+      feedbackMessage.value = t.value.play.correct;
 
       // Actualizar el progreso
       if (playerProgress.value) {
@@ -269,14 +279,14 @@ const handleSubmitAnswer = async () => {
       }
     } else {
       feedbackType.value = 'error';
-      feedbackMessage.value = result.message || 'Respuesta incorrecta. Intenta de nuevo.';
+      feedbackMessage.value = result.message || t.value.play.incorrect;
     }
 
     submitting.value = false;
   } catch (err: any) {
     console.error('Error al enviar respuesta:', err);
     feedbackType.value = 'error';
-    feedbackMessage.value = err.message || 'Error al enviar la respuesta.';
+    feedbackMessage.value = err.message || t.value.play.errors.submitError;
     submitting.value = false;
   }
 };

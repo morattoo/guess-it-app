@@ -18,12 +18,12 @@
           />
         </svg>
       </button>
-      <h1>Ranking de Jugadores</h1>
+      <h1>{{ t.ranking.title }}</h1>
     </header>
 
     <div v-if="loading" class="loading">
       <div class="spinner"></div>
-      <p>Cargando ranking...</p>
+      <p>{{ t.ranking.loadingRanking }}</p>
     </div>
 
     <div v-else-if="error" class="error-message" role="alert">
@@ -37,7 +37,7 @@
           <span class="status-dot"></span>
           {{ statusText }}
         </p>
-        <p class="players-count">{{ players.length }} participantes</p>
+        <p class="players-count">{{ players.length }} {{ t.ranking.participants }}</p>
       </div>
 
       <!-- Ranking List -->
@@ -112,28 +112,30 @@
             <div class="player-header">
               <h3 class="player-name">
                 {{ player.displayName || `Jugador ${player.userId.slice(0, 6)}` }}
-                <span v-if="player.userId === currentUserId" class="you-badge">Tú</span>
+                <span v-if="player.userId === currentUserId" class="you-badge">{{
+                  t.ranking.you
+                }}</span>
               </h3>
               <span
                 class="status-badge"
                 :class="player.finishedAt ? 'finished' : 'playing'"
                 :aria-label="player.finishedAt ? 'Finalizado' : 'Jugando'"
               >
-                {{ player.finishedAt ? '✓ Finalizado' : '⏱ Jugando' }}
+                {{ player.finishedAt ? t.ranking.finished : t.ranking.playing }}
               </span>
             </div>
 
             <div class="player-stats">
               <div class="stat">
-                <span class="stat-label">Puntos</span>
+                <span class="stat-label">{{ t.ranking.points }}</span>
                 <span class="stat-value points">{{ player.score }}</span>
               </div>
               <div class="stat">
-                <span class="stat-label">Pregunta actual</span>
+                <span class="stat-label">{{ t.ranking.currentQuestion }}</span>
                 <span class="stat-value">{{ player.currentQuestionIndex }}</span>
               </div>
               <div class="stat">
-                <span class="stat-label">Tiempo</span>
+                <span class="stat-label">{{ t.ranking.time }}</span>
                 <span class="stat-value time">{{ formatTime(player.totalTime) }}</span>
               </div>
               <div v-if="player.totalPenaltySeconds > 0" class="stat">
@@ -151,7 +153,7 @@
 
         <!-- Empty State -->
         <div v-if="players.length === 0" class="empty-state">
-          <p>No hay jugadores todavía</p>
+          <p>{{ t.ranking.noPlayers }}</p>
         </div>
       </div>
 
@@ -173,7 +175,7 @@
             stroke-linejoin="round"
           />
         </svg>
-        Actualizar ranking
+        {{ t.ranking.refresh }}
       </button>
     </div>
   </div>
@@ -186,6 +188,9 @@ import { collection, doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/firebase/init';
 import { getCurrentUser } from '@/firebase/auth';
 import type { PlayerProgress, GameSession, FirebaseTimestamp } from '@shared/models/GameSession';
+import { useI18n } from '@/composables/useI18n';
+
+const { t } = useI18n();
 
 const route = useRoute();
 const router = useRouter();
@@ -205,12 +210,10 @@ const sessionStatus = computed(() => {
 
 const statusText = computed(() => {
   if (!gameSession.value) return '';
-  const statusMap = {
-    WAITING: 'Esperando inicio',
-    RUNNING: 'En progreso',
-    FINISHED: 'Finalizado',
-  };
-  return statusMap[gameSession.value.status] || gameSession.value.status;
+  const status = gameSession.value.status;
+  if (status === 'WAITING') return t.value.ranking.statusWaiting;
+  if (status === 'RUNNING') return t.value.ranking.statusRunning;
+  return t.value.ranking.statusFinished;
 });
 
 const rankedPlayers = computed(() => {
@@ -281,7 +284,7 @@ const loadRanking = async () => {
     // Load game session
     const sessionDoc = await getDoc(doc(db, 'gameSessions', sessionId));
     if (!sessionDoc.exists()) {
-      error.value = 'Sesión de juego no encontrada';
+      error.value = t.value.ranking.errors.sessionNotFound;
       return;
     }
     gameSession.value = { id: sessionDoc.id, ...sessionDoc.data() } as GameSession;
@@ -306,13 +309,13 @@ const loadRanking = async () => {
       },
       err => {
         console.error('Error loading players:', err);
-        error.value = 'Error al cargar el ranking';
+        error.value = t.value.ranking.errors.loadError;
         loading.value = false;
       }
     );
   } catch (err) {
     console.error('Error loading ranking:', err);
-    error.value = 'Error al cargar el ranking';
+    error.value = t.value.ranking.errors.loadError;
     loading.value = false;
   }
 };
