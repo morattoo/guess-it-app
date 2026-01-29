@@ -81,7 +81,7 @@ gameSessionsApi.post("/gameSessions", async (req, res) => {
           id: questionSnap.id,
           type: questionData.type,
           title: questionData.title,
-          description: questionData.description,
+          description: questionData.description || "",
           points: questionData.points,
           penaltySeconds: questionData.timeLimitSec || 0,
           validation: {
@@ -110,7 +110,7 @@ gameSessionsApi.post("/gameSessions", async (req, res) => {
     res.json({ gameSessionId: gameSessionRef.id });
   } catch (error) {
     console.error("Error creating game session:", error);
-    res.status(500).send("Error creating game session");
+    res.status(500).send(`Error creating game session: ${error}`);
   }
 });
 
@@ -383,20 +383,51 @@ gameSessionsApi.post("/gameSessions/:id/join", async (req, res) => {
   const { userId } = req.body;
   const { id: gameSessionId } = req.params;
 
-  const playerRef = db
-    .collection("gameSessions")
-    .doc(gameSessionId)
-    .collection("players")
-    .doc(userId);
+  if (!userId) {
+    return res.status(400).send("Missing userId");
+  }
 
-  await playerRef.set({
-    userId,
-    gameSessionId,
-    currentQuestionIndex: 0,
-    startedAt: Date.now(),
-  });
+  try {
+    // Vérifier que la session existe et est en cours
+    const gameSessionSnap = await db
+      .collection("gameSessions")
+      .doc(gameSessionId)
+      .get();
 
-  res.sendStatus(200);
+    if (!gameSessionSnap.exists) {
+      return res.status(404).send("Game session not found");
+    }
+
+    const gameSessionData = gameSessionSnap.data()!;
+
+    // Vérifier que le status est RUNNING
+    if (gameSessionData.status !== "RUNNING") {
+      return res.status(400).send("Game session is not running");
+    }
+
+    // Vérifier que la session est ouverte
+    if (!gameSessionData.isOpen) {
+      return res.status(400).send("Game session is closed");
+    }
+
+    const playerRef = db
+      .collection("gameSessions")
+      .doc(gameSessionId)
+      .collection("players")
+      .doc(userId);
+
+    await playerRef.set({
+      userId,
+      gameSessionId,
+      currentQuestionIndex: 0,
+      startedAt: Date.now(),
+    });
+
+    res.sendStatus(200);
+  } catch (error) {
+    console.error("Error joining game session:", error);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 gameSessionsApi.post("/gameSessions/:id/validate-answer", async (req, res) => {

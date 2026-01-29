@@ -254,7 +254,7 @@ publicGameApi.post("/game/:id/players/:userId/answer", async (req, res) => {
 
       return res.json({
         correct: false,
-        message: "Respuesta incorrecta. Intenta de nuevo.",
+        message: "INCORRECT_ANSWER",
       });
     }
 
@@ -275,13 +275,13 @@ publicGameApi.post("/game/:id/players/:userId/answer", async (req, res) => {
 
     res.json({
       correct: true,
-      message: "¡Correcto!",
+      message: "CORRECT_ANSWER",
       nextQuestionIndex: nextIndex,
       finished: nextIndex >= gameSessionData.questions.length,
     });
   } catch (error) {
     console.error("Error validating answer:", error);
-    res.status(500).send("Error validating answer");
+    res.status(500).send(`Error validating answer: ${error}`);
   }
 });
 
@@ -322,6 +322,6 @@ publicGameApi.get("/game/:id/ranking", async (req, res) => {
     res.json(ranking);
   } catch (error) {
     console.error("Error getting ranking:", error);
-    res.status(500).send("Error getting ranking");
+    res.status(500).send(`Error getting ranking: ${error}`);
   }
 });

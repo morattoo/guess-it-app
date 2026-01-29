@@ -66,7 +66,9 @@
           <button
             type="submit"
             class="btn btn-primary btn-large"
-            :disabled="joining || (showNameInput && !displayName.trim())"
+            :disabled="
+              gameSession.status === 'WAITING' || joining || (showNameInput && !displayName.trim())
+            "
           >
             {{ joining ? t.join.joining : t.join.joinButton }}
           </button>

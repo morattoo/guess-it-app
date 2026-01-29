@@ -51,8 +51,8 @@ const translations = {
       enterNumber: 'Enter a number',
       sending: 'Sending...',
       sendAnswer: 'Send answer',
-      correct: 'Correct! 🎉',
-      incorrect: 'Incorrect answer. Try again.',
+      message_CORRECT_ANSWER: 'Correct! 🎉',
+      message_INCORRECT_ANSWER: 'Incorrect answer. Try again.',
       gameCompleted: 'Game completed!',
       viewRanking: 'View ranking',
       errors: {
@@ -139,8 +139,8 @@ const translations = {
       enterNumber: 'Ingresa un número',
       sending: 'Enviando...',
       sendAnswer: 'Enviar respuesta',
-      correct: '¡Correcto! 🎉',
-      incorrect: 'Respuesta incorrecta. Intenta de nuevo.',
+      message_CORRECT_ANSWER: '¡Correcto! 🎉',
+      message_INCORRECT_ANSWER: 'Respuesta incorrecta. Intenta de nuevo.',
       gameCompleted: '¡Juego completado!',
       viewRanking: 'Ver ranking',
       errors: {
@@ -227,8 +227,8 @@ const translations = {
       enterNumber: 'Entrez un nombre',
       sending: 'Envoi...',
       sendAnswer: 'Envoyer la réponse',
-      correct: 'Correct! 🎉',
-      incorrect: 'Réponse incorrecte. Réessayez.',
+      message_CORRECT_ANSWER: 'Correct! 🎉',
+      message_INCORRECT_ANSWER: 'Réponse incorrecte. Réessayez.',
       gameCompleted: 'Jeu terminé!',
       viewRanking: 'Voir le classement',
       errors: {

@@ -255,7 +255,7 @@ const handleSubmitAnswer = async () => {
 
     if (result.correct) {
       feedbackType.value = 'success';
-      feedbackMessage.value = t.value.play.correct;
+      feedbackMessage.value = t.value.play.message_CORRECT_ANSWER;
 
       // Actualizar el progreso
       if (playerProgress.value) {
@@ -279,7 +279,7 @@ const handleSubmitAnswer = async () => {
       }
     } else {
       feedbackType.value = 'error';
-      feedbackMessage.value = result.message || t.value.play.incorrect;
+      feedbackMessage.value = t.value.play.message_INCORRECT_ANSWER;
     }
 
     submitting.value = false;
