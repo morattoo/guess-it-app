@@ -1,31 +1,21 @@
-import { initializeAppCheck, ReCaptchaV3Provider, type AppCheck } from 'firebase/app-check';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider, type AppCheck } from 'firebase/app-check';
 import type { FirebaseApp } from 'firebase/app';
 
-// DIAGNÓSTICO: Mostrar configuración en todas las builds
-console.log('🔍 App Check Configuration:', {
-  recaptchaKey: import.meta.env.VITE_RECAPTCHA_SITE_KEY,
-  isDev: import.meta.env.DEV,
-  mode: import.meta.env.MODE,
-  hasKey: !!import.meta.env.VITE_RECAPTCHA_SITE_KEY,
-});
-
-// Para desarrollo/testing, puedes habilitar debug mode
-// descomentar esto en desarrollo y agregar el token que aparece en la consola a Firebase Console
+// Habilitar debug token en desarrollo
 if (import.meta.env.DEV) {
   const debugToken = import.meta.env.VITE_APP_CHECK_DEBUG_TOKEN || true;
-  console.log('🔍 App Check Debug Mode:', {
-    isDev: import.meta.env.DEV,
-    debugToken: debugToken,
-    recaptchaKey: import.meta.env.VITE_RECAPTCHA_SITE_KEY,
-  });
   // @ts-ignore
   self.FIREBASE_APPCHECK_DEBUG_TOKEN = debugToken;
 }
 
 let appCheckInstance: AppCheck | null = null;
 
-// Inicializar App Check con ReCAPTCHA v3
-// En desarrollo, puedes usar el debug token
+/**
+ * Inicializa App Check con reCAPTCHA Enterprise
+ *
+ * @param app - Instancia de Firebase App
+ * @returns Instancia de App Check o null si hay error
+ */
 export function initAppCheck(app: FirebaseApp): AppCheck | null {
   if (appCheckInstance) {
     return appCheckInstance;
@@ -33,24 +23,24 @@ export function initAppCheck(app: FirebaseApp): AppCheck | null {
 
   const recaptchaKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
-  // Validar que exista la clave de reCAPTCHA
-  if (!recaptchaKey) {
-    console.error('❌ VITE_RECAPTCHA_SITE_KEY no está configurado');
+  if (!recaptchaKey || recaptchaKey === 'REEMPLAZAR_CON_TU_RECAPTCHA_SITE_KEY') {
+    if (import.meta.env.DEV && import.meta.env.VITE_APP_CHECK_DEBUG_TOKEN) {
+      return null;
+    }
+
+    console.error('App Check: VITE_RECAPTCHA_SITE_KEY no está configurado');
     return null;
   }
 
   try {
     appCheckInstance = initializeAppCheck(app, {
-      provider: new ReCaptchaV3Provider(recaptchaKey),
-      // En desarrollo, permite usar debug tokens
-      // Configura esto en Firebase Console -> App Check -> Debug tokens
+      provider: new ReCaptchaEnterpriseProvider(recaptchaKey),
       isTokenAutoRefreshEnabled: true,
     });
 
-    console.log('✅ App Check inicializado correctamente');
     return appCheckInstance;
   } catch (error) {
-    console.error('❌ Error al inicializar App Check:', error);
+    console.error('App Check: Error al inicializar', error);
     return null;
   }
 }

@@ -1,4 +1,18 @@
 {
+  "name": "guess-it-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "production": "npm run build && firebase deploy",
+    "build": "npm run build:frontend && npm run build:functions",
+    "build:frontend": "cd frontend && npm run build",
+    "build:functions": "cd functions && npm run build",
+    "deploy": "firebase deploy",
+    "deploy:frontend": "firebase deploy --only hosting",
+    "deploy:functions": "firebase deploy --only functions",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:functions": "cd functions && npm run serve"
+  },
   "devDependencies": {
     "@types/node": "^25.0.3",
     "typescript": "^5.9.3"

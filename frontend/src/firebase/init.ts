@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+import { initAppCheck } from './appCheck';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -19,7 +20,5 @@ export const app = initializeApp(firebaseConfig);
 
 // Initialize Firestore
 export const db = getFirestore(app);
-
-// Initialize App Check (debe ser después de initializeApp)
-import { initAppCheck } from './appCheck';
+// Initialize App Check
 export const appCheck = initAppCheck(app);
