@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '@/views/HomeView.vue';
 import AuthLayout from '@/components/layout/AuthLayout.vue';
 import DashboardLayout from '@/components/layout/DashboardLayout.vue';
+import PageNotFound from '@/components/layout/PageNotFound.vue';
+import UnavailableSection from '@/components/layout/UnavailableSection.vue';
 import { getCurrentUser } from '@/firebase/auth';
 
 const routes = [
@@ -19,8 +21,17 @@ const routes = [
       },
       {
         path: 'register',
-        component: () => import('@/views/RegisterView.vue'),
+        component: UnavailableSection,
+        props: {
+          title: 'Registro temporalmente deshabilitado',
+          message:
+            'El registro de nuevos usuarios está temporalmente deshabilitado. Por favor, inténtalo más tarde o contacta al administrador.',
+          showBackButton: true,
+          backButtonText: 'Volver al inicio de sesión',
+        },
       },
+      // Descomentarizar esta línea cuando quieras reactivar el registro:
+      // { path: 'register', component: () => import('@/views/RegisterView.vue') },
     ],
   },
   {
@@ -61,6 +72,11 @@ const routes = [
         component: () => import('@/views/GameSessionFormView.vue'),
       },
     ],
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: PageNotFound,
   },
 ];
 

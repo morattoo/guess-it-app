@@ -1,18 +1,25 @@
 <script setup lang="ts">
 import HeaderLogo from '@/components/layout/HeaderLogo.vue';
+import LanguageSelector from '@/components/layout/LanguageSelector.vue';
+import { useI18n } from '@/composables/useI18n';
+
+const { t } = useI18n();
 </script>
 
 <template>
   <div class="home">
     <HeaderLogo />
+    <div class="language-selector-wrapper">
+      <LanguageSelector />
+    </div>
     <section class="home__container">
       <div class="intro">
-        <h1>GuessIt!</h1>
-        <p>Your ultimate guessing game experience.</p>
+        <h1>{{ t.home.title }}</h1>
+        <p>{{ t.home.subtitle }}</p>
       </div>
       <div class="auth-links">
-        <router-link to="/auth/register">Join Us</router-link>
-        <router-link to="/auth/login">Already have an account? Log in</router-link>
+        <router-link to="/auth/register">{{ t.home.joinUs }}</router-link>
+        <router-link to="/auth/login">{{ t.home.alreadyAccount }}</router-link>
       </div>
     </section>
   </div>
@@ -29,6 +36,14 @@ import HeaderLogo from '@/components/layout/HeaderLogo.vue';
   background-repeat: no-repeat;
   height: 100%;
   width: 100%;
+  position: relative;
+
+  .language-selector-wrapper {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 10;
+  }
 
   &__container {
     flex: 1;

@@ -37,8 +37,11 @@
 
     <!-- Sidebar -->
     <aside id="sidebar-nav" class="dashboard-sidebar" :class="{ 'is-open': isSidebarOpen }">
-      <div>
-        <button class="dashboard-sidebar__bt-close" @click="closeSidebar">Close</button>
+      <div class="sidebar-header">
+        <button class="dashboard-sidebar__bt-close" @click="closeSidebar">
+          {{ t.common.close }}
+        </button>
+        <LanguageSelector />
       </div>
       <div class="sidebar-content">
         <!-- User Info -->
@@ -77,7 +80,7 @@
                     stroke-linejoin="round"
                   />
                 </svg>
-                <span>Dashboard</span>
+                <span>{{ t.dashboard.menu.dashboard }}</span>
               </router-link>
             </li>
             <li>
@@ -116,7 +119,7 @@
                     stroke-linejoin="round"
                   />
                 </svg>
-                <span>Questions Pool</span>
+                <span>{{ t.dashboard.menu.questionsPool }}</span>
               </router-link>
             </li>
             <li>
@@ -141,7 +144,7 @@
                     stroke-linejoin="round"
                   />
                 </svg>
-                <span>Cuestionarios</span>
+                <span>{{ t.dashboard.menu.questionnaires }}</span>
               </router-link>
             </li>
             <li>
@@ -160,7 +163,7 @@
                 >
                   <path d="M5 3L19 10L5 17V3Z" fill="currentColor" />
                 </svg>
-                <span>Sesiones de Juego</span>
+                <span>{{ t.dashboard.menu.gameSessions }}</span>
               </router-link>
             </li>
           </ul>
@@ -197,7 +200,7 @@
               stroke-linejoin="round"
             />
           </svg>
-          <span>Déconnexion</span>
+          <span>{{ t.dashboard.logout }}</span>
         </button>
       </div>
     </aside>
@@ -217,6 +220,10 @@ import { useRouter } from 'vue-router';
 import { auth, logout } from '@/firebase/auth';
 import { getUserProfile } from '@/firebase/users';
 import { onAuthStateChanged } from 'firebase/auth';
+import { useI18n } from '@/composables/useI18n';
+import LanguageSelector from '@/components/layout/LanguageSelector.vue';
+
+const { t } = useI18n();
 
 const router = useRouter();
 const isSidebarOpen = ref(false);
@@ -251,10 +258,11 @@ const userInitials = computed(() => {
 
 const pageTitle = computed(() => {
   const route = router.currentRoute.value;
-  // Personnaliser selon la route
-  if (route.path.includes('questions-pool')) return 'Questions Pool';
-  if (route.path.includes('sessions')) return 'Sessions';
-  return 'Dashboard';
+  // Personalizar según la ruta
+  if (route.path.includes('questions-pool')) return t.value.dashboard.menu.questionsPool;
+  if (route.path.includes('questionnaire')) return t.value.dashboard.menu.questionnaires;
+  if (route.path.includes('sessions')) return t.value.dashboard.menu.gameSessions;
+  return t.value.dashboard.title;
 });
 
 const toggleSidebar = () => {
@@ -404,6 +412,15 @@ const handleLogout = async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
+  .sidebar-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+  }
 
   &.is-open {
     left: 0;
