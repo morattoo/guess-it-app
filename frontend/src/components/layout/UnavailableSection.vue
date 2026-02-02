@@ -27,12 +27,14 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from '@/composables/useI18n';
 
 const { t } = useI18n();
 
 interface Props {
+  type?: 'default' | 'register';
   title?: string;
   message?: string;
   showBackButton?: boolean;
@@ -40,18 +42,33 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  title: () => '',
-  message: () => '',
+  type: 'default',
+  title: '',
+  message: '',
   showBackButton: true,
-  backButtonText: () => '',
+  backButtonText: '',
 });
 
 const router = useRouter();
 
-// Use custom props or fall back to translations
-const displayTitle = props.title || t.value.unavailable.title;
-const displayMessage = props.message || t.value.unavailable.message;
-const displayBackButton = props.backButtonText || t.value.unavailable.backButton;
+// Use custom props or fall back to translations based on type
+const displayTitle = computed(() => {
+  if (props.title) return props.title;
+  if (props.type === 'register') return t.value.auth.unavailableTitle;
+  return t.value.unavailable.title;
+});
+
+const displayMessage = computed(() => {
+  if (props.message) return props.message;
+  if (props.type === 'register') return t.value.auth.unavailableMessage;
+  return t.value.unavailable.message;
+});
+
+const displayBackButton = computed(() => {
+  if (props.backButtonText) return props.backButtonText;
+  if (props.type === 'register') return t.value.auth.backToLogin;
+  return t.value.unavailable.backButton;
+});
 
 const goBack = () => {
   router.back();

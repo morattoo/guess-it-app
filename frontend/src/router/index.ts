@@ -22,13 +22,7 @@ const routes = [
       {
         path: 'register',
         component: UnavailableSection,
-        props: {
-          title: 'Registro temporalmente deshabilitado',
-          message:
-            'El registro de nuevos usuarios está temporalmente deshabilitado. Por favor, inténtalo más tarde o contacta al administrador.',
-          showBackButton: true,
-          backButtonText: 'Volver al inicio de sesión',
-        },
+        props: { type: 'register' },
       },
       // Descomentarizar esta línea cuando quieras reactivar el registro:
       // { path: 'register', component: () => import('@/views/RegisterView.vue') },

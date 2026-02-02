@@ -418,7 +418,6 @@ const handleLogout = async () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 1.5rem;
     border-bottom: 1px solid #e0e0e0;
   }
 
@@ -427,6 +426,7 @@ const handleLogout = async () => {
   }
 
   .sidebar-content {
+    flex: 1;
     display: flex;
     align-items: center;
     flex-direction: column;
@@ -570,9 +570,6 @@ const handleLogout = async () => {
 }
 
 .dashboard-sidebar__bt-close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
   background: none;
   border: none;
   font-size: 1rem;

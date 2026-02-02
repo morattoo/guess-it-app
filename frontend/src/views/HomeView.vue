@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import HeaderLogo from '@/components/layout/HeaderLogo.vue';
-import LanguageSelector from '@/components/layout/LanguageSelector.vue';
 import { useI18n } from '@/composables/useI18n';
 
 const { t } = useI18n();
@@ -9,9 +8,7 @@ const { t } = useI18n();
 <template>
   <div class="home">
     <HeaderLogo />
-    <div class="language-selector-wrapper">
-      <LanguageSelector />
-    </div>
+
     <section class="home__container">
       <div class="intro">
         <h1>{{ t.home.title }}</h1>
@@ -37,13 +34,6 @@ const { t } = useI18n();
   height: 100%;
   width: 100%;
   position: relative;
-
-  .language-selector-wrapper {
-    position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
-    z-index: 10;
-  }
 
   &__container {
     flex: 1;
