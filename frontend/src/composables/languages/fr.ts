@@ -20,8 +20,20 @@ export default {
     defaultMessage: "Désolé, quelque chose s'est mal passé. Veuillez réessayer plus tard.",
     goBack: 'Retour',
     contactSupport: 'Si le problème persiste, contactez le support.',
+  }, // ConfirmDialog
+  confirmDialog: {
+    defaultTitle: "Confirmer l'action",
+    defaultMessage: 'Êtes-vous sûr de vouloir continuer?',
+    confirm: 'Confirmer',
+    cancel: 'Annuler',
   },
-  // HomeView
+  // Toast
+  toast: {
+    success: 'Succès',
+    error: 'Erreur',
+    warning: 'Avertissement',
+    info: 'Information',
+  }, // HomeView
   home: {
     title: 'GuessIt!',
     subtitle: 'Votre expérience de jeu de devinettes ultime.',

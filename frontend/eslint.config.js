@@ -3,6 +3,7 @@ import pluginVue from 'eslint-plugin-vue';
 import * as parserVue from 'vue-eslint-parser';
 import tseslint from 'typescript-eslint';
 import eslintConfigPrettier from 'eslint-config-prettier';
+import globals from 'globals';
 
 export default [
   {
@@ -30,11 +31,20 @@ export default [
         sourceType: 'module',
       },
       globals: {
+        ...globals.browser,
         crypto: 'readonly',
       },
     },
     rules: {
       'vue/multi-word-component-names': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
     },
   },
 
@@ -47,6 +57,9 @@ export default [
         ecmaVersion: 'latest',
         sourceType: 'module',
       },
+      globals: {
+        ...globals.browser,
+      },
     },
     rules: {
       '@typescript-eslint/no-unused-vars': [
@@ -54,6 +67,7 @@ export default [
         {
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
       ],
     },

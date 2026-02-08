@@ -21,6 +21,20 @@ export default {
     goBack: 'Volver',
     contactSupport: 'Si el problema persiste, contacta al soporte.',
   },
+  // ConfirmDialog
+  confirmDialog: {
+    defaultTitle: 'Confirmar acción',
+    defaultMessage: '¿Estás seguro de que deseas continuar?',
+    confirm: 'Confirmar',
+    cancel: 'Cancelar',
+  },
+  // Toast
+  toast: {
+    success: 'Éxito',
+    error: 'Error',
+    warning: 'Advertencia',
+    info: 'Información',
+  },
   // HomeView
   home: {
     title: 'GuessIt!',

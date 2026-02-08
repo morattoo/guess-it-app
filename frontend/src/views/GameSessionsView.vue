@@ -230,11 +230,15 @@ import { auth } from '@/firebase/auth';
 import type { FirebaseTimestamp, GameSession } from '@shared/models/GameSession';
 import { useI18n } from '@/composables/useI18n';
 import { useErrorHandler } from '@/composables/useErrorHandler';
+import { useConfirmDialog } from '@/composables/useConfirmDialog';
+import { useToast } from '@/composables/useToast';
 import { formatError } from '@/utils/errorUtils';
 
 const { t } = useI18n();
 const router = useRouter();
 const { showError } = useErrorHandler();
+const { confirm } = useConfirmDialog();
+const { success, error: showToastError } = useToast();
 const gameSessions = ref<GameSession[]>([]);
 const loading = ref(true);
 
@@ -242,8 +246,8 @@ const loadGameSessions = async () => {
   try {
     const currentUser = auth.currentUser!;
     gameSessions.value = await getGameSessionsByUser(currentUser.uid);
-  } catch (error: unknown) {
-    const errorMessage = formatError(error, t.value.gameSessions.alerts.loadError);
+  } catch (_error: unknown) {
+    const errorMessage = formatError(_error, t.value.gameSessions.alerts.loadError);
     showError(errorMessage, {
       returnUrl: '/dashboard',
     });
@@ -257,25 +261,33 @@ const handleEdit = (sessionId: string) => {
 };
 
 const handleStart = async (sessionId: string) => {
-  if (!confirm(t.value.gameSessions.confirmations.start)) return;
+  const confirmed = await confirm(t.value.gameSessions.confirmations.start, {
+    confirmButtonClass: 'btn-primary',
+  });
+
+  if (!confirmed) return;
 
   try {
     await updateGameSessionStatus(sessionId, 'RUNNING');
     await loadGameSessions();
-  } catch (error: unknown) {
-    const errorMessage = formatError(error, t.value.gameSessions.alerts.startError);
+  } catch (_error: unknown) {
+    const errorMessage = formatError(_error, t.value.gameSessions.alerts.startError);
     showError(errorMessage);
   }
 };
 
 const handleFinish = async (sessionId: string) => {
-  if (!confirm(t.value.gameSessions.confirmations.finish)) return;
+  const confirmed = await confirm(t.value.gameSessions.confirmations.finish, {
+    confirmButtonClass: 'btn-warning',
+  });
+
+  if (!confirmed) return;
 
   try {
     await updateGameSessionStatus(sessionId, 'FINISHED');
     await loadGameSessions();
-  } catch (error: unknown) {
-    const errorMessage = formatError(error, t.value.gameSessions.alerts.finishError);
+  } catch (_error: unknown) {
+    const errorMessage = formatError(_error, t.value.gameSessions.alerts.finishError);
     showError(errorMessage);
   }
 };
@@ -291,8 +303,8 @@ const handleToggleOpen = async (sessionId: string, event: Event) => {
     if (session) {
       session.isOpen = newValue;
     }
-  } catch (error: unknown) {
-    const errorMessage = formatError(error, t.value.gameSessions.alerts.toggleError);
+  } catch (_error: unknown) {
+    const errorMessage = formatError(_error, t.value.gameSessions.alerts.toggleError);
     showError(errorMessage);
     // Revertir el checkbox
     target.checked = !newValue;
@@ -300,13 +312,17 @@ const handleToggleOpen = async (sessionId: string, event: Event) => {
 };
 
 const handleDelete = async (sessionId: string) => {
-  if (!confirm(t.value.gameSessions.confirmations.delete)) return;
+  const confirmed = await confirm(t.value.gameSessions.confirmations.delete, {
+    confirmButtonClass: 'btn-danger',
+  });
+
+  if (!confirmed) return;
 
   try {
     await deleteGameSession(sessionId);
     gameSessions.value = gameSessions.value.filter(s => s.id !== sessionId);
-  } catch (error: unknown) {
-    const errorMessage = formatError(error, t.value.gameSessions.alerts.deleteError);
+  } catch (_error: unknown) {
+    const errorMessage = formatError(_error, t.value.gameSessions.alerts.deleteError);
     showError(errorMessage);
   }
 };
@@ -319,8 +335,8 @@ const handleCopyLink = async (sessionId: string) => {
   const gameUrl = `${window.location.origin}/game/${sessionId}`;
   try {
     await navigator.clipboard.writeText(gameUrl);
-    alert(t.value.gameSessions.alerts.linkCopied);
-  } catch (error: any) {
+    success(t.value.gameSessions.alerts.linkCopied);
+  } catch (_error: unknown) {
     // Fallback para navegadores que no soportan clipboard API
     const textArea = document.createElement('textarea');
     textArea.value = gameUrl;
@@ -328,9 +344,9 @@ const handleCopyLink = async (sessionId: string) => {
     textArea.select();
     try {
       document.execCommand('copy');
-      alert(t.value.gameSessions.alerts.linkCopied);
-    } catch (err) {
-      alert(t.value.gameSessions.alerts.linkCopyError);
+      success(t.value.gameSessions.alerts.linkCopied);
+    } catch (_err: unknown) {
+      showToastError(t.value.gameSessions.alerts.linkCopyError);
     }
     document.body.removeChild(textArea);
   }
