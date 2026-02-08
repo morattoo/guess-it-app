@@ -1,7 +1,7 @@
 <template>
   <div class="game-sessions-view">
     <div class="header">
-      <h2>Sesiones de Juego</h2>
+      <h2>{{ t.gameSessions.title }}</h2>
       <router-link to="/dashboard/game-session/new" class="btn-add">
         <svg
           width="20"
@@ -17,16 +17,16 @@
             stroke-linecap="round"
           />
         </svg>
-        Nueva Sesión
+        {{ t.gameSessions.newSession }}
       </router-link>
     </div>
 
-    <div v-if="loading" class="loading">Cargando sesiones...</div>
+    <div v-if="loading" class="loading">{{ t.gameSessions.loading }}</div>
 
     <div v-else-if="gameSessions.length === 0" class="empty-state">
-      <p>No tienes sesiones de juego creadas.</p>
+      <p>{{ t.gameSessions.noSessions }}</p>
       <router-link to="/dashboard/game-session/new" class="btn-primary">
-        Crear tu primera sesión
+        {{ t.gameSessions.createFirst }}
       </router-link>
     </div>
 
@@ -34,28 +34,32 @@
       <div v-for="session in gameSessions" :key="session.id" class="session-card">
         <div class="session-header">
           <div class="session-info">
-            <h3 class="session-title">Sesión {{ session.id?.substring(0, 8) }}</h3>
+            <h3 class="session-title">
+              {{ t.gameSessions.sessionId }} {{ session.id?.substring(0, 8) }}
+            </h3>
             <span class="status-badge" :class="`status-${session.status.toLowerCase()}`">
               {{ getStatusLabel(session.status) }}
             </span>
           </div>
           <span class="question-count">
             {{ session.questions.length }}
-            {{ session.questions.length === 1 ? 'pregunta' : 'preguntas' }}
+            {{
+              session.questions.length === 1 ? t.gameSessions.question : t.gameSessions.questions
+            }}
           </span>
         </div>
 
         <div class="session-details">
           <div class="detail-item">
-            <span class="detail-label">Creada:</span>
+            <span class="detail-label">{{ t.gameSessions.created }}</span>
             <span class="detail-value">{{ formatDate(session.startedAt) }}</span>
           </div>
           <div v-if="session.endedAt" class="detail-item">
-            <span class="detail-label">Finalizada:</span>
+            <span class="detail-label">{{ t.gameSessions.finished }}</span>
             <span class="detail-value">{{ formatDate(session.endedAt) }}</span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Inscripciones:</span>
+            <span class="detail-label">{{ t.gameSessions.registrations }}</span>
             <span class="detail-value">
               <label class="toggle-switch">
                 <input
@@ -66,7 +70,7 @@
                 />
                 <span class="toggle-slider"></span>
               </label>
-              {{ session.isOpen ? 'Abiertas' : 'Cerradas' }}
+              {{ session.isOpen ? t.gameSessions.open : t.gameSessions.closed }}
             </span>
           </div>
         </div>
@@ -75,7 +79,7 @@
           <button
             v-if="session.status === 'WAITING'"
             class="btn-icon"
-            title="Editar"
+            :title="t.gameSessions.actions.edit"
             @click="handleEdit(session.id!)"
           >
             <svg
@@ -97,7 +101,7 @@
           <button
             v-if="session.status === 'WAITING'"
             class="btn-icon btn-play"
-            title="Iniciar"
+            :title="t.gameSessions.actions.start"
             @click="handleStart(session.id!)"
           >
             <svg
@@ -113,7 +117,7 @@
           <button
             v-if="session.status !== 'FINISHED'"
             class="btn-icon btn-finish"
-            title="Finalizar sesión"
+            :title="t.gameSessions.actions.finish"
             @click="handleFinish(session.id!)"
           >
             <svg
@@ -135,7 +139,7 @@
           <button
             v-if="session.status !== 'WAITING'"
             class="btn-icon btn-ranking"
-            title="Ver ranking"
+            :title="t.gameSessions.actions.ranking"
             @click="handleViewRanking(session.id!)"
           >
             <svg
@@ -157,7 +161,7 @@
           <button
             v-if="session.status !== 'WAITING'"
             class="btn-icon btn-copy"
-            title="Copiar enlace del juego"
+            :title="t.gameSessions.actions.copyLink"
             @click="handleCopyLink(session.id!)"
           >
             <svg
@@ -180,9 +184,9 @@
             </svg>
           </button>
           <button
-            v-if="session.status === 'WAITING'"
+            v-if="session.status === 'WAITING' || session.status === 'FINISHED'"
             class="btn-icon btn-delete"
-            title="Eliminar"
+            :title="t.gameSessions.actions.delete"
             @click="handleDelete(session.id!)"
           >
             <svg
@@ -224,8 +228,13 @@ import {
 } from '@/firebase/gameSession';
 import { auth } from '@/firebase/auth';
 import type { FirebaseTimestamp, GameSession } from '@shared/models/GameSession';
+import { useI18n } from '@/composables/useI18n';
+import { useErrorHandler } from '@/composables/useErrorHandler';
+import { formatError } from '@/utils/errorUtils';
 
+const { t } = useI18n();
 const router = useRouter();
+const { showError } = useErrorHandler();
 const gameSessions = ref<GameSession[]>([]);
 const loading = ref(true);
 
@@ -233,8 +242,11 @@ const loadGameSessions = async () => {
   try {
     const currentUser = auth.currentUser!;
     gameSessions.value = await getGameSessionsByUser(currentUser.uid);
-  } catch (error) {
-    console.error('Error al cargar sesiones:', error);
+  } catch (error: unknown) {
+    const errorMessage = formatError(error, t.value.gameSessions.alerts.loadError);
+    showError(errorMessage, {
+      returnUrl: '/dashboard',
+    });
   } finally {
     loading.value = false;
   }
@@ -245,26 +257,26 @@ const handleEdit = (sessionId: string) => {
 };
 
 const handleStart = async (sessionId: string) => {
-  if (!confirm('¿Iniciar esta sesión de juego? No podrás modificarla después.')) return;
+  if (!confirm(t.value.gameSessions.confirmations.start)) return;
 
   try {
     await updateGameSessionStatus(sessionId, 'RUNNING');
     await loadGameSessions();
-  } catch (error) {
-    console.error('Error al iniciar sesión:', error);
-    alert('Error al iniciar la sesión');
+  } catch (error: unknown) {
+    const errorMessage = formatError(error, t.value.gameSessions.alerts.startError);
+    showError(errorMessage);
   }
 };
 
 const handleFinish = async (sessionId: string) => {
-  if (!confirm('¿Finalizar esta sesión de juego? Esta acción no se puede deshacer.')) return;
+  if (!confirm(t.value.gameSessions.confirmations.finish)) return;
 
   try {
     await updateGameSessionStatus(sessionId, 'FINISHED');
     await loadGameSessions();
-  } catch (error) {
-    console.error('Error al finalizar sesión:', error);
-    alert('Error al finalizar la sesión');
+  } catch (error: unknown) {
+    const errorMessage = formatError(error, t.value.gameSessions.alerts.finishError);
+    showError(errorMessage);
   }
 };
 
@@ -279,37 +291,36 @@ const handleToggleOpen = async (sessionId: string, event: Event) => {
     if (session) {
       session.isOpen = newValue;
     }
-  } catch (error) {
-    console.error('Error al cambiar estado de inscripciones:', error);
-    alert('Error al cambiar estado de inscripciones');
+  } catch (error: unknown) {
+    const errorMessage = formatError(error, t.value.gameSessions.alerts.toggleError);
+    showError(errorMessage);
     // Revertir el checkbox
     target.checked = !newValue;
   }
 };
 
 const handleDelete = async (sessionId: string) => {
-  if (!confirm('¿Estás seguro de eliminar esta sesión?')) return;
+  if (!confirm(t.value.gameSessions.confirmations.delete)) return;
 
   try {
     await deleteGameSession(sessionId);
     gameSessions.value = gameSessions.value.filter(s => s.id !== sessionId);
-  } catch (error) {
-    console.error('Error al eliminar sesión:', error);
-    alert('Error al eliminar la sesión');
+  } catch (error: unknown) {
+    const errorMessage = formatError(error, t.value.gameSessions.alerts.deleteError);
+    showError(errorMessage);
   }
 };
 
 const handleViewRanking = (sessionId: string) => {
-  router.push(`/ranking/${sessionId}`);
+  router.push(`/game/${sessionId}/ranking`);
 };
 
 const handleCopyLink = async (sessionId: string) => {
   const gameUrl = `${window.location.origin}/game/${sessionId}`;
   try {
     await navigator.clipboard.writeText(gameUrl);
-    alert('¡Enlace copiado al portapapeles!');
-  } catch (error) {
-    console.error('Error al copiar enlace:', error);
+    alert(t.value.gameSessions.alerts.linkCopied);
+  } catch (error: any) {
     // Fallback para navegadores que no soportan clipboard API
     const textArea = document.createElement('textarea');
     textArea.value = gameUrl;
@@ -317,21 +328,21 @@ const handleCopyLink = async (sessionId: string) => {
     textArea.select();
     try {
       document.execCommand('copy');
-      alert('¡Enlace copiado al portapapeles!');
+      alert(t.value.gameSessions.alerts.linkCopied);
     } catch (err) {
-      alert('No se pudo copiar el enlace');
+      alert(t.value.gameSessions.alerts.linkCopyError);
     }
     document.body.removeChild(textArea);
   }
 };
 
 const getStatusLabel = (status: string) => {
-  const labels: Record<string, string> = {
-    WAITING: 'Esperando',
-    RUNNING: 'En curso',
-    FINISHED: 'Finalizada',
+  const statusMap: Record<string, string> = {
+    WAITING: t.value.gameSessions.status.waiting,
+    RUNNING: t.value.gameSessions.status.running,
+    FINISHED: t.value.gameSessions.status.finished,
   };
-  return labels[status] || status;
+  return statusMap[status] || status;
 };
 
 const formatDate = (timestamp: FirebaseTimestamp) => {

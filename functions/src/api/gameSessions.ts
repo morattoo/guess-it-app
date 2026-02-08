@@ -370,7 +370,7 @@ gameSessionsApi.delete("/gameSessions/:id", async (req, res) => {
   }
 
   // Solo se puede eliminar en estado WAITING
-  if (gameSessionData.status !== "WAITING") {
+  if (gameSessionData.status === "RUNNING") {
     return res.status(400).send("Cannot delete session in current state");
   }
 

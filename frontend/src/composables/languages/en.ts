@@ -14,6 +14,13 @@ export default {
     yes: 'Yes',
     no: 'No',
   },
+  // ErrorOverlay
+  errorOverlay: {
+    title: 'An error has occurred',
+    defaultMessage: 'Sorry, something went wrong. Please try again later.',
+    goBack: 'Go Back',
+    contactSupport: 'If the problem persists, contact support.',
+  },
   // HomeView
   home: {
     title: 'GuessIt!',
@@ -97,6 +104,49 @@ export default {
       sessionFinished: 'This session has already finished.',
       sessionClosed: 'This session is not accepting new players.',
       loadError: 'Error loading the game session.',
+    },
+  },
+  // GameSessionsView
+  gameSessions: {
+    title: 'Game Sessions',
+    newSession: 'New Session',
+    loading: 'Loading sessions...',
+    noSessions: 'You have no game sessions created.',
+    createFirst: 'Create your first session',
+    sessionId: 'Session',
+    question: 'question',
+    questions: 'questions',
+    created: 'Created:',
+    finished: 'Finished:',
+    registrations: 'Registrations:',
+    open: 'Open',
+    closed: 'Closed',
+    status: {
+      waiting: 'Waiting',
+      running: 'In Progress',
+      finished: 'Finished',
+    },
+    actions: {
+      edit: 'Edit',
+      start: 'Start',
+      finish: 'Finish session',
+      ranking: 'View ranking',
+      copyLink: 'Copy game link',
+      delete: 'Delete',
+    },
+    confirmations: {
+      start: 'Start this game session? You will not be able to modify it afterwards.',
+      finish: 'Finish this game session? This action cannot be undone.',
+      delete: 'Are you sure you want to delete this session?',
+    },
+    alerts: {
+      linkCopied: 'Link copied to clipboard!',
+      linkCopyError: 'Could not copy link',
+      startError: 'Error starting session',
+      finishError: 'Error finishing session',
+      deleteError: 'Error deleting session',
+      toggleError: 'Error changing registration status',
+      loadError: 'Error loading sessions',
     },
   },
   // PlayGameView

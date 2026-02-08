@@ -14,6 +14,13 @@ export default {
     yes: 'Sí',
     no: 'No',
   },
+  // ErrorOverlay
+  errorOverlay: {
+    title: 'Ha ocurrido un error',
+    defaultMessage: 'Lo sentimos, algo salió mal. Por favor, inténtalo de nuevo más tarde.',
+    goBack: 'Volver',
+    contactSupport: 'Si el problema persiste, contacta al soporte.',
+  },
   // HomeView
   home: {
     title: 'GuessIt!',
@@ -97,6 +104,49 @@ export default {
       sessionFinished: 'Esta sesión ya ha finalizado.',
       sessionClosed: 'Esta sesión no acepta nuevos jugadores.',
       loadError: 'Error al cargar la sesión de juego.',
+    },
+  },
+  // GameSessionsView
+  gameSessions: {
+    title: 'Sesiones de Juego',
+    newSession: 'Nueva Sesión',
+    loading: 'Cargando sesiones...',
+    noSessions: 'No tienes sesiones de juego creadas.',
+    createFirst: 'Crear tu primera sesión',
+    sessionId: 'Sesión',
+    question: 'pregunta',
+    questions: 'preguntas',
+    created: 'Creada:',
+    finished: 'Finalizada:',
+    registrations: 'Inscripciones:',
+    open: 'Abiertas',
+    closed: 'Cerradas',
+    status: {
+      waiting: 'Esperando',
+      running: 'En curso',
+      finished: 'Finalizada',
+    },
+    actions: {
+      edit: 'Editar',
+      start: 'Iniciar',
+      finish: 'Finalizar sesión',
+      ranking: 'Ver ranking',
+      copyLink: 'Copiar enlace del juego',
+      delete: 'Eliminar',
+    },
+    confirmations: {
+      start: '¿Iniciar esta sesión de juego? No podrás modificarla después.',
+      finish: '¿Finalizar esta sesión de juego? Esta acción no se puede deshacer.',
+      delete: '¿Estás seguro de eliminar esta sesión?',
+    },
+    alerts: {
+      linkCopied: '¡Enlace copiado al portapapeles!',
+      linkCopyError: 'No se pudo copiar el enlace',
+      startError: 'Error al iniciar la sesión',
+      finishError: 'Error al finalizar la sesión',
+      deleteError: 'Error al eliminar la sesión',
+      toggleError: 'Error al cambiar estado de inscripciones',
+      loadError: 'Error al cargar sesiones',
     },
   },
   // PlayGameView

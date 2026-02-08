@@ -14,6 +14,13 @@ export default {
     yes: 'Oui',
     no: 'Non',
   },
+  // ErrorOverlay
+  errorOverlay: {
+    title: "Une erreur s'est produite",
+    defaultMessage: "Désolé, quelque chose s'est mal passé. Veuillez réessayer plus tard.",
+    goBack: 'Retour',
+    contactSupport: 'Si le problème persiste, contactez le support.',
+  },
   // HomeView
   home: {
     title: 'GuessIt!',
@@ -97,6 +104,49 @@ export default {
       sessionFinished: 'Cette session est déjà terminée.',
       sessionClosed: "Cette session n'accepte pas de nouveaux joueurs.",
       loadError: 'Erreur lors du chargement de la session de jeu.',
+    },
+  },
+  // GameSessionsView
+  gameSessions: {
+    title: 'Sessions de jeu',
+    newSession: 'Nouvelle session',
+    loading: 'Chargement des sessions...',
+    noSessions: "Vous n'avez pas de sessions de jeu créées.",
+    createFirst: 'Créer votre première session',
+    sessionId: 'Session',
+    question: 'question',
+    questions: 'questions',
+    created: 'Créée :',
+    finished: 'Terminée :',
+    registrations: 'Inscriptions :',
+    open: 'Ouvertes',
+    closed: 'Fermées',
+    status: {
+      waiting: 'En attente',
+      running: 'En cours',
+      finished: 'Terminée',
+    },
+    actions: {
+      edit: 'Modifier',
+      start: 'Démarrer',
+      finish: 'Terminer la session',
+      ranking: 'Voir le classement',
+      copyLink: 'Copier le lien du jeu',
+      delete: 'Supprimer',
+    },
+    confirmations: {
+      start: 'Démarrer cette session de jeu ? Vous ne pourrez pas la modifier par la suite.',
+      finish: 'Terminer cette session de jeu ? Cette action ne peut pas être annulée.',
+      delete: 'Êtes-vous sûr de vouloir supprimer cette session ?',
+    },
+    alerts: {
+      linkCopied: 'Lien copié dans le presse-papiers !',
+      linkCopyError: 'Impossible de copier le lien',
+      startError: 'Erreur lors du démarrage de la session',
+      finishError: 'Erreur lors de la fin de la session',
+      deleteError: 'Erreur lors de la suppression de la session',
+      toggleError: "Erreur lors du changement du statut d'inscription",
+      loadError: 'Erreur lors du chargement des sessions',
     },
   },
   // PlayGameView
