@@ -2,17 +2,6 @@
   <div class="join-game-view">
     <div class="container">
       <HeaderLogo />
-
-      <!-- Language Selector -->
-      <div class="language-selector">
-        <label for="language">{{ t.language.select }}:</label>
-        <select id="language" v-model="selectedLanguage" @change="handleLanguageChange">
-          <option value="en">{{ t.language.en }}</option>
-          <option value="es">{{ t.language.es }}</option>
-          <option value="fr">{{ t.language.fr }}</option>
-        </select>
-      </div>
-
       <div v-if="loading" class="loading">
         <p>{{ t.join.loading }}</p>
       </div>
@@ -33,7 +22,7 @@
 
         <div class="session-info">
           <p class="info-text">
-            <strong>{{ t.join.status }}:</strong>
+            <strong>{{ t.join.status }}: </strong>
             <span :class="`status-${gameSession.status.toLowerCase()}`">
               {{ statusText }}
             </span>
@@ -97,15 +86,9 @@ import {
 import type { GameSession } from '@shared/models/GameSession';
 import HeaderLogo from '@/components/layout/HeaderLogo.vue';
 import { getUserProfile } from '@/firebase/users';
-import { useI18n, type Language } from '@/composables/useI18n';
+import { useI18n } from '@/composables/useI18n';
 
-const { t, language, setLanguage } = useI18n();
-const selectedLanguage = ref<Language>(language.value);
-
-const handleLanguageChange = () => {
-  setLanguage(selectedLanguage.value);
-};
-
+const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();
 
@@ -156,8 +139,6 @@ onMounted(async () => {
     // Verificar autenticación (puede ser null)
     const user = await getCurrentUser();
 
-    console.log('User data:', user);
-
     if (!user) {
       // Usuario no autenticado, mostrar input de nombre
       showNameInput.value = true;
@@ -171,8 +152,6 @@ onMounted(async () => {
     } else {
       // Usuario autenticado con nombre
       const profile = await getUserProfile(user.uid);
-
-      console.log('User profile:', profile);
       currentUserName.value = profile?.name || 'Jugador';
       showNameInput.value = false;
     }
@@ -186,9 +165,8 @@ onMounted(async () => {
     }
 
     loading.value = false;
-  } catch (err: any) {
-    console.error('Error al cargar la sesión:', err);
-    error.value = err.message || t.value.join.errors.loadError;
+  } catch (err: unknown) {
+    error.value = (err as Error).message || t.value.join.errors.loadError;
     loading.value = false;
   }
 });
@@ -206,9 +184,8 @@ const handleJoin = async () => {
 
     hasJoined.value = true;
     joining.value = false;
-  } catch (err: any) {
-    console.error('Error al unirse:', err);
-    alert('Error al unirse al juego: ' + (err.message || 'Error desconocido'));
+  } catch (err: unknown) {
+    alert('Error al unirse al juego: ' + ((err as Error).message || 'Error desconocido'));
     joining.value = false;
   }
 };
@@ -302,6 +279,7 @@ const goToPlay = () => {
   padding: 2.5rem;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  margin-top: 1rem;
 
   h1 {
     text-align: center;
