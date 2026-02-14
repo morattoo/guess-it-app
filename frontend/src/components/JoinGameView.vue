@@ -2,11 +2,8 @@
   <div class="join-game-view">
     <div class="container">
       <HeaderLogo />
-      <div v-if="loading" class="loading">
-        <p>{{ t.join.loading }}</p>
-      </div>
-
-      <div v-else-if="error" class="error-message">
+      <BaseLoader v-model="loading" overlay :text="t.join.loading" :size="60" color="#10b981" />
+      <div v-if="error" class="error-message">
         <h2>{{ t.join.error }}</h2>
         <p>{{ error }}</p>
         <router-link v-if="!gameSession" to="/" class="btn btn-primary">{{
@@ -87,6 +84,7 @@ import type { GameSession } from '@shared/models/GameSession';
 import HeaderLogo from '@/components/layout/HeaderLogo.vue';
 import { getUserProfile } from '@/firebase/users';
 import { useI18n } from '@/composables/useI18n';
+import BaseLoader from '@/components/BaseLoader.vue';
 
 const { t } = useI18n();
 const router = useRouter();
