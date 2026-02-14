@@ -3,18 +3,7 @@
     <div class="container">
       <HeaderLogo />
       <BaseLoader v-model="loading" overlay :text="t.join.loading" :size="60" color="#10b981" />
-      <div v-if="error" class="error-message">
-        <h2>{{ t.join.error }}</h2>
-        <p>{{ error }}</p>
-        <router-link v-if="!gameSession" to="/" class="btn btn-primary">{{
-          t.join.backToHome
-        }}</router-link>
-        <router-link v-else :to="`/game/${sessionId}/ranking`" class="btn btn-primary">
-          {{ t.play.viewRanking }}
-        </router-link>
-      </div>
-
-      <div v-else-if="gameSession" class="join-card">
+      <div v-if="gameSession" class="join-card">
         <h1>{{ t.join.joinGame }}</h1>
 
         <div class="session-info">
@@ -85,6 +74,8 @@ import HeaderLogo from '@/components/layout/HeaderLogo.vue';
 import { getUserProfile } from '@/firebase/users';
 import { useI18n } from '@/composables/useI18n';
 import BaseLoader from '@/components/BaseLoader.vue';
+import { useErrorHandler } from '@/composables/useErrorHandler';
+const { showError } = useErrorHandler();
 
 const { t } = useI18n();
 const router = useRouter();
@@ -119,18 +110,24 @@ onMounted(async () => {
     if (!session) {
       error.value = t.value.join.errors.sessionNotFound;
       loading.value = false;
+      showError(error.value);
       return;
     }
 
     if (session.status === 'FINISHED') {
       error.value = t.value.join.errors.sessionFinished;
       loading.value = false;
+      showError(error.value, {
+        returnUrl: `/game/${sessionId.value}/ranking`,
+        returnButtonText: t.value.join.goToRanking,
+      });
       return;
     }
 
     if (!session.isOpen) {
       error.value = t.value.join.errors.sessionClosed;
       loading.value = false;
+      showError(error.value);
       return;
     }
 
@@ -166,6 +163,7 @@ onMounted(async () => {
   } catch (err: unknown) {
     error.value = (err as Error).message || t.value.join.errors.loadError;
     loading.value = false;
+    showError(error.value);
   }
 });
 
@@ -205,71 +203,6 @@ const goToPlay = () => {
 .container {
   max-width: 500px;
   width: 100%;
-}
-
-.language-selector {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-
-  label {
-    color: #4a5568;
-    font-weight: 600;
-    font-size: 0.875rem;
-  }
-
-  select {
-    padding: 0.5rem 2rem 0.5rem 0.75rem;
-    border: 2px solid #e2e8f0;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #2d3748;
-    background: white;
-    cursor: pointer;
-    transition: all 0.2s;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234a5568' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.5rem center;
-
-    &:hover {
-      border-color: #cbd5e0;
-    }
-
-    &:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-  }
-}
-
-.loading,
-.error-message {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  text-align: center;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-}
-
-.error-message {
-  h2 {
-    color: #e53e3e;
-    margin-bottom: 1rem;
-  }
-
-  p {
-    margin-bottom: 1.5rem;
-    color: #4a5568;
-  }
 }
 
 .join-card {

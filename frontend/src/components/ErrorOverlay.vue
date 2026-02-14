@@ -26,7 +26,7 @@
 
         <div class="error-actions">
           <button v-if="errorState.returnUrl" class="btn-primary" @click="handleReturn">
-            {{ t.errorOverlay.goBack }}
+            {{ errorState.returnButtonText || t.errorOverlay.goBack }}
           </button>
           <button v-else class="btn-primary" @click="handleClose">
             {{ t.common.close }}

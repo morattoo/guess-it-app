@@ -5,6 +5,7 @@ interface ErrorState {
   message: string;
   title: string;
   returnUrl: string;
+  returnButtonText: string;
   showSupport: boolean;
 }
 
@@ -13,6 +14,7 @@ const errorState = ref<ErrorState>({
   message: '',
   title: '',
   returnUrl: '',
+  returnButtonText: '',
   showSupport: true,
 });
 
@@ -22,6 +24,7 @@ export function useErrorHandler() {
     options?: {
       title?: string;
       returnUrl?: string;
+      returnButtonText?: string;
       showSupport?: boolean;
     }
   ) => {
@@ -30,6 +33,7 @@ export function useErrorHandler() {
       message,
       title: options?.title || '',
       returnUrl: options?.returnUrl || '',
+      returnButtonText: options?.returnButtonText || '',
       showSupport: options?.showSupport ?? true,
     };
   };

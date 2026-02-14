@@ -113,6 +113,7 @@ export default {
     joinedSuccess: '¡Te has unido exitosamente!',
     getReadyToPlay: 'Prepárate para comenzar a jugar',
     goToPlay: 'Ir a jugar',
+    goToRanking: 'Ver ranking',
     errors: {
       sessionNotFound: 'La sesión de juego no existe o ya no está disponible.',
       sessionFinished: 'Esta sesión ya ha finalizado.',
