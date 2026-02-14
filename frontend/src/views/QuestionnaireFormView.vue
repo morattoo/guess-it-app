@@ -377,7 +377,7 @@ h2 {
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: 4px;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
   font-size: 1.125rem;
