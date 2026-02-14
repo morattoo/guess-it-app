@@ -124,23 +124,6 @@ h2 {
   font-size: 1.125rem;
 }
 
-.btn-primary {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background-color: #2f8cff;
-  color: white;
-  text-decoration: none;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.btn-primary:hover {
-  background-color: #1a7ae8;
-}
-
 .question-form {
   margin-top: 2rem;
 }

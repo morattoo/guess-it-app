@@ -137,27 +137,6 @@ const handleClose = () => {
   justify-content: center;
 }
 
-.btn-primary {
-  padding: 0.75rem 2rem;
-  background-color: #2f8cff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.btn-primary:hover {
-  background-color: #1a7ae8;
-}
-
-.btn-primary:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(47, 140, 255, 0.3);
-}
-
 @media (max-width: 640px) {
   .error-container {
     padding: 2rem 1.5rem;
@@ -173,10 +152,6 @@ const handleClose = () => {
 
   .error-actions {
     flex-direction: column;
-  }
-
-  .btn-primary {
-    width: 100%;
   }
 }
 </style>

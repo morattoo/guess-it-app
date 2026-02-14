@@ -399,24 +399,6 @@ h2 {
   color: #333;
 }
 
-.btn-add {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background-color: #2f8cff;
-  color: white;
-  text-decoration: none;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.9375rem;
-  transition: background-color 0.2s;
-}
-
-.btn-add:hover {
-  background-color: #1a7ae8;
-}
-
 .loading,
 .empty-state {
   text-align: center;
@@ -427,21 +409,6 @@ h2 {
 .empty-state p {
   margin-bottom: 1.5rem;
   font-size: 1.125rem;
-}
-
-.btn-primary {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background-color: #2f8cff;
-  color: white;
-  text-decoration: none;
-  border-radius: 6px;
-  font-weight: 600;
-  transition: background-color 0.2s;
-}
-
-.btn-primary:hover {
-  background-color: #1a7ae8;
 }
 
 .sessions-list {
@@ -606,56 +573,6 @@ h2 {
 .session-actions {
   display: flex;
   gap: 0.5rem;
-}
-
-.btn-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  background-color: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: #666;
-}
-
-.btn-icon:hover {
-  background-color: #f5f5f5;
-  border-color: #ccc;
-}
-
-.btn-play:hover {
-  background-color: #e3f2ff;
-  border-color: #2f8cff;
-  color: #2f8cff;
-}
-
-.btn-finish:hover {
-  background-color: #e8f5e9;
-  border-color: #4caf50;
-  color: #4caf50;
-}
-
-.btn-ranking:hover {
-  background-color: #fff9e6;
-  border-color: #fbbf24;
-  color: #f59e0b;
-}
-
-.btn-copy:hover {
-  background-color: #f0f4ff;
-  border-color: #818cf8;
-  color: #6366f1;
-}
-
-.btn-delete:hover {
-  background-color: #fff5f5;
-  border-color: #fcc;
-  color: #d33;
 }
 
 @media (max-width: 640px) {

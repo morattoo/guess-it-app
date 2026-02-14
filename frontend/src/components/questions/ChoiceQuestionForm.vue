@@ -265,39 +265,6 @@ h3 {
   cursor: pointer;
 }
 
-.btn-remove {
-  padding: 0.25rem 0.5rem;
-  background-color: #fee;
-  color: #d33;
-  border: 1px solid #fcc;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.2s;
-}
-
-.btn-remove:hover {
-  background-color: #fcc;
-}
-
-.btn-add-option {
-  padding: 0.75rem 1rem;
-  background-color: #f5f5f5;
-  color: #666;
-  border: 1px dashed #ddd;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 600;
-  transition: all 0.2s;
-  width: 100%;
-}
-
-.btn-add-option:hover {
-  background-color: #e0e0e0;
-  border-color: #ccc;
-}
-
 .form-actions {
   display: flex;
   gap: 1rem;
@@ -305,40 +272,6 @@ h3 {
   margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid #e0e0e0;
-}
-
-.btn-primary,
-.btn-secondary {
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-primary {
-  background-color: #2f8cff;
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background-color: #1a7ae8;
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background-color: #f5f5f5;
-  color: #666;
-}
-
-.btn-secondary:hover {
-  background-color: #e0e0e0;
 }
 
 @media (max-width: 640px) {
@@ -352,11 +285,6 @@ h3 {
 
   .form-actions {
     flex-direction: column-reverse;
-  }
-
-  .btn-primary,
-  .btn-secondary {
-    width: 100%;
   }
 }
 </style>

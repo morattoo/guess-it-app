@@ -248,35 +248,6 @@ h3 {
   border-top: 1px solid #e0e0e0;
 }
 
-.btn-primary,
-.btn-secondary {
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-primary {
-  background-color: #2f8cff;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #1a7ae8;
-}
-
-.btn-secondary {
-  background-color: #f5f5f5;
-  color: #666;
-}
-
-.btn-secondary:hover {
-  background-color: #e0e0e0;
-}
-
 @media (max-width: 640px) {
   .form-row {
     grid-template-columns: 1fr;
@@ -284,11 +255,6 @@ h3 {
 
   .form-actions {
     flex-direction: column-reverse;
-  }
-
-  .btn-primary,
-  .btn-secondary {
-    width: 100%;
   }
 }
 </style>

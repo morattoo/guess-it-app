@@ -107,91 +107,6 @@ const { dialogState, handleConfirm, handleCancel } = useConfirmDialog();
   justify-content: center;
 }
 
-.btn-primary,
-.btn-secondary {
-  padding: 0.625rem 1.5rem;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.9375rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  min-width: 100px;
-}
-
-.btn-primary {
-  background-color: #2f8cff;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #1a7ae8;
-}
-
-.btn-primary:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(47, 140, 255, 0.3);
-}
-
-.btn-secondary {
-  background-color: #f3f4f6;
-  color: #374151;
-}
-
-.btn-secondary:hover {
-  background-color: #e5e7eb;
-}
-
-.btn-secondary:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.3);
-}
-
-/* Variantes de botón de confirmación */
-.btn-danger {
-  background-color: #dc2626;
-  color: white;
-  padding: 0.625rem 1.5rem;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.9375rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  min-width: 100px;
-}
-
-.btn-danger:hover {
-  background-color: #b91c1c;
-}
-
-.btn-danger:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.3);
-}
-
-.btn-warning {
-  background-color: #f59e0b;
-  color: white;
-  padding: 0.625rem 1.5rem;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.9375rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  min-width: 100px;
-}
-
-.btn-warning:hover {
-  background-color: #d97706;
-}
-
-.btn-warning:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
-}
-
 /* Transiciones */
 .dialog-fade-enter-active,
 .dialog-fade-leave-active {
@@ -228,13 +143,6 @@ const { dialogState, handleConfirm, handleCancel } = useConfirmDialog();
 
   .confirm-actions {
     flex-direction: column-reverse;
-  }
-
-  .btn-primary,
-  .btn-secondary,
-  .btn-danger,
-  .btn-warning {
-    width: 100%;
   }
 }
 </style>
