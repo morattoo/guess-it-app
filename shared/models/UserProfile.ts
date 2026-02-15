@@ -4,3 +4,9 @@ export type UserProfile = {
   photoURL?: string;
   totalScore?: number;
 };
+
+export type UserProfileData = {
+  name: string;
+  email: string;
+  createdAt: number | { seconds: number; nanoseconds: number };
+};

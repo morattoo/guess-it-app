@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
   gameSessions: `${BASE_URL}/gameSessions`,
   questionnaires: `${BASE_URL}/questionnaires`,
   publicGame: `${BASE_URL}/publicGame`,
+  users: `${BASE_URL}/users`,
 };
 
 export { PROJECT_ID, REGION };
