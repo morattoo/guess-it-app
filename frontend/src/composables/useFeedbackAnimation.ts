@@ -3,8 +3,9 @@ import { ref } from 'vue';
 
 export function useFeedbackAnimation() {
   const showSuccess = ref(false);
+  const showError = ref(false);
 
-  function triggerSuccess(duration = 2000) {
+  function triggerSuccess(duration = 1500) {
     showSuccess.value = true;
 
     setTimeout(() => {
@@ -12,8 +13,18 @@ export function useFeedbackAnimation() {
     }, duration);
   }
 
+  function triggerError(duration = 1500) {
+    showError.value = true;
+
+    setTimeout(() => {
+      showError.value = false;
+    }, duration);
+  }
+
   return {
     showSuccess,
+    showError,
     triggerSuccess,
+    triggerError,
   };
 }

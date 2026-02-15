@@ -286,40 +286,89 @@ publicGameApi.post("/game/:id/players/:userId/answer", async (req, res) => {
 });
 
 /**
- * Obtener ranking de la sesión
+ * Obtener ranking de la sesión con información completa
  */
 publicGameApi.get("/game/:id/ranking", async (req, res) => {
   const { id: gameSessionId } = req.params;
 
   try {
+    // Obtener la sesión de juego para información adicional
+    const gameSessionSnap = await db
+      .collection("gameSessions")
+      .doc(gameSessionId)
+      .get();
+
+    if (!gameSessionSnap.exists) {
+      return res.status(404).send("Game session not found");
+    }
+
+    const gameSessionData = gameSessionSnap.data()!;
+    const totalQuestions = gameSessionData.questions.length;
+
+    // Obtener todos los jugadores
     const playersSnap = await db
       .collection("gameSessions")
       .doc(gameSessionId)
       .collection("players")
       .get();
 
-    const ranking = playersSnap.docs
-      .map((doc) => {
-        const data = doc.data();
-        return {
-          userId: doc.id,
-          displayName: data.displayName,
-          score: data.score,
-          totalPenaltySeconds: data.totalPenaltySeconds,
-          finishedAt: data.finishedAt,
-          currentQuestionIndex: data.currentQuestionIndex,
-        };
-      })
-      .sort((a, b) => {
-        // Primero ordenar por score (descendente)
-        if (b.score !== a.score) {
-          return b.score - a.score;
-        }
-        // Si tienen el mismo score, ordenar por penaltySeconds (ascendente)
-        return a.totalPenaltySeconds - b.totalPenaltySeconds;
-      });
+    // Calcular información detallada de cada jugador
+    const players = playersSnap.docs.map((doc) => {
+      const data = doc.data();
 
-    res.json(ranking);
+      // Calcular tiempo total
+      let totalTime = 0;
+      if (data.startedAt && data.startedAt.seconds) {
+        const startTime = data.startedAt.seconds * 1000;
+        const endTime = data.finishedAt
+          ? data.finishedAt.seconds * 1000
+          : Date.now();
+        const elapsedSeconds = (endTime - startTime) / 1000;
+        const penalty = data.totalPenaltySeconds || 0;
+        totalTime = Math.max(0, elapsedSeconds + penalty);
+      }
+
+      // Calcular porcentaje de progreso
+      const progressPercentage =
+        totalQuestions > 0
+          ? Math.round(((data.currentQuestionIndex + 1) / totalQuestions) * 100)
+          : 0;
+
+      return {
+        userId: doc.id,
+        displayName: data.displayName || "Jugador Anónimo",
+        score: data.score || 0,
+        totalPenaltySeconds: data.totalPenaltySeconds || 0,
+        finishedAt: data.finishedAt || null,
+        startedAt: data.startedAt || null,
+        currentQuestionIndex: data.currentQuestionIndex || 0,
+        totalTime,
+        progressPercentage,
+      };
+    });
+
+    // Ordenar ranking
+    const ranking = players.sort((a, b) => {
+      // Primero por score descendente
+      if (b.score !== a.score) return b.score - a.score;
+
+      // Si tienen el mismo score, por tiempo ascendente (menos tiempo es mejor)
+      if (a.totalTime !== b.totalTime) return a.totalTime - b.totalTime;
+
+      // Si tienen el mismo tiempo, los que terminaron primero
+      if (a.finishedAt && !b.finishedAt) return -1;
+      if (!a.finishedAt && b.finishedAt) return 1;
+
+      return 0;
+    });
+
+    res.json({
+      sessionId: gameSessionSnap.id,
+      status: gameSessionData.status,
+      totalQuestions,
+      players: ranking,
+      timestamp: Date.now(),
+    });
   } catch (error) {
     console.error("Error getting ranking:", error);
     res.status(500).send(`Error getting ranking: ${error}`);

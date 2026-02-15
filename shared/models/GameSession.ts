@@ -40,6 +40,7 @@ export type GameSessionQuestion = {
   points: number;
   penaltySeconds: number;
   validation: QuestionValidation;
+  options?: { id: string; label: string }[]; // Solo para preguntas de tipo CHOICE
 };
 
 export type QuestionValidation =
@@ -68,4 +69,25 @@ export type ChoiceValidation = {
   expectedAnswer: {
     optionId: string;
   };
+};
+
+// Ranking API Response Types
+export type RankingPlayer = {
+  userId: string;
+  displayName: string;
+  score: number;
+  totalPenaltySeconds: number;
+  finishedAt: FirebaseTimestamp | null;
+  startedAt: FirebaseTimestamp | null;
+  currentQuestionIndex: number;
+  totalTime: number;
+  progressPercentage: number;
+};
+
+export type GameRankingResponse = {
+  sessionId: string;
+  status: GameSessionStatus;
+  totalQuestions: number;
+  players: RankingPlayer[];
+  timestamp: number;
 };

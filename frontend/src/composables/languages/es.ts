@@ -212,6 +212,7 @@ export default {
     penalty: 'Penalización',
     noPlayers: 'No hay jugadores todavía',
     refresh: 'Actualizar ranking',
+    lastUpdate: 'Última actualización',
     errors: {
       sessionNotFound: 'Sesión de juego no encontrada',
       loadError: 'Error al cargar el ranking',

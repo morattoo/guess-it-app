@@ -1,25 +1,29 @@
 <template>
-  <div class="success-container" v-if="show">
-    <svg viewBox="0 0 120 120" class="success-svg">
-      <!-- círculo -->
-      <circle class="circle" cx="60" cy="60" r="50" fill="none" stroke-width="6" />
+  <transition name="fade">
+    <div v-if="show" class="success-fullscreen">
+      <div class="success-container">
+        <svg viewBox="0 0 120 120" class="success-svg">
+          <!-- círculo -->
+          <circle class="circle" cx="60" cy="60" r="50" fill="none" stroke-width="6" />
 
-      <!-- check -->
-      <polyline
-        class="check"
-        points="40,65 55,80 85,45"
-        fill="none"
-        stroke-width="6"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
+          <!-- check -->
+          <polyline
+            class="check"
+            points="40,65 55,80 85,45"
+            fill="none"
+            stroke-width="6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
 
-      <!-- fireworks rays -->
-      <g class="fireworks">
-        <line v-for="n in 8" :key="n" x1="60" y1="10" x2="60" y2="0" />
-      </g>
-    </svg>
-  </div>
+          <!-- fireworks rays -->
+          <g class="fireworks">
+            <line v-for="n in 8" :key="n" x1="60" y1="10" x2="60" y2="0" />
+          </g>
+        </svg>
+      </div>
+    </div>
+  </transition>
 </template>
 
 <script setup lang="ts">
@@ -32,33 +36,46 @@ defineProps({
 </script>
 
 <style scoped>
+.success-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(34, 197, 94, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  backdrop-filter: blur(8px);
+}
+
 .success-container {
   display: flex;
   justify-content: center;
   align-items: center;
 }
-
 .success-svg {
-  width: 120px;
-  height: 120px;
+  width: 200px;
+  height: 200px;
 }
 
 .circle {
-  stroke: #22c55e;
+  stroke: #ffffff;
   stroke-dasharray: 314;
   stroke-dashoffset: 314;
   animation: draw 0.6s ease forwards;
 }
 
 .check {
-  stroke: #22c55e;
+  stroke: #ffffff;
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
   animation: draw 0.4s ease 0.5s forwards;
 }
 
 .fireworks line {
-  stroke: #facc15;
+  stroke: #fef08a;
   stroke-width: 4;
   transform-origin: 60px 60px;
   opacity: 0;
@@ -105,5 +122,15 @@ defineProps({
     opacity: 0;
     y2: -20;
   }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

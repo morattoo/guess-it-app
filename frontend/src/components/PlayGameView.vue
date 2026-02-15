@@ -1,22 +1,14 @@
 <template>
   <div class="play-game-view">
+    <SuccessAnimation :show="showSuccess" />
+    <ErrorAnimation :show="showError" />
+
     <div class="container">
       <HeaderLogo />
-
-      <div v-if="loading" class="loading-card">
-        <p>{{ t.play.loading }}</p>
-      </div>
-
-      <div v-else-if="error" class="error-card">
-        <h2>{{ t.play.error }}</h2>
-        <p>{{ error }}</p>
-        <router-link :to="`/game/${sessionId}`" class="btn btn-primary">
-          {{ t.play.back }}
-        </router-link>
-      </div>
+      <BaseLoader v-model="loading" overlay :text="t.play.loading" :size="60" color="#10b981" />
 
       <!-- Pantalla inicial antes de comenzar -->
-      <div v-else-if="!gameStarted" class="start-card">
+      <div v-if="!gameStarted" class="start-card">
         <h1>{{ t.play.readyToPlay }}</h1>
 
         <div class="game-info">
@@ -123,11 +115,6 @@
             </div>
           </div>
 
-          <!-- Feedback de respuesta -->
-          <div v-if="feedbackMessage" :class="`feedback-message ${feedbackType}`">
-            {{ feedbackMessage }}
-          </div>
-
           <button
             type="submit"
             class="btn btn-primary btn-large"
@@ -162,9 +149,16 @@ import {
 import type { GameSession, GameSessionQuestion, PlayerProgress } from '@shared/models/GameSession';
 import HeaderLogo from '@/components/layout/HeaderLogo.vue';
 import { useI18n } from '@/composables/useI18n';
+import BaseLoader from './BaseLoader.vue';
+import { useErrorHandler } from '@/composables/useErrorHandler';
+import SuccessAnimation from '@/components/animations/SuccessAnimation.vue';
+import ErrorAnimation from '@/components/animations/ErrorAnimation.vue';
+import { useFeedbackAnimation } from '@/composables/useFeedbackAnimation';
+
+const { showError: showErrorOverlay } = useErrorHandler();
+const { showSuccess, showError, triggerSuccess, triggerError } = useFeedbackAnimation();
 
 const { t } = useI18n();
-
 const route = useRoute();
 
 const gameSession = ref<GameSession | null>(null);
@@ -176,8 +170,6 @@ const gameCompleted = ref(false);
 
 const currentAnswer = ref<string | number>('');
 const submitting = ref(false);
-const feedbackMessage = ref('');
-const feedbackType = ref<'success' | 'error'>('success');
 
 const sessionId = computed(() => route.params.sessionId as string);
 
@@ -201,12 +193,20 @@ onMounted(async () => {
 
     if (!session) {
       error.value = t.value.play.errors.sessionNotFound;
+      showErrorOverlay(error.value, {
+        returnButtonText: t.value.common.close,
+        returnUrl: `/`,
+      });
       loading.value = false;
       return;
     }
 
     if (!progress) {
       error.value = t.value.play.errors.notJoined;
+      showErrorOverlay(error.value, {
+        returnButtonText: t.value.join.joinGame,
+        returnUrl: `/game/${sessionId.value}`,
+      });
       loading.value = false;
       return;
     }
@@ -220,9 +220,12 @@ onMounted(async () => {
     }
 
     loading.value = false;
-  } catch (err: any) {
-    console.error('Error al cargar el juego:', err);
-    error.value = err.message || t.value.play.errors.loadError;
+  } catch (err: unknown) {
+    error.value = (err as Error).message || t.value.play.errors.loadError;
+    showErrorOverlay(error.value, {
+      returnButtonText: t.value.common.close,
+      returnUrl: `/`,
+    });
     loading.value = false;
   }
 });
@@ -237,7 +240,7 @@ const getChoiceOptions = () => {
   }
 
   // Las opciones ahora vienen directamente en la pregunta (sin validation.options)
-  return (currentQuestion.value as any).options || [];
+  return currentQuestion.value.options || [];
 };
 
 const handleSubmitAnswer = async () => {
@@ -245,7 +248,6 @@ const handleSubmitAnswer = async () => {
 
   try {
     submitting.value = true;
-    feedbackMessage.value = '';
 
     const result = await submitPublicAnswer(
       sessionId.value,
@@ -254,8 +256,8 @@ const handleSubmitAnswer = async () => {
     );
 
     if (result.correct) {
-      feedbackType.value = 'success';
-      feedbackMessage.value = t.value.play.message_CORRECT_ANSWER;
+      // Mostrar animación de éxito
+      triggerSuccess(1500);
 
       // Actualizar el progreso
       if (playerProgress.value) {
@@ -275,18 +277,19 @@ const handleSubmitAnswer = async () => {
       } else {
         // Pasar a la siguiente pregunta
         currentAnswer.value = '';
-        feedbackMessage.value = '';
       }
     } else {
-      feedbackType.value = 'error';
-      feedbackMessage.value = t.value.play.message_INCORRECT_ANSWER;
+      // Mostrar animación de error
+      triggerError(1500);
+
+      // Esperar un momento antes de permitir reintentar
+      await new Promise(resolve => setTimeout(resolve, 1500));
     }
 
     submitting.value = false;
-  } catch (err: any) {
-    console.error('Error al enviar respuesta:', err);
-    feedbackType.value = 'error';
-    feedbackMessage.value = err.message || t.value.play.errors.submitError;
+  } catch (err: unknown) {
+    const errorMsg = (err as Error).message || t.value.play.errors.submitError;
+    showErrorOverlay(errorMsg);
     submitting.value = false;
   }
 };
@@ -305,8 +308,6 @@ const handleSubmitAnswer = async () => {
   margin: 0 auto;
 }
 
-.loading-card,
-.error-card,
 .start-card,
 .question-card,
 .completed-card {
@@ -314,21 +315,7 @@ const handleSubmitAnswer = async () => {
   padding: 2.5rem;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-}
-
-.loading-card,
-.error-card {
-  text-align: center;
-
-  h2 {
-    color: #e53e3e;
-    margin-bottom: 1rem;
-  }
-
-  p {
-    color: #4a5568;
-    margin-bottom: 1.5rem;
-  }
+  margin-top: 1.5rem;
 }
 
 .start-card {
@@ -486,24 +473,6 @@ const handleSubmitAnswer = async () => {
         cursor: pointer;
         user-select: none;
       }
-    }
-  }
-
-  .feedback-message {
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    font-weight: 600;
-    text-align: center;
-
-    &.success {
-      background: #c6f6d5;
-      color: #22543d;
-    }
-
-    &.error {
-      background: #fed7d7;
-      color: #742a2a;
     }
   }
 }

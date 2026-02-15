@@ -210,6 +210,7 @@ export default {
     penalty: 'Pénalité',
     noPlayers: 'Pas encore de joueurs',
     refresh: 'Actualiser le classement',
+    lastUpdate: 'Dernière mise à jour',
     errors: {
       sessionNotFound: 'Session de jeu introuvable',
       loadError: 'Erreur lors du chargement du classement',

@@ -33,11 +33,16 @@
     <div v-else class="ranking-content">
       <!-- Game Info -->
       <div class="game-info">
-        <p class="session-status" :class="sessionStatus">
+        <p class="session-status" :class="sessionStatus.toLowerCase()">
           <span class="status-dot"></span>
           {{ statusText }}
         </p>
         <p class="players-count">{{ players.length }} {{ t.ranking.participants }}</p>
+      </div>
+
+      <!-- Last Update Time -->
+      <div v-if="lastUpdateTime" class="last-update">
+        {{ t.ranking.lastUpdate }}: {{ lastUpdateTime }}
       </div>
 
       <!-- Ranking List -->
@@ -182,13 +187,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { collection, doc, getDoc, onSnapshot } from 'firebase/firestore';
-import { db } from '@/firebase/init';
 import { getCurrentUser } from '@/firebase/auth';
-import type { PlayerProgress, GameSession, FirebaseTimestamp } from '@shared/models/GameSession';
+import { getPublicRanking } from '@/firebase/publicGame';
 import { useI18n } from '@/composables/useI18n';
+import type { RankingPlayer } from '@shared/models/GameSession';
 
 const { t } = useI18n();
 
@@ -196,41 +200,21 @@ const route = useRoute();
 const router = useRouter();
 const sessionId = route.params.sessionId as string;
 
-const players = ref<(PlayerProgress & { totalTime: number; progressPercentage: number })[]>([]);
-const gameSession = ref<GameSession | null>(null);
+const players = ref<RankingPlayer[]>([]);
+const sessionStatus = ref('');
+const totalQuestions = ref(0);
 const loading = ref(true);
 const error = ref<string | null>(null);
 const currentUserId = ref<string | null>(null);
-let unsubscribe: (() => void) | null = null;
-
-const sessionStatus = computed(() => {
-  if (!gameSession.value) return '';
-  return gameSession.value.status.toLowerCase();
-});
+const lastUpdateTime = ref<string>('');
 
 const statusText = computed(() => {
-  if (!gameSession.value) return '';
-  const status = gameSession.value.status;
-  if (status === 'WAITING') return t.value.ranking.statusWaiting;
-  if (status === 'RUNNING') return t.value.ranking.statusRunning;
+  if (sessionStatus.value === 'WAITING') return t.value.ranking.statusWaiting;
+  if (sessionStatus.value === 'RUNNING') return t.value.ranking.statusRunning;
   return t.value.ranking.statusFinished;
 });
 
-const rankedPlayers = computed(() => {
-  return [...players.value].sort((a, b) => {
-    // Primero por score descendente
-    if (b.score !== a.score) return b.score - a.score;
-
-    // Si tienen el mismo score, por tiempo ascendente (menos tiempo es mejor)
-    if (a.totalTime !== b.totalTime) return a.totalTime - b.totalTime;
-
-    // Si tienen el mismo tiempo, los que terminaron primero
-    if (a.finishedAt && !b.finishedAt) return -1;
-    if (!a.finishedAt && b.finishedAt) return 1;
-
-    return 0;
-  });
-});
+const rankedPlayers = computed(() => players.value);
 
 const formatTime = (seconds: number): string => {
   if (!seconds || isNaN(seconds) || seconds < 0) {
@@ -241,35 +225,9 @@ const formatTime = (seconds: number): string => {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
-const calculateTotalTime = (player: PlayerProgress): number => {
-  // Validar que exista startedAt
-  if (!player.startedAt || !player.startedAt.seconds) {
-    console.warn('No startedAt timestamp for player', player.userId);
-    return 0;
-  }
-
-  const startTime = convertFirebaseTimestamp(player.startedAt);
-  const endTime = player.finishedAt ? convertFirebaseTimestamp(player.finishedAt) : Date.now();
-
-  const elapsedSeconds = (endTime - startTime) / 1000;
-  const penalty = player.totalPenaltySeconds || 0;
-
-  return Math.max(0, elapsedSeconds + penalty);
-};
-
-const convertFirebaseTimestamp = (timestamp: FirebaseTimestamp): number => {
-  if (!timestamp || typeof timestamp.seconds !== 'number') {
-    console.warn('Invalid timestamp:', timestamp);
-    return Date.now();
-  }
-  return timestamp.seconds * 1000; // Convertir segundos a milisegundos
-};
-
-const calculateProgress = (player: PlayerProgress): number => {
-  if (!gameSession.value) return 0;
-  const totalQuestions = gameSession.value.questions.length;
-  if (totalQuestions === 0) return 0;
-  return Math.round(((player.currentQuestionIndex + 1) / totalQuestions) * 100);
+const formatLastUpdate = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString();
 };
 
 const loadRanking = async () => {
@@ -281,38 +239,21 @@ const loadRanking = async () => {
     const user = await getCurrentUser();
     currentUserId.value = user?.uid || null;
 
-    // Load game session
-    const sessionDoc = await getDoc(doc(db, 'gameSessions', sessionId));
-    if (!sessionDoc.exists()) {
+    // Load ranking from API
+    const rankingData = await getPublicRanking(sessionId);
+
+    if (!rankingData) {
       error.value = t.value.ranking.errors.sessionNotFound;
       return;
     }
-    gameSession.value = { id: sessionDoc.id, ...sessionDoc.data() } as GameSession;
 
-    // Load players with real-time updates
-    const playersRef = collection(db, 'gameSessions', sessionId, 'players');
+    // Update state
+    sessionStatus.value = rankingData.status;
+    totalQuestions.value = rankingData.totalQuestions;
+    players.value = rankingData.players;
+    lastUpdateTime.value = formatLastUpdate(rankingData.timestamp);
 
-    // Set up real-time listener
-    unsubscribe = onSnapshot(
-      playersRef,
-      snapshot => {
-        players.value = snapshot.docs.map(doc => {
-          const data = doc.data() as PlayerProgress;
-          return {
-            ...data,
-            displayName: data.displayName,
-            totalTime: calculateTotalTime(data),
-            progressPercentage: calculateProgress(data),
-          };
-        });
-        loading.value = false;
-      },
-      err => {
-        console.error('Error loading players:', err);
-        error.value = t.value.ranking.errors.loadError;
-        loading.value = false;
-      }
-    );
+    loading.value = false;
   } catch (err) {
     console.error('Error loading ranking:', err);
     error.value = t.value.ranking.errors.loadError;
@@ -330,12 +271,6 @@ const goBack = () => {
 
 onMounted(() => {
   loadRanking();
-});
-
-onUnmounted(() => {
-  if (unsubscribe) {
-    unsubscribe();
-  }
 });
 </script>
 
@@ -457,6 +392,17 @@ onUnmounted(() => {
   50% {
     opacity: 0.5;
   }
+}
+
+.last-update {
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  opacity: 0.9;
 }
 
 .ranking-list {

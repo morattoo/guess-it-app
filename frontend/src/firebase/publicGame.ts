@@ -3,7 +3,7 @@ import { getCurrentUser, auth } from './auth';
 import { signInAnonymously, updateProfile } from 'firebase/auth';
 import { getToken } from 'firebase/app-check';
 import { getAppCheck } from './appCheck';
-import type { GameSession } from '@shared/models/GameSession';
+import type { GameSession, PlayerProgress, GameRankingResponse } from '@shared/models/GameSession';
 
 const API_URL = API_ENDPOINTS.publicGame;
 
@@ -92,7 +92,9 @@ export const joinPublicGameSession = async (
 /**
  * Obtener el progreso del jugador actual
  */
-export const getPublicPlayerProgress = async (gameSessionId: string): Promise<any | null> => {
+export const getPublicPlayerProgress = async (
+  gameSessionId: string
+): Promise<PlayerProgress | null> => {
   try {
     const user = await getCurrentUser();
     if (!user) return null;
@@ -137,12 +139,7 @@ export const submitPublicAnswer = async (
 /**
  * Obtener el ranking de la sesión
  */
-export const getPublicRanking = async (gameSessionId: string): Promise<any[]> => {
-  try {
-    const response = await callPublicGameApi(`/game/${gameSessionId}/ranking`, 'GET');
-    return response;
-  } catch (error) {
-    console.error('Error fetching ranking:', error);
-    return [];
-  }
+export const getPublicRanking = async (gameSessionId: string): Promise<GameRankingResponse> => {
+  const response = await callPublicGameApi(`/game/${gameSessionId}/ranking`, 'GET');
+  return response;
 };
