@@ -7,15 +7,49 @@
         <h1>{{ t.join.joinGame }}</h1>
 
         <div class="session-info">
-          <p class="info-text">
-            <strong>{{ t.join.status }}: </strong>
-            <span :class="`status-${gameSession.status.toLowerCase()}`">
-              {{ statusText }}
-            </span>
-          </p>
-          <p class="info-text">
-            <strong>{{ t.join.questions }}:</strong> {{ gameSession.questions.length }}
-          </p>
+          <div class="status-badge" :class="`status-${gameSession.status.toLowerCase()}`">
+            <div class="status-icon">
+              <svg
+                v-if="gameSession.status === 'RUNNING'"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+              >
+                <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2" />
+                <circle cx="8" cy="8" r="3" fill="currentColor" />
+              </svg>
+              <svg
+                v-else-if="gameSession.status === 'WAITING'"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+              >
+                <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2" />
+                <path
+                  d="M8 4V8L11 11"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+              <svg v-else width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2" />
+                <path
+                  d="M5 8L7 10L11 6"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </div>
+            <span class="status-text">{{ statusText }}</span>
+          </div>
+          <span class="separator">·</span>
+          <span class="questions-count"
+            >{{ gameSession.questions.length }} {{ t.join.questions }}</span
+          >
         </div>
 
         <form v-if="!hasJoined" @submit.prevent="handleJoin" class="join-form">
@@ -210,7 +244,7 @@ const goToPlay = () => {
   padding: 2.5rem;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  margin-top: 1rem;
+  margin-top: 1.5rem;
 
   h1 {
     text-align: center;
@@ -221,34 +255,71 @@ const goToPlay = () => {
 }
 
 .session-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
   background: #f7fafc;
-  padding: 1rem;
-  border-radius: 8px;
+  border-radius: 50px;
   margin-bottom: 1.5rem;
+  font-size: 0.9375rem;
 
-  .info-text {
-    margin: 0.5rem 0;
-    color: #4a5568;
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
 
-    strong {
-      color: #2d3748;
+    .status-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: currentColor;
+
+      svg {
+        filter: brightness(0) invert(1);
+      }
+    }
+
+    &.status-running {
+      color: #10b981;
+
+      .status-icon {
+        background: #10b981;
+      }
+    }
+
+    &.status-waiting {
+      color: #f59e0b;
+
+      .status-icon {
+        background: #f59e0b;
+      }
+    }
+
+    &.status-finished {
+      color: #6b7280;
+
+      .status-icon {
+        background: #6b7280;
+      }
     }
   }
-}
 
-.status-waiting {
-  color: #d69e2e;
-  font-weight: 600;
-}
+  .separator {
+    color: #cbd5e0;
+    font-weight: 600;
+    font-size: 1.125rem;
+  }
 
-.status-running {
-  color: #38a169;
-  font-weight: 600;
-}
-
-.status-finished {
-  color: #718096;
-  font-weight: 600;
+  .questions-count {
+    color: #4a5568;
+    font-weight: 500;
+  }
 }
 
 .join-form {
@@ -269,6 +340,7 @@ const goToPlay = () => {
       border-radius: 8px;
       font-size: 1rem;
       transition: border-color 0.2s;
+      box-sizing: border-box;
 
       &:focus {
         outline: none;

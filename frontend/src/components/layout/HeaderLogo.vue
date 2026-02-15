@@ -7,28 +7,23 @@ import LanguageSelector from './LanguageSelector.vue';
     <router-link to="/"
       ><img src="@/assets/logo-guessit.png" alt="GuessIt Logo" class="logo"
     /></router-link>
-    <div class="language-selector-wrapper">
-      <language-selector />
-    </div>
+    <language-selector />
   </header>
 </template>
 
 <style scoped lang="scss">
 .header-logo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   position: relative;
+
   .logo {
     width: 150px;
     height: auto;
     display: block;
     margin-left: auto;
     margin-right: auto;
-  }
-
-  .language-selector-wrapper {
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 1;
   }
 }
 </style>
