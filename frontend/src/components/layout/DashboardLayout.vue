@@ -591,11 +591,4 @@ const handleLogout = async () => {
     outline-offset: 2px;
   }
 }
-
-// Media Query: Fixed width at 768px on larger screens
-@media (min-width: 768px) {
-  .dashboard-layout {
-    width: 768px;
-  }
-}
 </style>

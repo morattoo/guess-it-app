@@ -63,57 +63,26 @@
         <!-- Formulario de respuesta según el tipo -->
         <form @submit.prevent="handleSubmitAnswer" class="answer-form">
           <!-- Pregunta de texto -->
-          <div v-if="currentQuestion.type === 'TEXT'" class="form-group">
-            <label for="answer">{{ t.play.yourAnswer }}:</label>
-            <input
-              id="answer"
-              v-model="currentAnswer"
-              type="text"
-              class="form-input"
-              :placeholder="t.play.writeAnswer"
-              required
-              :disabled="submitting"
-            />
-          </div>
+          <TextQuestionAnswer
+            v-if="currentQuestion.type === QUESTION_TYPES.TEXT"
+            v-model="currentAnswer"
+            :disabled="submitting"
+          />
 
           <!-- Pregunta numérica -->
-          <div v-else-if="currentQuestion.type === 'NUMBER'" class="form-group">
-            <label for="answer">{{ t.play.yourAnswer }}:</label>
-            <input
-              id="answer"
-              v-model.number="currentAnswer"
-              type="number"
-              step="any"
-              class="form-input"
-              :placeholder="t.play.enterNumber"
-              required
-              :disabled="submitting"
-            />
-          </div>
+          <NumberQuestionAnswer
+            v-else-if="currentQuestion.type === QUESTION_TYPES.NUMBER"
+            v-model="currentAnswer"
+            :disabled="submitting"
+          />
 
           <!-- Pregunta de opción múltiple -->
-          <div v-else-if="currentQuestion.type === 'CHOICE'" class="choice-options">
-            <div
-              v-for="(option, index) in getChoiceOptions()"
-              :key="option.id"
-              class="choice-option"
-              :class="{ selected: currentAnswer === option.id }"
-              @click="!submitting && (currentAnswer = option.id)"
-            >
-              <div class="option-radio">
-                <input
-                  type="radio"
-                  :id="`option-${index}`"
-                  :value="option.id"
-                  v-model="currentAnswer"
-                  :disabled="submitting"
-                />
-              </div>
-              <label :for="`option-${index}`" class="option-label">
-                {{ option.label }}
-              </label>
-            </div>
-          </div>
+          <ChoiceQuestionAnswer
+            v-else-if="currentQuestion.type === QUESTION_TYPES.CHOICE"
+            v-model="currentAnswer"
+            :options="getChoiceOptions()"
+            :disabled="submitting"
+          />
 
           <button
             type="submit"
@@ -154,6 +123,10 @@ import { useErrorHandler } from '@/composables/useErrorHandler';
 import SuccessAnimation from '@/components/animations/SuccessAnimation.vue';
 import ErrorAnimation from '@/components/animations/ErrorAnimation.vue';
 import { useFeedbackAnimation } from '@/composables/useFeedbackAnimation';
+import TextQuestionAnswer from '@/components/questions/TextQuestionAnswer.vue';
+import NumberQuestionAnswer from '@/components/questions/NumberQuestionAnswer.vue';
+import ChoiceQuestionAnswer from '@/components/questions/ChoiceQuestionAnswer.vue';
+import { QUESTION_TYPES } from '@/constants/questionTypes';
 
 const { showError: showErrorOverlay } = useErrorHandler();
 const { showSuccess, showError, triggerSuccess, triggerError } = useFeedbackAnimation();
@@ -235,7 +208,7 @@ const startGame = () => {
 };
 
 const getChoiceOptions = () => {
-  if (!currentQuestion.value || currentQuestion.value.type !== 'CHOICE') {
+  if (!currentQuestion.value || currentQuestion.value.type !== QUESTION_TYPES.CHOICE) {
     return [];
   }
 
@@ -399,81 +372,6 @@ const handleSubmitAnswer = async () => {
     color: #4a5568;
     margin-bottom: 1.5rem;
     line-height: 1.6;
-  }
-}
-
-.answer-form {
-  .form-group {
-    margin-bottom: 1.5rem;
-
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      color: #2d3748;
-      font-weight: 600;
-    }
-
-    .form-input {
-      width: 100%;
-      padding: 0.875rem;
-      border: 2px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: border-color 0.2s;
-
-      &:focus {
-        outline: none;
-        border-color: #667eea;
-      }
-
-      &:disabled {
-        background: #f7fafc;
-        cursor: not-allowed;
-      }
-    }
-  }
-
-  .choice-options {
-    margin-bottom: 1.5rem;
-
-    .choice-option {
-      display: flex;
-      align-items: center;
-      padding: 1rem;
-      border: 2px solid #e2e8f0;
-      border-radius: 8px;
-      margin-bottom: 0.75rem;
-      cursor: pointer;
-      transition: all 0.2s;
-
-      &:hover {
-        border-color: #cbd5e0;
-        background: #f7fafc;
-      }
-
-      &.selected {
-        border-color: #667eea;
-        background: #eef2ff;
-      }
-
-      .option-radio {
-        margin-right: 1rem;
-
-        input[type='radio'] {
-          width: 20px;
-          height: 20px;
-          cursor: pointer;
-        }
-      }
-
-      .option-label {
-        flex: 1;
-        color: #2d3748;
-        font-size: 1rem;
-        cursor: pointer;
-        user-select: none;
-      }
-    }
   }
 }
 
