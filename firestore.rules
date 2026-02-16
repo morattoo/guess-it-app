@@ -2,83 +2,21 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // ==============================================================
+    // ACCESO BLOQUEADO AL FRONTEND
+    // ==============================================================
+    // Todas las operaciones DEBEN pasar por Cloud Functions
+    // El frontend NO tiene acceso directo a Firestore
+    // Solo las Cloud Functions (con Admin SDK) pueden leer/escribir
+    // ==============================================================
 
-    function isAuthenticated() {
-      return request.auth != null;
+    // Denegar TODO acceso directo desde el cliente
+    match /{document=**} {
+      allow read, write: if false;
     }
 
-    function isAppCheckVerified() {
-      return request.auth.token.firebase.sign_in_provider != 'anonymous' || request.app != null;
-    }
-
-    match /gameSessions/{sessionId} {
-      allow read: if isAuthenticated()
-                  && request.auth.uid in resource.data.players
-                  && isAppCheckVerified();
-
-      allow create, update, delete: if false;
-
-      // Permitir lectura de los jugadores en una sesión
-      match /players/{playerId} {
-        allow read: if isAuthenticated() 
-                   && request.auth.uid in get(/databases/$(database)/documents/gameSessions/$(sessionId)).data.players
-                   && isAppCheckVerified();
-        allow write: if false; // Solo el backend puede escribir
-      }
-    }
-
-    match /answers/{answerId} {
-      allow create: if isAuthenticated()
-        && request.auth.uid == request.resource.data.userId
-        && !('isCorrect' in request.resource.data)
-        && !('score' in request.resource.data)
-        && isAppCheckVerified();
-
-      allow read: if isAuthenticated()
-        && request.auth.uid == resource.data.userId
-        && isAppCheckVerified();
-
-      allow update, delete: if false;
-    }
-
-    match /questions/{questionId} {
-      allow create: if isAuthenticated()
-        && request.auth.uid == request.resource.data.createdBy
-        && isAppCheckVerified();
-
-      allow read: if isAuthenticated() && isAppCheckVerified();
-
-      allow update: if isAuthenticated()
-        && request.auth.uid == resource.data.createdBy
-        && isAppCheckVerified();
-
-      allow delete: if isAuthenticated()
-        && request.auth.uid == resource.data.createdBy
-        && isAppCheckVerified();
-    }
-
-    match /questionnaires/{questionnaireId} {
-      allow create: if isAuthenticated()
-        && request.auth.uid == request.resource.data.createdBy
-        && isAppCheckVerified();
-
-      allow read: if isAuthenticated() && isAppCheckVerified();
-
-      allow update: if isAuthenticated()
-        && request.auth.uid == resource.data.createdBy
-        && isAppCheckVerified();
-
-      allow delete: if isAuthenticated()
-        && request.auth.uid == resource.data.createdBy
-        && isAppCheckVerified();
-    }
-
-    match /users/{userId} {
-      allow read: if request.auth != null
-        && request.auth.uid == userId
-        && isAppCheckVerified();
-      
-      allow write: if false; // Solo el backend puede escribir
-    }
+    // Nota: Las Cloud Functions usan el Admin SDK que bypasea
+    // estas reglas de seguridad, por lo que pueden acceder sin problemas
   }
 }
