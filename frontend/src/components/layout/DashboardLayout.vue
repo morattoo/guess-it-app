@@ -402,7 +402,8 @@ const handleLogout = async () => {
   top: 0;
   left: -100%;
   width: 100%;
-  height: 100vh;
+  height: 100%;
+  max-height: 100%;
   background-color: white;
   border-right: 1px solid #e0e0e0;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
@@ -410,8 +411,7 @@ const handleLogout = async () => {
   transition: left 0.3s ease-in-out;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
 
   .sidebar-header {
     width: 100%;
@@ -428,9 +428,10 @@ const handleLogout = async () => {
   .sidebar-content {
     flex: 1;
     display: flex;
-    align-items: center;
     flex-direction: column;
     padding: 1.5rem;
+    overflow-y: auto;
+    min-height: 0;
   }
 }
 
@@ -560,13 +561,18 @@ const handleLogout = async () => {
 // Main Content
 .dashboard-main {
   flex: 1;
-  padding: 1rem;
   overflow-y: auto;
+  overflow-x: hidden;
   min-height: 0;
+  position: relative;
 }
 
 .dashboard-container {
   width: 100%;
+  padding: 1rem;
+  box-sizing: border-box;
+  min-height: 100%;
+  margin-bottom: 2rem;
 }
 
 .dashboard-sidebar__bt-close {

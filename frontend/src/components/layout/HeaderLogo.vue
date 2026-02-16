@@ -17,6 +17,7 @@ import LanguageSelector from './LanguageSelector.vue';
   align-items: center;
   justify-content: space-between;
   position: relative;
+  padding: 1rem;
 
   .logo {
     width: 150px;
