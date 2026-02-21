@@ -81,12 +81,31 @@ export const joinPublicGameSession = async (
     await updateProfile(user, { displayName });
   }
 
-  const nameToUse = displayName || user.displayName || 'Jugador Anónimo';
+  const nameToUse = displayName || user.displayName || 'NN';
 
   await callPublicGameApi(`/game/${gameSessionId}/join`, 'POST', {
     userId: user.uid,
     displayName: nameToUse,
   });
+};
+
+/**
+ * Marcar inicio de juego del jugador actual (solo primera vez)
+ */
+export const startPublicGameSession = async (
+  gameSessionId: string
+): Promise<{ success: boolean; alreadyStarted?: boolean }> => {
+  const user = await getCurrentUser();
+  if (!user) {
+    throw new Error('Debes estar autenticado para iniciar');
+  }
+
+  const response = await callPublicGameApi(
+    `/game/${gameSessionId}/players/${user.uid}/start`,
+    'POST'
+  );
+
+  return response;
 };
 
 /**

@@ -27,7 +27,7 @@ export type PlayerProgress = {
   currentQuestionIndex: number;
   score: number;
   totalPenaltySeconds: number;
-  startedAt: FirebaseTimestamp;
+  startedAt?: FirebaseTimestamp;
   finishedAt?: FirebaseTimestamp;
   lastAnswerAt?: FirebaseTimestamp;
 };

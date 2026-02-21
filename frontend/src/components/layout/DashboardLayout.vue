@@ -571,7 +571,7 @@ const handleLogout = async () => {
   width: 100%;
   padding: 1rem;
   box-sizing: border-box;
-  min-height: 100%;
+  height: calc(100% - 2rem);
   margin-bottom: 2rem;
 }
 

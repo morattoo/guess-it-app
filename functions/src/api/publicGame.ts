@@ -117,7 +117,6 @@ publicGameApi.post("/game/:id/join", async (req, res) => {
         currentQuestionIndex: 0,
         score: 0,
         totalPenaltySeconds: 0,
-        startedAt: FieldValue.serverTimestamp(),
       });
 
       // Agregar el userId al array players del documento principal de la sesión
@@ -133,6 +132,61 @@ publicGameApi.post("/game/:id/join", async (req, res) => {
   } catch (error) {
     console.error("Error joining game:", error);
     res.status(500).send("Error joining game");
+  }
+});
+
+/**
+ * Marcar inicio de juego para un jugador (solo primera vez)
+ */
+publicGameApi.post("/game/:id/players/:userId/start", async (req, res) => {
+  const { id: gameSessionId, userId } = req.params;
+
+  try {
+    const gameSessionSnap = await db
+      .collection("gameSessions")
+      .doc(gameSessionId)
+      .get();
+
+    if (!gameSessionSnap.exists) {
+      return res.status(404).send("Game session not found");
+    }
+
+    const gameSessionData = gameSessionSnap.data()!;
+
+    if (!gameSessionData.isOpen) {
+      return res.status(403).send("Game session is not accepting new players");
+    }
+
+    if (gameSessionData.status === "FINISHED") {
+      return res.status(403).send("Game session has finished");
+    }
+
+    const playerRef = db
+      .collection("gameSessions")
+      .doc(gameSessionId)
+      .collection("players")
+      .doc(userId);
+
+    const playerSnap = await playerRef.get();
+
+    if (!playerSnap.exists) {
+      return res.status(404).send("Player not found");
+    }
+
+    const playerData = playerSnap.data()!;
+
+    if (playerData.startedAt) {
+      return res.json({ success: true, alreadyStarted: true });
+    }
+
+    await playerRef.update({
+      startedAt: FieldValue.serverTimestamp(),
+    });
+
+    return res.json({ success: true, alreadyStarted: false });
+  } catch (error) {
+    console.error("Error starting game for player:", error);
+    return res.status(500).send("Error starting game for player");
   }
 });
 
@@ -190,6 +244,10 @@ publicGameApi.post("/game/:id/players/:userId/answer", async (req, res) => {
     }
 
     const playerData = playerSnap.data()!;
+
+    if (!playerData.startedAt) {
+      return res.status(403).send("Game has not been started by player");
+    }
 
     // Verificar que el índice de la pregunta coincida
     if (playerData.currentQuestionIndex !== questionIndex) {

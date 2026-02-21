@@ -113,6 +113,7 @@ import { useRoute } from 'vue-router';
 import {
   getPublicGameSession,
   getPublicPlayerProgress,
+  startPublicGameSession,
   submitPublicAnswer,
 } from '@/firebase/publicGame';
 import type { GameSession, GameSessionQuestion, PlayerProgress } from '@shared/models/GameSession';
@@ -203,8 +204,24 @@ onMounted(async () => {
   }
 });
 
-const startGame = () => {
-  gameStarted.value = true;
+const startGame = async () => {
+  try {
+    if (playerProgress.value && !playerProgress.value.startedAt) {
+      loading.value = true;
+      await startPublicGameSession(sessionId.value);
+      playerProgress.value.startedAt = {
+        seconds: Math.floor(Date.now() / 1000),
+        nanoseconds: 0,
+      };
+    }
+
+    gameStarted.value = true;
+  } catch (err: unknown) {
+    const errorMsg = (err as Error).message || t.value.play.errors.loadError;
+    showErrorOverlay(errorMsg);
+  } finally {
+    loading.value = false;
+  }
 };
 
 const getChoiceOptions = () => {
