@@ -118,9 +118,9 @@ const form = ref({
   title: props.initialData?.title || '',
   description: props.initialData?.description || '',
   points: props.initialData?.points || 1,
-  timeLimitSec: props.initialData?.timeLimitSec,
+  timeLimitSec: props.initialData?.timeLimitSec || 0,
   expectedValue: initialNumber?.expectedAnswer.value,
-  tolerance: initialNumber?.expectedAnswer.tolerance,
+  tolerance: initialNumber?.expectedAnswer.tolerance || 0,
 });
 
 const isSubmitting = ref(false);

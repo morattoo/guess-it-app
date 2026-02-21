@@ -197,7 +197,8 @@ onMounted(async () => {
       }
 
       form.value.title = questionnaire.title;
-      form.value.questionIds = questionnaire.questionIds;
+      const availableIds = new Set(availableQuestions.value.map(q => q.id!));
+      form.value.questionIds = questionnaire.questionIds.filter(id => availableIds.has(id));
     }
   } catch (err) {
     error.value = 'Error al cargar datos';
