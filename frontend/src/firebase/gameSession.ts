@@ -47,11 +47,15 @@ async function callGameSessionsApi(
  */
 export const createGameSession = async (
   questionnaireId: string,
-  userId: string
+  userId: string,
+  mode: 'EVALUATION' | 'LEARNING',
+  title: string
 ): Promise<string> => {
   const response = await callGameSessionsApi('/gameSessions', 'POST', {
     questionnaireId,
     userId,
+    mode,
+    title,
   });
   return response.gameSessionId;
 };

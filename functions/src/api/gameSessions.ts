@@ -26,10 +26,20 @@ gameSessionsApi.use(authMiddleware);
 
 // Crear nueva sesión de juego copiando las preguntas del cuestionario
 gameSessionsApi.post("/gameSessions", async (req, res) => {
-  const { questionnaireId, userId } = req.body;
+  const { questionnaireId, userId, mode, title } = req.body;
 
   if (!questionnaireId || !userId) {
     return res.status(400).send("Missing data");
+  }
+
+  if (!mode || !["EVALUATION", "LEARNING"].includes(mode)) {
+    return res
+      .status(400)
+      .send("Missing or invalid mode. Must be EVALUATION or LEARNING");
+  }
+
+  if (!title || !title.trim()) {
+    return res.status(400).send("Missing title");
   }
 
   try {
@@ -105,6 +115,8 @@ gameSessionsApi.post("/gameSessions", async (req, res) => {
       startedAt: FieldValue.serverTimestamp(),
       isOpen: true,
       players: [],
+      mode,
+      title: title.trim(),
     });
 
     res.json({ gameSessionId: gameSessionRef.id });
@@ -369,10 +381,16 @@ gameSessionsApi.delete("/gameSessions/:id", async (req, res) => {
     return res.status(403).send("Unauthorized");
   }
 
-  // Solo se puede eliminar en estado WAITING
+  // Solo se puede eliminar en estado WAITING o FINISHED (no se pueden eliminar sesiones en curso)
   if (gameSessionData.status === "RUNNING") {
     return res.status(400).send("Cannot delete session in current state");
   }
+
+  // Eliminar la subcollección de players antes de borrar el documento principal
+  const playersSnap = await gameSessionRef.collection("players").get();
+  const deletePlayersBatch = db.batch();
+  playersSnap.docs.forEach((doc) => deletePlayersBatch.delete(doc.ref));
+  await deletePlayersBatch.commit();
 
   await gameSessionRef.delete();
 
@@ -434,7 +452,7 @@ gameSessionsApi.post("/gameSessions/:id/validate-answer", async (req, res) => {
   const { userId, answer } = req.body;
   const { id: gameSessionId } = req.params;
 
-  if (!userId || !answer) {
+  if (!userId || answer === undefined || answer === null) {
     return res.status(400).send("Missing data");
   }
 
@@ -453,30 +471,72 @@ gameSessionsApi.post("/gameSessions/:id/validate-answer", async (req, res) => {
   const player = playerSnap.data()!;
   const currentIndex = player.currentQuestionIndex;
 
-  // 2️⃣ Obtener questionnaire
+  // 2️⃣ Obtener sesión de juego y pregunta actual
   const gameSessionSnap = await db
     .collection("gameSessions")
     .doc(gameSessionId)
     .get();
 
-  const { questionnaireId } = gameSessionSnap.data()!;
+  if (!gameSessionSnap.exists) {
+    return res.status(404).send("Game session not found");
+  }
 
-  const questionnaireSnap = await db
-    .collection("questionnaires")
-    .doc(questionnaireId)
-    .get();
+  const gameSessionData = gameSessionSnap.data()!;
+  const questions = gameSessionData.questions || [];
+  const question = questions[currentIndex];
 
-  const { questionIds } = questionnaireSnap.data()!;
-  const questionId = questionIds[currentIndex];
+  if (!question) {
+    return res.status(404).send("Question not found");
+  }
 
-  // 3️⃣ Obtener pregunta
-  const questionSnap = await db.collection("questions").doc(questionId).get();
+  // 3️⃣ Validar respuesta usando la pregunta ya copiada en la sesión
+  const validation = question.validation;
+  let isCorrect = false;
 
-  const { expectedAnswer } = questionSnap.data()!;
+  switch (question.type) {
+    case "TEXT": {
+      const expectedText = validation.expectedAnswer?.text;
+      const caseSensitive = validation.expectedAnswer?.caseSensitive || false;
 
-  // 4️⃣ Validar respuesta (V1 simple)
-  const isCorrect =
-    expectedAnswer.trim().toLowerCase() === answer.trim().toLowerCase();
+      if (typeof expectedText !== "string") {
+        return res.status(400).send("Invalid question validation");
+      }
+
+      const answerText = String(answer).trim();
+      isCorrect = caseSensitive
+        ? expectedText === answerText
+        : expectedText.toLowerCase() === answerText.toLowerCase();
+      break;
+    }
+    case "NUMBER": {
+      const expectedValue = validation.expectedAnswer?.value;
+      const tolerance = validation.expectedAnswer?.tolerance || 0;
+
+      if (typeof expectedValue !== "number") {
+        return res.status(400).send("Invalid question validation");
+      }
+
+      const answerNumber = Number(answer);
+      if (Number.isNaN(answerNumber)) {
+        isCorrect = false;
+      } else {
+        isCorrect = Math.abs(answerNumber - expectedValue) <= tolerance;
+      }
+      break;
+    }
+    case "CHOICE": {
+      const expectedOptionId = validation.expectedAnswer?.optionId;
+
+      if (!expectedOptionId) {
+        return res.status(400).send("Invalid question validation");
+      }
+
+      isCorrect = String(answer) === String(expectedOptionId);
+      break;
+    }
+    default:
+      return res.status(400).send("Unsupported question type");
+  }
 
   if (!isCorrect) {
     return res.json({
@@ -491,7 +551,7 @@ gameSessionsApi.post("/gameSessions/:id/validate-answer", async (req, res) => {
     currentQuestionIndex: nextIndex,
   };
 
-  if (nextIndex >= questionIds.length) {
+  if (nextIndex >= questions.length) {
     update.finishedAt = Date.now();
   }
 

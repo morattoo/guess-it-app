@@ -268,8 +268,26 @@ const handleSubmitAnswer = async () => {
         // Pasar a la siguiente pregunta
         currentAnswer.value = '';
       }
+    } else if (result.advanced) {
+      // Modo EVALUATION: respuesta incorrecta pero avanza igual
+      triggerError(1500);
+
+      if (playerProgress.value) {
+        playerProgress.value.currentQuestionIndex++;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      if (
+        playerProgress.value &&
+        playerProgress.value.currentQuestionIndex >= totalQuestions.value
+      ) {
+        gameCompleted.value = true;
+      } else {
+        currentAnswer.value = '';
+      }
     } else {
-      // Mostrar animación de error
+      // Modo LEARNING: respuesta incorrecta, se queda en la misma pregunta
       triggerError(1500);
 
       // Esperar un momento antes de permitir reintentar

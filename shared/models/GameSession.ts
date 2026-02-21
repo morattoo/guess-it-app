@@ -11,9 +11,12 @@ export type GameSession = {
   startedAt: FirebaseTimestamp;
   endedAt?: FirebaseTimestamp;
   isOpen: boolean;
+  mode: GameSessionMode;
+  title: string;
 };
 
 export type GameSessionStatus = "WAITING" | "RUNNING" | "FINISHED";
+export type GameSessionMode = "EVALUATION" | "LEARNING";
 
 export type FirebaseTimestamp = { seconds: number; nanoseconds: number };
 

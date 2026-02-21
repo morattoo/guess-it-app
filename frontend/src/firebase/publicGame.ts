@@ -136,6 +136,7 @@ export const submitPublicAnswer = async (
 ): Promise<{
   correct: boolean;
   message?: string;
+  advanced?: boolean;
   nextQuestionIndex?: number;
   finished?: boolean;
 }> => {

@@ -35,11 +35,24 @@
         <div class="session-header">
           <div class="session-info">
             <h3 class="session-title">
-              {{ t.gameSessions.sessionId }} {{ session.id?.substring(0, 8) }}
+              {{ session.title || `${t.gameSessions.sessionId} ${session.id?.substring(0, 8)}` }}
             </h3>
-            <span class="status-badge" :class="`status-${session.status.toLowerCase()}`">
-              {{ getStatusLabel(session.status) }}
-            </span>
+            <div class="session-badges">
+              <span class="status-badge" :class="`status-${session.status.toLowerCase()}`">
+                {{ getStatusLabel(session.status) }}
+              </span>
+              <span
+                v-if="session.mode"
+                class="mode-badge"
+                :class="`mode-${session.mode.toLowerCase()}`"
+              >
+                {{
+                  session.mode === 'EVALUATION'
+                    ? t.gameSessions.modeEvaluation
+                    : t.gameSessions.modeLearning
+                }}
+              </span>
+            </div>
           </div>
           <span class="question-count">
             {{ session.questions.length }}
@@ -464,6 +477,34 @@ h2 {
   letter-spacing: 0.5px;
   display: inline-block;
   width: fit-content;
+}
+
+.session-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.mode-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  width: fit-content;
+}
+
+.mode-evaluation {
+  background-color: #fce4ec;
+  color: #c62828;
+}
+
+.mode-learning {
+  background-color: #e8f5e9;
+  color: #2e7d32;
 }
 
 .status-waiting {

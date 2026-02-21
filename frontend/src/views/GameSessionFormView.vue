@@ -14,6 +14,37 @@
     <div v-else class="form-container">
       <form @submit.prevent="handleSubmit">
         <div v-if="!isEdit" class="form-group">
+          <label>{{ t.gameSessions.sessionTitleLabel }}</label>
+          <input
+            v-model="sessionTitle"
+            type="text"
+            class="form-control"
+            :placeholder="t.gameSessions.sessionTitlePlaceholder"
+            required
+          />
+        </div>
+
+        <div v-if="!isEdit" class="form-group">
+          <label>{{ t.gameSessions.modeSelectorLabel }}</label>
+          <div class="mode-options">
+            <div
+              v-for="option in modeOptions"
+              :key="option.value"
+              class="mode-option"
+              :class="{ selected: selectedMode === option.value }"
+              @click="selectedMode = option.value"
+            >
+              <div class="mode-option-header">
+                <span class="mode-badge" :class="`mode-${option.value.toLowerCase()}`">
+                  {{ option.label }}
+                </span>
+              </div>
+              <p class="mode-description">{{ option.description }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="!isEdit" class="form-group">
           <label>Selecciona un Cuestionario *</label>
           <div v-if="loadingQuestionnaires" class="loading-questionnaires">
             Cargando cuestionarios...
@@ -107,7 +138,7 @@
             v-if="!isEdit"
             type="submit"
             class="btn-primary"
-            :disabled="!selectedQuestionnaireId"
+            :disabled="!selectedQuestionnaireId || !selectedMode || !sessionTitle.trim()"
           >
             Crear Sesión
           </button>
@@ -127,21 +158,38 @@ import {
 } from '@/firebase/gameSession';
 import { getQuestionnairesByUser } from '@/firebase/questionnaire';
 import { auth } from '@/firebase/auth';
-import type { GameSession } from '@shared/models/GameSession';
+import type { GameSession, GameSessionMode } from '@shared/models/GameSession';
 import type { Questionnaire } from '@shared/models/Questionnaire';
+import { useI18n } from '@/composables/useI18n';
 
 const router = useRouter();
 const route = useRoute();
+const { t } = useI18n();
 const sessionId = route.params.id as string;
 const isEdit = computed(() => sessionId && sessionId !== 'new');
 
 const questionnaires = ref<Questionnaire[]>([]);
 const selectedQuestionnaireId = ref('');
+const selectedMode = ref<GameSessionMode | ''>('');
+const sessionTitle = ref('');
 const gameSession = ref<GameSession | null>(null);
 const loading = ref(false);
 const loadingQuestionnaires = ref(true);
 const refreshing = ref(false);
 const error = ref('');
+
+const modeOptions = computed(() => [
+  {
+    value: 'EVALUATION' as GameSessionMode,
+    label: t.value.gameSessions.modeEvaluation,
+    description: t.value.gameSessions.modeEvaluationDesc,
+  },
+  {
+    value: 'LEARNING' as GameSessionMode,
+    label: t.value.gameSessions.modeLearning,
+    description: t.value.gameSessions.modeLearningDesc,
+  },
+]);
 
 const getStatusLabel = (status: string) => {
   const labels: Record<string, string> = {
@@ -198,11 +246,16 @@ const handleRefreshQuestions = async () => {
 };
 
 const handleSubmit = async () => {
-  if (!selectedQuestionnaireId.value) return;
+  if (!selectedQuestionnaireId.value || !selectedMode.value || !sessionTitle.value.trim()) return;
 
   try {
     const currentUser = auth.currentUser!;
-    await createGameSession(selectedQuestionnaireId.value, currentUser.uid);
+    await createGameSession(
+      selectedQuestionnaireId.value,
+      currentUser.uid,
+      selectedMode.value as 'EVALUATION' | 'LEARNING',
+      sessionTitle.value.trim()
+    );
     router.push('/dashboard/game-sessions');
   } catch (err) {
     console.error('Error al crear sesión:', err);
@@ -507,5 +560,76 @@ h2 {
   .info-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.mode-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mode-option {
+  padding: 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #f9f9f9;
+}
+
+.mode-option:hover {
+  border-color: #ccc;
+  background: #f0f0f0;
+}
+
+.mode-option.selected {
+  border-color: #2f8cff;
+  background: #e3f2ff;
+}
+
+.mode-option-header {
+  margin-bottom: 0.4rem;
+}
+
+.mode-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mode-evaluation {
+  background-color: #fce4ec;
+  color: #c62828;
+}
+
+.mode-learning {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.mode-description {
+  font-size: 0.875rem;
+  color: #555;
+  margin: 0;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  color: #333;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #2f8cff;
+  box-shadow: 0 0 0 3px rgba(47, 140, 255, 0.15);
 }
 </style>

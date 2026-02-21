@@ -55,6 +55,8 @@ publicGameApi.get("/game/:id", async (req, res) => {
       startedAt: gameSessionData.startedAt,
       endedAt: gameSessionData.endedAt,
       isOpen: gameSessionData.isOpen,
+      mode: gameSessionData.mode || "LEARNING",
+      title: gameSessionData.title || "",
     });
   } catch (error) {
     console.error("Error getting game session:", error);
@@ -301,22 +303,50 @@ publicGameApi.post("/game/:id/players/:userId/answer", async (req, res) => {
         return res.status(400).send("Unsupported question type");
     }
 
-    if (!isCorrect) {
-      // Respuesta incorrecta, agregar penalización pero no avanzar
-      const penaltySeconds = question.penaltySeconds || 0;
-      await playerRef.update({
-        totalPenaltySeconds:
-          (playerData.totalPenaltySeconds || 0) + penaltySeconds,
-        lastAnswerAt: FieldValue.serverTimestamp(),
-      });
+    const sessionMode: string = gameSessionData.mode || "LEARNING";
+    const penaltySeconds = question.penaltySeconds || 0;
 
-      return res.json({
-        correct: false,
-        message: "INCORRECT_ANSWER",
-      });
+    if (!isCorrect) {
+      if (sessionMode === "EVALUATION") {
+        // EVALUATION: avanzar aunque sea incorrecto, agregar penalización
+        const nextIndex = questionIndex + 1;
+        const updates: any = {
+          currentQuestionIndex: nextIndex,
+          totalPenaltySeconds:
+            (playerData.totalPenaltySeconds || 0) + penaltySeconds,
+          lastAnswerAt: FieldValue.serverTimestamp(),
+        };
+
+        if (nextIndex >= gameSessionData.questions.length) {
+          updates.finishedAt = FieldValue.serverTimestamp();
+        }
+
+        await playerRef.update(updates);
+
+        return res.json({
+          correct: false,
+          message: "INCORRECT_ANSWER",
+          advanced: true,
+          nextQuestionIndex: nextIndex,
+          finished: nextIndex >= gameSessionData.questions.length,
+        });
+      } else {
+        // LEARNING: quedarse en la misma pregunta, agregar penalización
+        await playerRef.update({
+          totalPenaltySeconds:
+            (playerData.totalPenaltySeconds || 0) + penaltySeconds,
+          lastAnswerAt: FieldValue.serverTimestamp(),
+        });
+
+        return res.json({
+          correct: false,
+          message: "INCORRECT_ANSWER",
+          advanced: false,
+        });
+      }
     }
 
-    // Respuesta correcta, avanzar y actualizar puntaje
+    // Respuesta correcta: avanzar y sumar score siempre
     const nextIndex = questionIndex + 1;
     const updates: any = {
       currentQuestionIndex: nextIndex,
@@ -334,6 +364,7 @@ publicGameApi.post("/game/:id/players/:userId/answer", async (req, res) => {
     res.json({
       correct: true,
       message: "CORRECT_ANSWER",
+      advanced: true,
       nextQuestionIndex: nextIndex,
       finished: nextIndex >= gameSessionData.questions.length,
     });
