@@ -278,6 +278,9 @@ onMounted(() => {
 .ranking-view {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  overflow-y: auto;
+  padding: 1rem;
 }
 
 .ranking-header {
