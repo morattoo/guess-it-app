@@ -44,6 +44,26 @@
       <div v-if="lastUpdateTime" class="last-update">
         {{ t.ranking.lastUpdate }}: {{ lastUpdateTime }}
       </div>
+      <!-- Refresh Button -->
+      <button class="refresh-btn" @click="refreshRanking" :disabled="loading">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          :class="{ spinning: loading }"
+        >
+          <path
+            d="M1 4V10H7M23 20V14H17M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        {{ t.ranking.refresh }}
+      </button>
 
       <!-- Ranking List -->
       <div class="ranking-list" role="list">
@@ -161,27 +181,6 @@
           <p>{{ t.ranking.noPlayers }}</p>
         </div>
       </div>
-
-      <!-- Refresh Button -->
-      <button class="refresh-btn" @click="refreshRanking" :disabled="loading">
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          :class="{ spinning: loading }"
-        >
-          <path
-            d="M1 4V10H7M23 20V14H17M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-        {{ t.ranking.refresh }}
-      </button>
     </div>
   </div>
 </template>
@@ -281,6 +280,7 @@ onMounted(() => {
   overflow: hidden;
   overflow-y: auto;
   padding: 1rem;
+  margin-bottom: 2rem;
 }
 
 .ranking-header {
@@ -402,7 +402,7 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border-radius: 8px;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
   text-align: center;
   font-size: 0.875rem;
   opacity: 0.9;
