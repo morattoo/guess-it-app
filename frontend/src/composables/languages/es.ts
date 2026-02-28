@@ -197,6 +197,7 @@ export default {
     message_INCORRECT_ANSWER: 'Respuesta incorrecta. Intenta de nuevo.',
     gameCompleted: '¡Juego completado!',
     viewRanking: 'Ver ranking',
+    waitingForHost: 'Esperando que el anfitrión inicie el juego...',
     errors: {
       sessionNotFound: 'La sesión de juego no existe.',
       notJoined: 'No te has unido a esta sesión. Por favor, únete primero.',

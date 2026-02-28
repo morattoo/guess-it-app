@@ -1,7 +1,8 @@
 import express from "express";
 import cors from "cors";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import { appCheckMiddleware } from "../middlewares/appCheck";
+import { start } from "node:repl";
 
 const db = getFirestore();
 export const publicGameApi = express();
@@ -163,6 +164,10 @@ publicGameApi.post("/game/:id/players/:userId/start", async (req, res) => {
       return res.status(403).send("Game session has finished");
     }
 
+    if (gameSessionData.status === "WAITING") {
+      return res.status(403).send("Game session is not ready to start");
+    }
+
     const playerRef = db
       .collection("gameSessions")
       .doc(gameSessionId)
@@ -178,14 +183,27 @@ publicGameApi.post("/game/:id/players/:userId/start", async (req, res) => {
     const playerData = playerSnap.data()!;
 
     if (playerData.startedAt) {
-      return res.json({ success: true, alreadyStarted: true });
+      return res.json({
+        success: true,
+        alreadyStarted: true,
+        startedAt: {
+          seconds: playerData.startedAt.seconds,
+          nanoseconds: playerData.startedAt.nanoseconds,
+        },
+      });
     }
 
+    const now = Timestamp.now();
+
     await playerRef.update({
-      startedAt: FieldValue.serverTimestamp(),
+      startedAt: now,
     });
 
-    return res.json({ success: true, alreadyStarted: false });
+    return res.json({
+      success: true,
+      alreadyStarted: false,
+      startedAt: { seconds: now.seconds, nanoseconds: now.nanoseconds },
+    });
   } catch (error) {
     console.error("Error starting game for player:", error);
     return res.status(500).send("Error starting game for player");

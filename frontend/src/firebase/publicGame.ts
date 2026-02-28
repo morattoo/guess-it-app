@@ -94,7 +94,11 @@ export const joinPublicGameSession = async (
  */
 export const startPublicGameSession = async (
   gameSessionId: string
-): Promise<{ success: boolean; alreadyStarted?: boolean }> => {
+): Promise<{
+  success: boolean;
+  alreadyStarted?: boolean;
+  startedAt?: { seconds: number; nanoseconds: number };
+}> => {
   const user = await getCurrentUser();
   if (!user) {
     throw new Error('Debes estar autenticado para iniciar');

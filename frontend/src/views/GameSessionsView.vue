@@ -150,7 +150,6 @@
             </svg>
           </button>
           <button
-            v-if="session.status !== 'WAITING'"
             class="btn-icon btn-ranking"
             :title="t.gameSessions.actions.ranking"
             @click="handleViewRanking(session.id!)"
@@ -172,7 +171,6 @@
             </svg>
           </button>
           <button
-            v-if="session.status !== 'WAITING'"
             class="btn-icon btn-copy"
             :title="t.gameSessions.actions.copyLink"
             @click="handleCopyLink(session.id!)"

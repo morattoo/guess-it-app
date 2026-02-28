@@ -28,7 +28,16 @@
           </div>
         </div>
 
-        <button @click="startGame" class="btn btn-primary btn-large">
+        <div v-if="gameSession?.status === 'WAITING'" class="waiting-notice">
+          <span class="waiting-dot"></span>
+          {{ t.play.waitingForHost }}
+        </div>
+
+        <button
+          @click="startGame"
+          class="btn btn-primary btn-large"
+          :disabled="gameSession?.status === 'WAITING'"
+        >
           {{
             playerProgress && playerProgress.currentQuestionIndex > 0
               ? t.play.continue
@@ -108,7 +117,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '@/firebase/init';
 import { useRoute } from 'vue-router';
 import {
   getPublicGameSession,
@@ -144,6 +155,8 @@ const gameCompleted = ref(false);
 
 const currentAnswer = ref<string | number>('');
 const submitting = ref(false);
+
+let unsubscribeStatusListener: (() => void) | null = null;
 
 const sessionId = computed(() => route.params.sessionId as string);
 
@@ -193,6 +206,23 @@ onMounted(async () => {
       gameCompleted.value = true;
     }
 
+    // Si la sesión está en WAITING, escuchar cambios de status en tiempo real
+    if (session.status === 'WAITING') {
+      const sessionRef = doc(db, 'gameSessions', sessionId.value);
+      unsubscribeStatusListener = onSnapshot(sessionRef, snap => {
+        if (!snap.exists()) return;
+        const newStatus = snap.data().status;
+        if (gameSession.value) {
+          gameSession.value.status = newStatus;
+        }
+        // Cuando deja de estar en WAITING ya no necesitamos escuchar
+        if (newStatus !== 'WAITING') {
+          unsubscribeStatusListener?.();
+          unsubscribeStatusListener = null;
+        }
+      });
+    }
+
     loading.value = false;
   } catch (err: unknown) {
     error.value = (err as Error).message || t.value.play.errors.loadError;
@@ -204,12 +234,16 @@ onMounted(async () => {
   }
 });
 
+onUnmounted(() => {
+  unsubscribeStatusListener?.();
+});
+
 const startGame = async () => {
   try {
     if (playerProgress.value && !playerProgress.value.startedAt) {
       loading.value = true;
-      await startPublicGameSession(sessionId.value);
-      playerProgress.value.startedAt = {
+      const result = await startPublicGameSession(sessionId.value);
+      playerProgress.value.startedAt = result.startedAt ?? {
         seconds: Math.floor(Date.now() / 1000),
         nanoseconds: 0,
       };
@@ -357,6 +391,24 @@ const handleSubmitAnswer = async () => {
       }
     }
   }
+
+  .waiting-notice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: #718096;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+
+    .waiting-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #f6ad55;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+  }
 }
 
 .question-card {
@@ -423,32 +475,17 @@ const handleSubmitAnswer = async () => {
     margin-bottom: 2rem;
     font-size: 2rem;
   }
+}
 
-  .final-stats {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-    background: #f7fafc;
-    border-radius: 8px;
-
-    .stat-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-
-      .stat-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #667eea;
-        margin-bottom: 0.5rem;
-      }
-
-      .stat-label {
-        font-size: 0.875rem;
-        color: #718096;
-      }
-    }
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.75);
   }
 }
 </style>

@@ -75,9 +75,7 @@
           <button
             type="submit"
             class="btn btn-primary btn-large"
-            :disabled="
-              gameSession.status === 'WAITING' || joining || (showNameInput && !displayName.trim())
-            "
+            :disabled="joining || (showNameInput && !displayName.trim())"
           >
             {{ joining ? t.join.joining : t.join.joinButton }}
           </button>
@@ -87,7 +85,9 @@
           <div class="success-icon">✓</div>
           <h2>{{ t.join.joinedSuccess }}</h2>
           <p>{{ t.join.getReadyToPlay }}</p>
-          <button @click="goToPlay" class="btn btn-success btn-large">{{ t.join.goToPlay }}</button>
+          <button @click="goToPlay" class="btn btn-success btn-large">
+            {{ t.join.goToPlay }}
+          </button>
         </div>
       </div>
     </div>

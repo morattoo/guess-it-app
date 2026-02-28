@@ -16,6 +16,17 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // ==============================================================
+    // EXCEPCIÓN: Lectura pública del documento de sesión (solo status,
+    // isOpen, etc.) para escuchar cambios en tiempo real desde el
+    // cliente. Solo el documento raíz — NO incluye la subcolección
+    // players ni las respuestas correctas de las preguntas.
+    // Requiere App Check para asegurar que solo la app puede leer.
+    // ==============================================================
+    match /gameSessions/{gameSessionId} {
+      allow read: if request.app.token != null;
+    }
+
     // Nota: Las Cloud Functions usan el Admin SDK que bypasea
     // estas reglas de seguridad, por lo que pueden acceder sin problemas
   }

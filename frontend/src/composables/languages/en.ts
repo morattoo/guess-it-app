@@ -197,6 +197,7 @@ export default {
     message_INCORRECT_ANSWER: 'Incorrect answer. Try again.',
     gameCompleted: 'Game completed!',
     viewRanking: 'View ranking',
+    waitingForHost: 'Waiting for the host to start the game...',
     errors: {
       sessionNotFound: 'The game session does not exist.',
       notJoined: 'You have not joined this session. Please join first.',

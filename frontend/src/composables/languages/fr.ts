@@ -195,6 +195,7 @@ export default {
     message_INCORRECT_ANSWER: 'Réponse incorrecte. Réessayez.',
     gameCompleted: 'Jeu terminé!',
     viewRanking: 'Voir le classement',
+    waitingForHost: "En attente que l'hôte démarre le jeu...",
     errors: {
       sessionNotFound: "La session de jeu n'existe pas.",
       notJoined: "Vous n'avez pas rejoint cette session. Veuillez d'abord rejoindre.",
