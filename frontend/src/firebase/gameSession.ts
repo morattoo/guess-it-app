@@ -161,7 +161,7 @@ export const getPlayerProgress = async (gameSessionId: string): Promise<any | nu
       'GET'
     );
     return response;
-  } catch (error) {
+  } catch (_error) {
     return null;
   }
 };

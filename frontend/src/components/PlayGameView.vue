@@ -208,8 +208,8 @@ onMounted(async () => {
 
     // Si la sesión está en WAITING, escuchar cambios de status en tiempo real
     if (session.status === 'WAITING') {
-      const sessionRef = doc(db, 'gameSessions', sessionId.value);
-      unsubscribeStatusListener = onSnapshot(sessionRef, snap => {
+      const metaRef = doc(db, 'gameSessionsMeta', sessionId.value);
+      unsubscribeStatusListener = onSnapshot(metaRef, snap => {
         if (!snap.exists()) return;
         const newStatus = snap.data().status;
         if (gameSession.value) {

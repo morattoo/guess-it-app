@@ -13,6 +13,7 @@ export type GameSession = {
   isOpen: boolean;
   mode: GameSessionMode;
   title: string;
+  players: string[]; // Lista de userIds de los jugadores inscritos
 };
 
 export type GameSessionStatus = "WAITING" | "RUNNING" | "FINISHED";

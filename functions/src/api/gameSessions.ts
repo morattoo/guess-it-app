@@ -119,6 +119,12 @@ gameSessionsApi.post("/gameSessions", async (req, res) => {
       title: title.trim(),
     });
 
+    // Documento público liviano para escucha en tiempo real desde el cliente
+    await db.collection("gameSessionsMeta").doc(gameSessionRef.id).set({
+      status: "WAITING",
+      isOpen: true,
+    });
+
     res.json({ gameSessionId: gameSessionRef.id });
   } catch (error) {
     console.error("Error creating game session:", error);
@@ -227,6 +233,11 @@ gameSessionsApi.put("/gameSessions/:id/status", async (req, res) => {
 
     await gameSessionRef.update(updates);
 
+    // Sincronizar metadata pública
+    const metaUpdates: any = { status };
+    if (status === "FINISHED") metaUpdates.isOpen = false;
+    await db.collection("gameSessionsMeta").doc(id).update(metaUpdates);
+
     res.json({ success: true });
   } catch (error) {
     console.error("Error updating game session status:", error);
@@ -264,6 +275,9 @@ gameSessionsApi.put("/gameSessions/:id/toggle-open", async (req, res) => {
     }
 
     await gameSessionRef.update({ isOpen });
+
+    // Sincronizar metadata pública
+    await db.collection("gameSessionsMeta").doc(id).update({ isOpen });
 
     res.json({ success: true, isOpen });
   } catch (error) {
@@ -393,6 +407,9 @@ gameSessionsApi.delete("/gameSessions/:id", async (req, res) => {
   await deletePlayersBatch.commit();
 
   await gameSessionRef.delete();
+
+  // Eliminar metadata pública
+  await db.collection("gameSessionsMeta").doc(id).delete();
 
   res.json({ success: true });
 });
