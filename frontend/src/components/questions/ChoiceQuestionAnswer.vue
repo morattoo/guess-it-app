@@ -31,7 +31,7 @@ interface ChoiceOption {
 }
 
 defineProps<{
-  modelValue: string | number;
+  modelValue: string | number | string[];
   options: ChoiceOption[];
   disabled?: boolean;
 }>();

@@ -193,6 +193,7 @@ export default {
     enterNumber: 'Enter a number',
     sending: 'Sending...',
     sendAnswer: 'Send answer',
+    arrangeItems: 'Drag the items into the correct order using the arrows.',
     message_CORRECT_ANSWER: 'Correct! 🎉',
     message_INCORRECT_ANSWER: 'Incorrect answer. Try again.',
     gameCompleted: 'Game completed!',

@@ -44,6 +44,11 @@ publicGameApi.get("/game/:id", async (req, res) => {
         cleanQuestion.options = q.validation.options;
       }
 
+      // Para preguntas de ordenamiento, incluir los ítems (sin revelar el orden correcto)
+      if (q.type === "ORDERING" && q.validation?.options) {
+        cleanQuestion.items = q.validation.options;
+      }
+
       return cleanQuestion;
     });
 
@@ -315,6 +320,19 @@ publicGameApi.post("/game/:id/players/:userId/answer", async (req, res) => {
       case "CHOICE":
         const expectedOptionId = validation.expectedAnswer.optionId;
         isCorrect = String(answer) === String(expectedOptionId);
+        break;
+
+      case "ORDERING":
+        const expectedOrder: string[] = validation.expectedAnswer.order;
+        const submittedOrder: string[] = Array.isArray(answer)
+          ? answer
+          : JSON.parse(String(answer));
+        isCorrect =
+          Array.isArray(submittedOrder) &&
+          expectedOrder.length === submittedOrder.length &&
+          expectedOrder.every(
+            (id: string, i: number) => id === submittedOrder[i],
+          );
         break;
 
       default:

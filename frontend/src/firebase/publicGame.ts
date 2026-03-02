@@ -136,7 +136,7 @@ export const getPublicPlayerProgress = async (
 export const submitPublicAnswer = async (
   gameSessionId: string,
   questionIndex: number,
-  answer: string | number
+  answer: string | number | string[]
 ): Promise<{
   correct: boolean;
   message?: string;

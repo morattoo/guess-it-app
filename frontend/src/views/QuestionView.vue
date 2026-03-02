@@ -9,6 +9,7 @@
         <option value="TEXT">Pregunta de Texto</option>
         <option value="NUMBER">Pregunta Numérica</option>
         <option value="CHOICE">Pregunta de Selección</option>
+        <option value="ORDERING">Pregunta de Ordenamiento</option>
       </select>
     </div>
 
@@ -25,6 +26,7 @@ import type { Question, QuestionType } from '@shared/models/Question';
 import TextQuestionForm from '@/components/questions/TextQuestionForm.vue';
 import NumberQuestionForm from '@/components/questions/NumberQuestionForm.vue';
 import ChoiceQuestionForm from '@/components/questions/ChoiceQuestionForm.vue';
+import OrderingQuestionForm from '@/components/questions/OrderingQuestionForm.vue';
 import { createQuestion } from '@/firebase/question';
 import { auth } from '@/firebase/auth';
 
@@ -39,6 +41,8 @@ const currentComponent = computed(() => {
       return NumberQuestionForm;
     case 'CHOICE':
       return ChoiceQuestionForm;
+    case 'ORDERING':
+      return OrderingQuestionForm;
     default:
       return null;
   }

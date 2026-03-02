@@ -30,6 +30,7 @@ import type { Question, QuestionDocument } from '@shared/models/Question';
 import TextQuestionForm from '@/components/questions/TextQuestionForm.vue';
 import NumberQuestionForm from '@/components/questions/NumberQuestionForm.vue';
 import ChoiceQuestionForm from '@/components/questions/ChoiceQuestionForm.vue';
+import OrderingQuestionForm from '@/components/questions/OrderingQuestionForm.vue';
 import { getQuestion, updateQuestion } from '@/firebase/question';
 import { auth } from '@/firebase/auth';
 
@@ -51,6 +52,8 @@ const currentComponent = computed(() => {
       return NumberQuestionForm;
     case 'CHOICE':
       return ChoiceQuestionForm;
+    case 'ORDERING':
+      return OrderingQuestionForm;
     default:
       return null;
   }

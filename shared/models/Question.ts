@@ -43,7 +43,22 @@ export type ChoiceQuestion = BaseQuestion & {
   };
 };
 
-export type Question = TextQuestion | NumberQuestion | ChoiceQuestion;
+export type OrderingQuestion = BaseQuestion & {
+  type: "ORDERING";
+  items: {
+    id: string;
+    label: string;
+  }[];
+  expectedAnswer: {
+    order: string[]; // ordered array of item IDs representing the correct sequence
+  };
+};
+
+export type Question =
+  | TextQuestion
+  | NumberQuestion
+  | ChoiceQuestion
+  | OrderingQuestion;
 
 export type FirestoreTimestamp =
   | { seconds: number; nanoseconds: number }

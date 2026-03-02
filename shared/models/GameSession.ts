@@ -45,12 +45,14 @@ export type GameSessionQuestion = {
   penaltySeconds: number;
   validation: QuestionValidation;
   options?: { id: string; label: string }[]; // Solo para preguntas de tipo CHOICE
+  items?: { id: string; label: string }[]; // Solo para preguntas de tipo ORDERING
 };
 
 export type QuestionValidation =
   | TextValidation
   | NumberValidation
-  | ChoiceValidation;
+  | ChoiceValidation
+  | OrderingValidation;
 
 export type TextValidation = {
   type: "TEXT";
@@ -73,6 +75,15 @@ export type ChoiceValidation = {
   expectedAnswer: {
     optionId: string;
   };
+  options: { id: string; label: string }[];
+};
+
+export type OrderingValidation = {
+  type: "ORDERING";
+  expectedAnswer: {
+    order: string[]; // correct sequence of item IDs
+  };
+  options: { id: string; label: string }[]; // items exposed to player (no order info)
 };
 
 // Ranking API Response Types

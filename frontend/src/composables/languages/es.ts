@@ -193,6 +193,7 @@ export default {
     enterNumber: 'Ingresa un número',
     sending: 'Enviando...',
     sendAnswer: 'Enviar respuesta',
+    arrangeItems: 'Organiza los elementos en el orden correcto usando las flechas.',
     message_CORRECT_ANSWER: '¡Correcto! 🎉',
     message_INCORRECT_ANSWER: 'Respuesta incorrecta. Intenta de nuevo.',
     gameCompleted: '¡Juego completado!',

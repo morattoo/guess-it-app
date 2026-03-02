@@ -93,10 +93,19 @@
             :disabled="submitting"
           />
 
+          <!-- Pregunta de ordenamiento -->
+          <OrderingQuestionAnswer
+            v-else-if="currentQuestion.type === QUESTION_TYPES.ORDERING"
+            v-model="currentAnswer"
+            :items="getOrderingItems()"
+            :disabled="submitting"
+            :hint="t.play.arrangeItems"
+          />
+
           <button
             type="submit"
             class="btn btn-primary btn-large"
-            :disabled="submitting || !currentAnswer"
+            :disabled="submitting || !isAnswerValid"
           >
             {{ submitting ? t.play.sending : t.play.sendAnswer }}
           </button>
@@ -138,6 +147,7 @@ import { useFeedbackAnimation } from '@/composables/useFeedbackAnimation';
 import TextQuestionAnswer from '@/components/questions/TextQuestionAnswer.vue';
 import NumberQuestionAnswer from '@/components/questions/NumberQuestionAnswer.vue';
 import ChoiceQuestionAnswer from '@/components/questions/ChoiceQuestionAnswer.vue';
+import OrderingQuestionAnswer from '@/components/questions/OrderingQuestionAnswer.vue';
 import { QUESTION_TYPES } from '@/constants/questionTypes';
 
 const { showError: showErrorOverlay } = useErrorHandler();
@@ -153,8 +163,15 @@ const error = ref('');
 const gameStarted = ref(false);
 const gameCompleted = ref(false);
 
-const currentAnswer = ref<string | number>('');
+const currentAnswer = ref<string | number | string[]>('');
 const submitting = ref(false);
+
+// Whether the current filled-in answer is valid enough to submit
+const isAnswerValid = computed(() => {
+  const ans = currentAnswer.value;
+  if (Array.isArray(ans)) return ans.length > 0;
+  return Boolean(ans);
+});
 
 let unsubscribeStatusListener: (() => void) | null = null;
 
@@ -267,8 +284,15 @@ const getChoiceOptions = () => {
   return currentQuestion.value.options || [];
 };
 
+const getOrderingItems = () => {
+  if (!currentQuestion.value || currentQuestion.value.type !== QUESTION_TYPES.ORDERING) {
+    return [];
+  }
+  return currentQuestion.value.items || [];
+};
+
 const handleSubmitAnswer = async () => {
-  if (submitting.value || !currentAnswer.value) return;
+  if (submitting.value || !isAnswerValid.value) return;
 
   try {
     submitting.value = true;

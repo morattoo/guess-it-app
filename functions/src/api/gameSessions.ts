@@ -100,6 +100,9 @@ gameSessionsApi.post("/gameSessions", async (req, res) => {
             ...(questionData.type === "CHOICE" && questionData.options
               ? { options: questionData.options }
               : {}),
+            ...(questionData.type === "ORDERING" && questionData.items
+              ? { options: questionData.items }
+              : {}),
           },
         });
       }
@@ -357,6 +360,9 @@ gameSessionsApi.put("/gameSessions/:id/refresh-questions", async (req, res) => {
             expectedAnswer: questionData.expectedAnswer,
             ...(questionData.type === "CHOICE" && questionData.options
               ? { options: questionData.options }
+              : {}),
+            ...(questionData.type === "ORDERING" && questionData.items
+              ? { options: questionData.items }
               : {}),
           },
         });
