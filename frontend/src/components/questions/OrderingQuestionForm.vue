@@ -110,10 +110,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import type { OrderingQuestion, Question } from '@shared/models/Question';
+import type { OrderingQuestion } from '@shared/models/Question';
 
 const props = defineProps<{
-  initialData?: Question;
+  initialData?: OrderingQuestion;
   isEdit?: boolean;
 }>();
 
@@ -122,7 +122,7 @@ const emit = defineEmits<{
   cancel: [];
 }>();
 
-const initialOrdering = props.initialData as OrderingQuestion | undefined;
+const initialOrdering = props.initialData;
 
 const form = ref({
   title: props.initialData?.title || '',
@@ -198,6 +198,7 @@ const cancel = () => {
 h3 {
   margin-bottom: 1.5rem;
   color: #333;
+  margin: 0;
 }
 
 .form-group {

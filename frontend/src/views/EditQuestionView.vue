@@ -103,12 +103,12 @@ const handleCancel = () => {
 .edit-question-view {
   max-width: 800px;
   margin: 0 auto;
-  padding: 2rem;
 }
 
 h2 {
   margin-bottom: 2rem;
   color: #333;
+  margin: 0;
 }
 
 .loading,
@@ -128,6 +128,6 @@ h2 {
 }
 
 .question-form {
-  margin-top: 2rem;
+  margin-top: 1rem;
 }
 </style>

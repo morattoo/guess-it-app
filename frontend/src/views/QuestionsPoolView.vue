@@ -45,14 +45,7 @@
           {{ question.description }}
         </p>
 
-        <div class="question-footer">
-          <span v-if="question.timeLimitSec" class="time-limit">
-            ⏱️ {{ question.timeLimitSec }}s
-          </span>
-          <span class="created-date">
-            {{ formatDate(question.createdAt) }}
-          </span>
-        </div>
+        <div class="question-footer"></div>
 
         <div class="question-actions">
           <button class="btn-icon" title="Editar" @click="handleEdit(question.id!)">
@@ -150,33 +143,12 @@ const getTypeLabel = (type: string) => {
   return labels[type] || type;
 };
 
-const formatDate = (timestamp: any) => {
-  if (!timestamp) return '';
-
-  let date: Date;
-  if (timestamp.toDate) {
-    date = timestamp.toDate();
-  } else if (timestamp instanceof Date) {
-    date = timestamp;
-  } else if (typeof timestamp === 'number') {
-    date = new Date(timestamp);
-  } else {
-    return '';
-  }
-
-  return new Intl.DateTimeFormat('es-ES', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }).format(date);
-};
-
 onMounted(() => {
   loadQuestions();
 });
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .questions-pool-view {
   max-width: 1200px;
   margin: 0 auto;
@@ -245,6 +217,11 @@ h2 {
   letter-spacing: 0.5px;
 }
 
+.type-ordering {
+  background-color: #e8f5e9;
+  color: #43a047;
+}
+
 .type-text {
   background-color: #e3f2ff;
   color: #2f8cff;
@@ -301,17 +278,12 @@ h2 {
 }
 
 .question-actions {
-  position: absolute;
-  bottom: 1rem;
-  right: 1rem;
   display: flex;
-  gap: 0.5rem;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
+  justify-content: flex-end;
 
-.question-card:hover .question-actions {
-  opacity: 1;
+  .btn-icon {
+    margin-left: 0.5rem;
+  }
 }
 
 @media (max-width: 640px) {
@@ -323,10 +295,6 @@ h2 {
 
   .questions-list {
     grid-template-columns: 1fr;
-  }
-
-  .question-actions {
-    opacity: 1;
   }
 }
 </style>
