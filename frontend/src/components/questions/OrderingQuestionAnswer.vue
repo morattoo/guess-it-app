@@ -1,7 +1,7 @@
 <template>
   <div class="ordering-answer">
     <p class="ordering-hint">{{ hint }}</p>
-    <div class="ordering-list" ref="listRef">
+    <!-- <div class="ordering-list" ref="listRef">
       <div
         v-for="(item, index) in orderedItems"
         :key="item.id"
@@ -32,12 +32,14 @@
           </button>
         </div>
       </div>
-    </div>
+    </div> -->
+    <ReorderingList :items="orderedItems" :disabled="disabled" @update="handleUpdateModelValue" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue';
+import ReorderingList from './ReorderingList.vue';
 
 const lastMovedIds = ref<string[]>([]);
 const listRef = ref<HTMLElement | null>(null);
@@ -60,6 +62,10 @@ const emit = defineEmits<{
 
 // Shuffled working copy of items
 const orderedItems = ref<OrderingItem[]>([]);
+
+const handleUpdateModelValue = (ids: string[]) => {
+  emit('update:modelValue', ids);
+};
 
 onMounted(() => {
   // Shuffle items so players don't see them in original order
