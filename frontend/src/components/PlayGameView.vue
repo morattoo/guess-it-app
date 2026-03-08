@@ -163,7 +163,8 @@ const error = ref('');
 const gameStarted = ref(false);
 const gameCompleted = ref(false);
 
-const currentAnswer = ref<string | number | string[]>('');
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const currentAnswer = ref<any>('');
 const submitting = ref(false);
 
 // Whether the current filled-in answer is valid enough to submit
@@ -324,7 +325,7 @@ const handleSubmitAnswer = async () => {
         gameCompleted.value = true;
       } else {
         // Pasar a la siguiente pregunta
-        currentAnswer.value = '';
+        currentAnswer.value = currentQuestion.value?.type === QUESTION_TYPES.ORDERING ? [] : '';
       }
     } else if (result.advanced) {
       // Modo EVALUATION: respuesta incorrecta pero avanza igual
@@ -342,7 +343,7 @@ const handleSubmitAnswer = async () => {
       ) {
         gameCompleted.value = true;
       } else {
-        currentAnswer.value = '';
+        currentAnswer.value = currentQuestion.value?.type === QUESTION_TYPES.ORDERING ? [] : '';
       }
     } else {
       // Modo LEARNING: respuesta incorrecta, se queda en la misma pregunta
@@ -372,6 +373,8 @@ const handleSubmitAnswer = async () => {
 .container {
   max-width: 700px;
   margin: 0 auto;
+  overflow: auto;
+  height: 100%;
 }
 
 .start-card,
@@ -381,7 +384,7 @@ const handleSubmitAnswer = async () => {
   padding: 2.5rem;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  margin-top: 1.5rem;
+  margin: 1.5rem 1rem 1rem;
 }
 
 .start-card {

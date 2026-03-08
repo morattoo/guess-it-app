@@ -55,8 +55,13 @@
           Escribe los elementos en el orden correcto. Los jugadores verán los elementos en orden
           aleatorio y deberán organizarlos.
         </p>
-        <div class="items-list">
-          <div v-for="(item, index) in form.items" :key="item.id" class="item-row">
+        <TransitionGroup tag="div" name="item-list" class="items-list">
+          <div
+            v-for="(item, index) in form.items"
+            :key="item.id"
+            class="item-row"
+            :class="{ 'item-moved': lastMovedIds.includes(item.id) }"
+          >
             <span class="item-position">{{ index + 1 }}</span>
             <input
               v-model="item.label"
@@ -94,7 +99,7 @@
               </button>
             </div>
           </div>
-        </div>
+        </TransitionGroup>
         <button type="button" class="btn-add-option" @click="addItem">+ Agregar Elemento</button>
       </div>
 
@@ -109,7 +114,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import type { OrderingQuestion } from '@shared/models/Question';
 
 const props = defineProps<{
@@ -138,6 +143,7 @@ const form = ref({
 });
 
 const isSubmitting = ref(false);
+const lastMovedIds = ref<string[]>([]);
 
 const isFormValid = computed(() => {
   return (
@@ -155,11 +161,27 @@ const removeItem = (index: number) => {
   form.value.items.splice(index, 1);
 };
 
-const moveItem = (index: number, direction: -1 | 1) => {
+const moveItem = async (index: number, direction: -1 | 1) => {
   const targetIndex = index + direction;
   if (targetIndex < 0 || targetIndex >= form.value.items.length) return;
+
   const items = form.value.items;
-  [items[index], items[targetIndex]] = [items[targetIndex], items[index]];
+  const movedId = items[index]!.id;
+  const displacedId = items[targetIndex]!.id;
+
+  // Step 1: clear highlight and flush — browser sees class removed
+  lastMovedIds.value = [];
+  await nextTick();
+
+  // Step 2: swap and flush — TransitionGroup triggers FLIP here
+  [items[index], items[targetIndex]] = [items[targetIndex]!, items[index]!];
+  await nextTick();
+
+  // Step 3: add highlight — guaranteed fresh start, no prior class on the element
+  lastMovedIds.value = [movedId, displacedId];
+  setTimeout(() => {
+    lastMovedIds.value = [];
+  }, 900);
 };
 
 const submitForm = () => {
@@ -336,45 +358,40 @@ h3 {
   background: #eef2ff;
 }
 
+/* TransitionGroup: smooth FLIP movement */
+.item-list-move {
+  transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Highlight pulse on the moved item */
+@keyframes item-moved-pulse {
+  0% {
+    background-color: transparent;
+    box-shadow: none;
+  }
+  20% {
+    background-color: #eef2ff;
+    box-shadow: 0 0 0 2px #667eea55;
+  }
+  70% {
+    background-color: #eef2ff;
+    box-shadow: 0 0 0 2px #667eea55;
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+.item-row.item-moved {
+  border-radius: 6px;
+  animation: item-moved-pulse 0.9s ease forwards;
+}
+
 .form-actions {
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
   margin-top: 2rem;
-}
-
-.btn-primary {
-  padding: 0.75rem 2rem;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #5a67d8;
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  padding: 0.75rem 2rem;
-  background: transparent;
-  color: #718096;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-secondary:hover {
-  background: #f7fafc;
 }
 </style>

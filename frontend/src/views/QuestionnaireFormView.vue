@@ -213,11 +213,10 @@ onMounted(async () => {
 .questionnaire-form-view {
   max-width: 900px;
   margin: 0 auto;
-  padding: 2rem;
 }
 
 h2 {
-  margin-bottom: 2rem;
+  margin: 0 0 1.5rem 0;
   color: #333;
 }
 

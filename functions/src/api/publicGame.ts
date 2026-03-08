@@ -40,13 +40,13 @@ publicGameApi.get("/game/:id", async (req, res) => {
       };
 
       // Para preguntas de opción múltiple, incluir las opciones pero no la respuesta
-      if (q.type === "CHOICE" && q.validation?.options) {
-        cleanQuestion.options = q.validation.options;
+      if (q.type === "CHOICE") {
+        cleanQuestion.options = q.options ?? [];
       }
 
       // Para preguntas de ordenamiento, incluir los ítems (sin revelar el orden correcto)
-      if (q.type === "ORDERING" && q.validation?.options) {
-        cleanQuestion.items = q.validation.options;
+      if (q.type === "ORDERING") {
+        cleanQuestion.items = q.items ?? [];
       }
 
       return cleanQuestion;

@@ -74,8 +74,6 @@ gameSessionsApi.post("/gameSessions", async (req, res) => {
         .doc(questionId)
         .get();
 
-      console.log("Question Snap:", questionSnap.id, questionSnap.exists);
-
       if (questionSnap.exists) {
         const questionData = questionSnap.data()!;
 
@@ -87,24 +85,26 @@ gameSessionsApi.post("/gameSessions", async (req, res) => {
           continue;
         }
 
-        questions.push({
+        const questionModel = {
           id: questionSnap.id,
           type: questionData.type,
           title: questionData.title,
           description: questionData.description || "",
           points: questionData.points,
           penaltySeconds: questionData.timeLimitSec || 0,
+          ...(questionData.type === "CHOICE" && questionData.options
+            ? { options: questionData.options }
+            : {}),
+          ...(questionData.type === "ORDERING" && questionData.items
+            ? { items: questionData.items }
+            : {}),
           validation: {
             type: questionData.type,
             expectedAnswer: questionData.expectedAnswer,
-            ...(questionData.type === "CHOICE" && questionData.options
-              ? { options: questionData.options }
-              : {}),
-            ...(questionData.type === "ORDERING" && questionData.items
-              ? { options: questionData.items }
-              : {}),
           },
-        });
+        };
+
+        questions.push(questionModel);
       }
     }
 
@@ -355,6 +355,12 @@ gameSessionsApi.put("/gameSessions/:id/refresh-questions", async (req, res) => {
           description: questionData.description,
           points: questionData.points,
           penaltySeconds: questionData.timeLimitSec || 0,
+          ...(questionData.type === "CHOICE" && questionData.options
+            ? { options: questionData.options }
+            : {}),
+          ...(questionData.type === "ORDERING" && questionData.items
+            ? { items: questionData.items }
+            : {}),
           validation: {
             type: questionData.type,
             expectedAnswer: questionData.expectedAnswer,
