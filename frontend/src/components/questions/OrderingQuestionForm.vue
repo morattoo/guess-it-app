@@ -5,13 +5,13 @@
     <form @submit.prevent="submitForm">
       <div class="form-group">
         <label for="title">Título *</label>
-        <input
+        <textarea
           id="title"
           v-model="form.title"
-          type="text"
+          rows="2"
           placeholder="¿Ordena los planetas del más cercano al más lejano del Sol?"
           required
-        />
+        ></textarea>
       </div>
 
       <div class="form-group">
@@ -57,7 +57,6 @@
         </p>
         <ReorderingListForm v-model="form.items" />
       </div>
-
       <div class="form-actions">
         <button type="button" class="btn-secondary" @click="cancel">Cancelar</button>
         <button type="submit" class="btn-primary" :disabled="!isFormValid || isSubmitting">

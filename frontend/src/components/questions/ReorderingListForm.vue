@@ -103,6 +103,7 @@ const { moveItem, addItem, removeItem } = useReorderableList(localItems);
   color: #333;
   transition: border-color 0.2s;
   box-sizing: border-box;
+  width: 100%;
 }
 
 .item-row input:focus {
