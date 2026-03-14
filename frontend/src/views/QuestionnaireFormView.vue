@@ -57,12 +57,7 @@
 
             <div class="available-questions">
               <h4>Preguntas Disponibles</h4>
-              <div
-                v-for="question in unselectedQuestions"
-                :key="question.id"
-                class="question-item"
-                @click="addQuestion(question.id!)"
-              >
+              <div v-for="question in unselectedQuestions" :key="question.id" class="question-item">
                 <div class="question-content">
                   <span class="question-type" :class="`type-${question.type.toLowerCase()}`">
                     {{ getTypeLabel(question.type) }}
@@ -70,7 +65,11 @@
                   <span class="question-title">{{ question.title }}</span>
                   <span class="question-points">{{ question.points }} pts</span>
                 </div>
-                <button type="button" class="btn-add-question">+</button>
+                <div class="question-actions">
+                  <button type="button" class="btn-add-question" @click="addQuestion(question.id!)">
+                    +
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -209,7 +208,7 @@ onMounted(async () => {
 });
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .questionnaire-form-view {
   max-width: 900px;
   margin: 0 auto;
@@ -311,8 +310,13 @@ h2 {
   margin-bottom: 0.5rem;
   background-color: #f9f9f9;
   border-radius: 6px;
-  cursor: pointer;
   transition: all 0.2s;
+}
+
+.question-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .question-item:last-child {
@@ -330,8 +334,7 @@ h2 {
 
 .question-content {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  flex-direction: column;
   flex: 1;
 }
 
@@ -359,6 +362,18 @@ h2 {
   color: #9c27b0;
 }
 
+.type-ordering {
+  background-color: #e8f5e9;
+  color: #4caf50;
+}
+
+.type-choice,
+.type-number,
+.type-ordering,
+.type-text {
+  max-width: 320px;
+}
+
 .question-title {
   flex: 1;
   font-size: 0.875rem;
@@ -372,15 +387,19 @@ h2 {
 }
 
 .btn-add-question {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: 8px;
+  flex-shrink: 0;
+  padding: 0;
+  box-sizing: border-box;
+  border-radius: 14px;
   border: none;
   cursor: pointer;
   font-size: 1.125rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s;
   background-color: #2f8cff;
   color: white;

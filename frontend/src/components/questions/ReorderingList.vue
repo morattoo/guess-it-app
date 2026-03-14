@@ -57,7 +57,7 @@ function moveUp(index: number) {
 
   const items = [...localItems.value];
 
-  [items[index - 1], items[index]] = [items[index], items[index - 1]];
+  [items[index - 1], items[index]] = [items[index]!, items[index - 1]!];
 
   localItems.value = items;
   emitOrder();
@@ -68,7 +68,7 @@ function moveDown(index: number) {
 
   const items = [...localItems.value];
 
-  [items[index + 1], items[index]] = [items[index], items[index + 1]];
+  [items[index + 1], items[index]] = [items[index]!, items[index + 1]!];
 
   localItems.value = items;
   emitOrder();
@@ -77,7 +77,7 @@ function moveDown(index: number) {
 
 <style scoped lang="scss">
 .reorder-list {
-  width: 320px;
+  width: 100%;
 }
 
 .list-item {

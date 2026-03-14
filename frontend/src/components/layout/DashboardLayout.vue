@@ -432,6 +432,7 @@ const handleLogout = async () => {
     padding: 1.5rem;
     overflow-y: auto;
     min-height: 0;
+    max-width: 320px;
   }
 }
 
