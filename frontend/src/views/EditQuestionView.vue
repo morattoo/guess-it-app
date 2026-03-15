@@ -1,13 +1,13 @@
 <template>
   <div class="edit-question-view">
-    <h2>Editar Pregunta</h2>
+    <h2>{{ t.editQuestion.title }}</h2>
 
-    <div v-if="loading" class="loading">Cargando pregunta...</div>
+    <div v-if="loading" class="loading">{{ t.editQuestion.loading }}</div>
 
     <div v-else-if="error" class="error">
       <p>{{ error }}</p>
       <button @click="router.push('/dashboard/questions-pool')" class="btn-primary">
-        Volver a mis preguntas
+        {{ t.editQuestion.backToPool }}
       </button>
     </div>
 
@@ -33,9 +33,11 @@ import ChoiceQuestionForm from '@/components/questions/ChoiceQuestionForm.vue';
 import OrderingQuestionForm from '@/components/questions/OrderingQuestionForm.vue';
 import { getQuestion, updateQuestion } from '@/firebase/question';
 import { auth } from '@/firebase/auth';
+import { useI18n } from '@/composables/useI18n';
 
 const router = useRouter();
 const route = useRoute();
+const { t } = useI18n();
 const questionId = route.params.id as string;
 
 const question = ref<QuestionDocument | null>(null);
@@ -64,20 +66,20 @@ onMounted(async () => {
     const fetchedQuestion = await getQuestion(questionId);
 
     if (!fetchedQuestion) {
-      error.value = 'Pregunta no encontrada';
+      error.value = t.value.editQuestion.notFound;
       return;
     }
 
     // Verificar que el usuario sea el creador
     const currentUser = auth.currentUser!;
     if (fetchedQuestion.createdBy !== currentUser.uid) {
-      error.value = 'No tienes permiso para editar esta pregunta';
+      error.value = t.value.editQuestion.noPermission;
       return;
     }
 
     question.value = fetchedQuestion;
   } catch (err) {
-    error.value = 'Error al cargar la pregunta';
+    error.value = t.value.editQuestion.loadError;
     console.error(err);
   } finally {
     loading.value = false;
@@ -90,7 +92,7 @@ const handleSubmit = async (updatedQuestion: Question) => {
     router.push('/dashboard/questions-pool');
   } catch (err) {
     console.error('Error al actualizar la pregunta:', err);
-    alert('Error al actualizar la pregunta');
+    alert(t.value.editQuestion.updateError);
   }
 };
 

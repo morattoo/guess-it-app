@@ -1,7 +1,7 @@
 <template>
   <div class="questionnaires-view">
     <div class="header">
-      <h2>Mis Cuestionarios</h2>
+      <h2>{{ t.questionnaires.title }}</h2>
       <router-link to="/dashboard/questionnaire/new" class="btn-add">
         <svg
           width="20"
@@ -21,12 +21,12 @@
       </router-link>
     </div>
 
-    <div v-if="loading" class="loading">Cargando cuestionarios...</div>
+    <div v-if="loading" class="loading">{{ t.questionnaires.loading }}</div>
 
     <div v-else-if="questionnaires.length === 0" class="empty-state">
-      <p>No tienes cuestionarios creados aún.</p>
+      <p>{{ t.questionnaires.noQuestionnaires }}</p>
       <router-link to="/dashboard/questionnaire/new" class="btn-primary">
-        Crear tu primer cuestionario
+        {{ t.questionnaires.createFirst }}
       </router-link>
     </div>
 
@@ -40,7 +40,11 @@
           <h3 class="questionnaire-title">{{ questionnaire.title }}</h3>
           <span class="question-count">
             {{ questionnaire.questionIds.length }}
-            {{ questionnaire.questionIds.length === 1 ? 'pregunta' : 'preguntas' }}
+            {{
+              questionnaire.questionIds.length === 1
+                ? t.questionnaires.question
+                : t.questionnaires.questions
+            }}
           </span>
         </div>
 
@@ -51,7 +55,7 @@
         </div>
 
         <div class="questionnaire-actions">
-          <button class="btn-icon" title="Editar" @click="handleEdit(questionnaire.id)">
+          <button class="btn-icon" :title="t.common.edit" @click="handleEdit(questionnaire.id)">
             <svg
               width="18"
               height="18"
@@ -70,7 +74,7 @@
           </button>
           <button
             class="btn-icon btn-delete"
-            title="Eliminar"
+            :title="t.common.delete"
             @click="handleDelete(questionnaire.id)"
           >
             <svg
@@ -106,9 +110,11 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { getQuestionnairesByUser, deleteQuestionnaire } from '@/firebase/questionnaire';
 import { auth } from '@/firebase/auth';
+import { useI18n } from '@/composables/useI18n';
 import type { Questionnaire } from '@shared/models/Questionnaire';
 
 const router = useRouter();
+const { t } = useI18n();
 const questionnaires = ref<Questionnaire[]>([]);
 const loading = ref(true);
 
@@ -128,14 +134,14 @@ const handleEdit = (questionnaireId: string) => {
 };
 
 const handleDelete = async (questionnaireId: string) => {
-  if (!confirm('¿Estás seguro de eliminar este cuestionario?')) return;
+  if (!confirm(t.value.questionnaires.confirmDelete)) return;
 
   try {
     await deleteQuestionnaire(questionnaireId);
     questionnaires.value = questionnaires.value.filter(q => q.id !== questionnaireId);
   } catch (error) {
     console.error('Error al eliminar cuestionario:', error);
-    alert('Error al eliminar el cuestionario');
+    alert(t.value.questionnaires.deleteError);
   }
 };
 

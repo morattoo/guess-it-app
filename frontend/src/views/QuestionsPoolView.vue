@@ -1,7 +1,7 @@
 <template>
   <div class="questions-pool-view">
     <div class="header">
-      <h2>Mis Preguntas</h2>
+      <h2>{{ t.questionsPool.title }}</h2>
       <router-link to="/dashboard/question" class="btn-add">
         <svg
           width="20"
@@ -21,13 +21,13 @@
       </router-link>
     </div>
 
-    <div v-if="loading" class="loading">Cargando preguntas...</div>
+    <div v-if="loading" class="loading">{{ t.questionsPool.loading }}</div>
 
     <div v-else-if="questions.length === 0" class="empty-state">
-      <p>No tienes preguntas creadas aún.</p>
-      <router-link to="/dashboard/question" class="btn-primary"
-        >Crear tu primera pregunta</router-link
-      >
+      <p>{{ t.questionsPool.noQuestions }}</p>
+      <router-link to="/dashboard/question" class="btn-primary">{{
+        t.questionsPool.createFirst
+      }}</router-link>
     </div>
 
     <div v-else class="questions-list">
@@ -48,7 +48,7 @@
         <div class="question-footer"></div>
 
         <div class="question-actions">
-          <button class="btn-icon" title="Editar" @click="handleEdit(question.id!)">
+          <button class="btn-icon" :title="t.common.edit" @click="handleEdit(question.id!)">
             <svg
               width="18"
               height="18"
@@ -65,7 +65,11 @@
               />
             </svg>
           </button>
-          <button class="btn-icon btn-delete" title="Eliminar" @click="handleDelete(question.id!)">
+          <button
+            class="btn-icon btn-delete"
+            :title="t.common.delete"
+            @click="handleDelete(question.id!)"
+          >
             <svg
               width="18"
               height="18"
@@ -99,9 +103,11 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { getQuestionsByUser, deleteQuestion } from '@/firebase/question';
 import { auth } from '@/firebase/auth';
+import { useI18n } from '@/composables/useI18n';
 import type { QuestionDocument } from '@shared/models/Question';
 
 const router = useRouter();
+const { t } = useI18n();
 const questions = ref<QuestionDocument[]>([]);
 const loading = ref(true);
 
@@ -123,22 +129,24 @@ const handleEdit = (questionId: string) => {
 };
 
 const handleDelete = async (questionId: string) => {
-  if (!confirm('¿Estás seguro de eliminar esta pregunta?')) return;
+  if (!confirm(t.value.questionsPool.confirmDelete)) return;
 
   try {
     await deleteQuestion(questionId);
     questions.value = questions.value.filter(q => q.id !== questionId);
   } catch (error) {
     console.error('Error al eliminar pregunta:', error);
-    alert('Error al eliminar la pregunta');
+    alert(t.value.questionsPool.deleteError);
   }
 };
 
 const getTypeLabel = (type: string) => {
+  const types = t.value.questionsPool.questionTypes;
   const labels: Record<string, string> = {
-    TEXT: 'Texto',
-    NUMBER: 'Número',
-    CHOICE: 'Selección',
+    TEXT: types.text,
+    NUMBER: types.number,
+    CHOICE: types.choice,
+    ORDERING: types.ordering,
   };
   return labels[type] || type;
 };

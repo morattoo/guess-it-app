@@ -1,15 +1,15 @@
 <template>
   <div class="question-view">
-    <h2>Crear Nueva Pregunta</h2>
+    <h2>{{ t.createQuestion.title }}</h2>
 
     <div class="form-group">
-      <label for="question-type">Tipo de Pregunta</label>
+      <label for="question-type">{{ t.createQuestion.typeLabel }}</label>
       <select id="question-type" v-model="selectedType" class="question-type-select">
-        <option value="">Selecciona un tipo</option>
-        <option value="TEXT">Pregunta de Texto</option>
-        <option value="NUMBER">Pregunta Numérica</option>
-        <option value="CHOICE">Pregunta de Selección</option>
-        <option value="ORDERING">Pregunta de Ordenamiento</option>
+        <option value="">{{ t.createQuestion.selectType }}</option>
+        <option value="TEXT">{{ t.createQuestion.typeText }}</option>
+        <option value="NUMBER">{{ t.createQuestion.typeNumber }}</option>
+        <option value="CHOICE">{{ t.createQuestion.typeChoice }}</option>
+        <option value="ORDERING">{{ t.createQuestion.typeOrdering }}</option>
       </select>
     </div>
 
@@ -29,8 +29,10 @@ import ChoiceQuestionForm from '@/components/questions/ChoiceQuestionForm.vue';
 import OrderingQuestionForm from '@/components/questions/OrderingQuestionForm.vue';
 import { createQuestion } from '@/firebase/question';
 import { auth } from '@/firebase/auth';
+import { useI18n } from '@/composables/useI18n';
 
 const router = useRouter();
+const { t } = useI18n();
 const selectedType = ref<QuestionType | ''>('');
 
 const currentComponent = computed(() => {

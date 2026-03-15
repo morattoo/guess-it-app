@@ -1,38 +1,40 @@
 <template>
   <div class="questionnaire-form-view">
-    <h2>{{ isEdit ? 'Editar Cuestionario' : 'Crear Cuestionario' }}</h2>
+    <h2>{{ isEdit ? t.questionnaireForm.editTitle : t.questionnaireForm.createTitle }}</h2>
 
-    <div v-if="loading" class="loading">Cargando...</div>
+    <div v-if="loading" class="loading">{{ t.questionnaireForm.loading }}</div>
 
     <div v-else-if="error" class="error">
       <p>{{ error }}</p>
       <button @click="router.push('/dashboard/questionnaires')" class="btn-primary">
-        Volver a cuestionarios
+        {{ t.questionnaireForm.backToList }}
       </button>
     </div>
 
     <div v-else class="form-container">
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
-          <label for="title">Título del Cuestionario *</label>
+          <label for="title">{{ t.questionnaireForm.titleLabel }}</label>
           <input
             id="title"
             v-model="form.title"
             type="text"
-            placeholder="Ej: Historia Universal"
+            :placeholder="t.questionnaireForm.titlePlaceholder"
             required
           />
         </div>
 
         <div class="form-group">
-          <label>Preguntas Seleccionadas ({{ selectedQuestions.length }})</label>
+          <label
+            >{{ t.questionnaireForm.selectedQuestions }} ({{ selectedQuestions.length }})</label
+          >
           <div v-if="loadingQuestions" class="loading-questions">
-            Cargando preguntas disponibles...
+            {{ t.questionnaireForm.loadingQuestions }}
           </div>
           <div v-else-if="availableQuestions.length === 0" class="no-questions">
-            <p>No tienes preguntas creadas.</p>
+            <p>{{ t.questionnaireForm.noQuestionsAvailable }}</p>
             <router-link to="/dashboard/question" class="btn-secondary">
-              Crear una pregunta
+              {{ t.questionnaireForm.createAQuestion }}
             </router-link>
           </div>
           <div v-else class="questions-selector">
@@ -56,7 +58,7 @@
             </div>
 
             <div class="available-questions">
-              <h4>Preguntas Disponibles</h4>
+              <h4>{{ t.questionnaireForm.availableQuestions }}</h4>
               <div v-for="question in unselectedQuestions" :key="question.id" class="question-item">
                 <div class="question-content">
                   <span class="question-type" :class="`type-${question.type.toLowerCase()}`">
@@ -81,10 +83,10 @@
             class="btn-secondary"
             @click="router.push('/dashboard/questionnaires')"
           >
-            Cancelar
+            {{ t.common.cancel }}
           </button>
           <button type="submit" class="btn-primary" :disabled="!isFormValid">
-            {{ isEdit ? 'Actualizar' : 'Crear' }} Cuestionario
+            {{ isEdit ? t.questionnaireForm.update : t.questionnaireForm.create }}
           </button>
         </div>
       </form>
@@ -102,10 +104,12 @@ import {
 } from '@/firebase/questionnaire';
 import { getQuestionsByUser } from '@/firebase/question';
 import { auth } from '@/firebase/auth';
+import { useI18n } from '@/composables/useI18n';
 import type { QuestionDocument } from '@shared/models/Question';
 
 const router = useRouter();
 const route = useRoute();
+const { t } = useI18n();
 const questionnaireId = route.params.id as string;
 const isEdit = computed(() => questionnaireId && questionnaireId !== 'new');
 
@@ -144,10 +148,12 @@ const removeQuestion = (questionId: string) => {
 };
 
 const getTypeLabel = (type: string) => {
+  const types = t.value.questionsPool.questionTypes;
   const labels: Record<string, string> = {
-    TEXT: 'Texto',
-    NUMBER: 'Número',
-    CHOICE: 'Selección',
+    TEXT: types.text,
+    NUMBER: types.number,
+    CHOICE: types.choice,
+    ORDERING: types.ordering,
   };
   return labels[type] || type;
 };
@@ -168,7 +174,7 @@ const handleSubmit = async () => {
     router.push('/dashboard/questionnaires');
   } catch (err) {
     console.error('Error al guardar cuestionario:', err);
-    alert('Error al guardar el cuestionario');
+    alert(t.value.questionnaireForm.saveError);
   }
 };
 
@@ -186,12 +192,12 @@ onMounted(async () => {
       const questionnaire = await getQuestionnaire(questionnaireId);
 
       if (!questionnaire) {
-        error.value = 'Cuestionario no encontrado';
+        error.value = t.value.questionnaireForm.notFound;
         return;
       }
 
       if (questionnaire.createdBy !== currentUser.uid) {
-        error.value = 'No tienes permiso para editar este cuestionario';
+        error.value = t.value.questionnaireForm.noPermission;
         return;
       }
 
@@ -200,7 +206,7 @@ onMounted(async () => {
       form.value.questionIds = questionnaire.questionIds.filter(id => availableIds.has(id));
     }
   } catch (err) {
-    error.value = 'Error al cargar datos';
+    error.value = t.value.questionnaireForm.loadError;
     console.error(err);
   } finally {
     loading.value = false;
