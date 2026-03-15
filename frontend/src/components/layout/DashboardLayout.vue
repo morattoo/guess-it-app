@@ -419,6 +419,8 @@ const handleLogout = async () => {
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid #e0e0e0;
+    padding: 0.8rem;
+    box-sizing: border-box;
   }
 
   &.is-open {
@@ -590,6 +592,53 @@ const handleLogout = async () => {
   &:focus {
     outline: 2px solid #2f8cff;
     outline-offset: 2px;
+  }
+}
+
+// Desktop: sidebar always visible
+@media (min-width: 768px) {
+  .dashboard-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      'sidebar header'
+      'sidebar main';
+  }
+
+  .dashboard-header {
+    grid-area: header;
+
+    .burger-btn {
+      display: none;
+    }
+  }
+
+  .dashboard-sidebar {
+    grid-area: sidebar;
+    position: static;
+    width: auto;
+    height: 100%;
+    left: auto;
+    overflow-y: auto;
+    box-shadow: 1px 0 0 #e0e0e0;
+    transition: none;
+
+    .sidebar-content {
+      max-width: none;
+    }
+
+    .sidebar-header {
+      justify-content: flex-end;
+    }
+  }
+
+  .dashboard-sidebar__bt-close {
+    display: none;
+  }
+
+  .dashboard-main {
+    grid-area: main;
   }
 }
 </style>
