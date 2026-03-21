@@ -13,6 +13,7 @@ export default {
     confirm: 'Confirm',
     yes: 'Yes',
     no: 'No',
+    filterPlaceholder: 'Filter...',
   },
   // ErrorOverlay
   errorOverlay: {

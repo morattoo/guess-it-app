@@ -2,6 +2,7 @@
   <div class="game-sessions-view">
     <div class="header">
       <h2>{{ t.gameSessions.title }}</h2>
+
       <router-link to="/dashboard/game-session/new" class="btn-add">
         <svg
           width="20"
@@ -20,6 +21,7 @@
         {{ t.gameSessions.newSession }}
       </router-link>
     </div>
+    <FilterInput class="game-sessions-view__filter" v-model="searchText" />
 
     <div v-if="loading" class="loading">{{ t.gameSessions.loading }}</div>
 
@@ -31,7 +33,7 @@
     </div>
 
     <div v-else class="sessions-list">
-      <div v-for="session in gameSessions" :key="session.id" class="session-card">
+      <div v-for="session in filteredGameSessions" :key="session.id" class="session-card">
         <div class="session-header">
           <div class="session-info">
             <h3 class="session-title">
@@ -229,7 +231,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   getGameSessionsByUser,
@@ -244,6 +246,7 @@ import { useErrorHandler } from '@/composables/useErrorHandler';
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
 import { useToast } from '@/composables/useToast';
 import { formatError } from '@/utils/errorUtils';
+import FilterInput from '@/components/FilterInput.vue';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -252,6 +255,17 @@ const { confirm } = useConfirmDialog();
 const { success, error: showToastError } = useToast();
 const gameSessions = ref<GameSession[]>([]);
 const loading = ref(true);
+const searchText = ref('');
+
+const filteredGameSessions = computed(() => {
+  const query = searchText.value.trim().toLowerCase();
+  if (!query) return gameSessions.value;
+  return gameSessions.value.filter(s => {
+    const statusLabel = getStatusLabel(s.status).toLowerCase();
+    const title = (s.title || '').toLowerCase();
+    return title.includes(query) || statusLabel.includes(query);
+  });
+});
 
 const loadGameSessions = async () => {
   try {
@@ -398,6 +412,10 @@ onMounted(() => {
   padding: 1rem;
 }
 
+.game-sessions-view__filter {
+  margin-bottom: 1rem;
+}
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -536,6 +554,7 @@ h2 {
   gap: 0.5rem;
   padding-top: 1rem;
   border-top: 1px solid #e0e0e0;
+  margin-bottom: 0.5rem;
 }
 
 .detail-item {
@@ -611,6 +630,7 @@ h2 {
 
 .session-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 

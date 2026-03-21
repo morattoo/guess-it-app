@@ -2,6 +2,7 @@
   <div class="questions-pool-view">
     <div class="header">
       <h2>{{ t.questionsPool.title }}</h2>
+
       <router-link to="/dashboard/question" class="btn-add">
         <svg
           width="20"
@@ -17,10 +18,10 @@
             stroke-linecap="round"
           />
         </svg>
-        Crear Pregunta
+        {{ t.questionsPool.createQuestion }}
       </router-link>
     </div>
-
+    <FilterInput class="questions-pool-view__filter" v-model="searchText" />
     <div v-if="loading" class="loading">{{ t.questionsPool.loading }}</div>
 
     <div v-else-if="questions.length === 0" class="empty-state">
@@ -31,7 +32,7 @@
     </div>
 
     <div v-else class="questions-list">
-      <div v-for="question in questions" :key="question.id" class="question-card">
+      <div v-for="question in filteredQuestions" :key="question.id" class="question-card">
         <div class="question-header">
           <span class="question-type" :class="`type-${question.type.toLowerCase()}`">
             {{ getTypeLabel(question.type) }}
@@ -99,17 +100,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { getQuestionsByUser, deleteQuestion } from '@/firebase/question';
 import { auth } from '@/firebase/auth';
 import { useI18n } from '@/composables/useI18n';
 import type { QuestionDocument } from '@shared/models/Question';
+import FilterInput from '@/components/FilterInput.vue';
 
 const router = useRouter();
 const { t } = useI18n();
 const questions = ref<QuestionDocument[]>([]);
 const loading = ref(true);
+const searchText = ref('');
+
+const filteredQuestions = computed(() => {
+  const query = searchText.value.trim().toLowerCase();
+  if (!query) return questions.value;
+  return questions.value.filter(q => {
+    const typeLabel = getTypeLabel(q.type).toLowerCase();
+    return (
+      q.title.toLowerCase().includes(query) ||
+      (q.description?.toLowerCase().includes(query) ?? false) ||
+      typeLabel.includes(query)
+    );
+  });
+});
 
 const loadQuestions = async () => {
   try {
@@ -161,6 +177,10 @@ onMounted(() => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 1rem;
+
+  &__filter {
+    margin-bottom: 1rem;
+  }
 }
 
 .header {

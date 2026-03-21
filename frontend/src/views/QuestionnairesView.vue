@@ -2,6 +2,7 @@
   <div class="questionnaires-view">
     <div class="header">
       <h2>{{ t.questionnaires.title }}</h2>
+
       <router-link to="/dashboard/questionnaire/new" class="btn-add">
         <svg
           width="20"
@@ -17,10 +18,10 @@
             stroke-linecap="round"
           />
         </svg>
-        Crear Cuestionario
+        {{ t.questionnaires.createQuestionnaire }}
       </router-link>
     </div>
-
+    <FilterInput class="questionnaires-view__filter" v-model="searchText" />
     <div v-if="loading" class="loading">{{ t.questionnaires.loading }}</div>
 
     <div v-else-if="questionnaires.length === 0" class="empty-state">
@@ -32,7 +33,7 @@
 
     <div v-else class="questionnaires-list">
       <div
-        v-for="questionnaire in questionnaires"
+        v-for="questionnaire in filteredQuestionnaires"
         :key="questionnaire.id"
         class="questionnaire-card"
       >
@@ -106,17 +107,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { getQuestionnairesByUser, deleteQuestionnaire } from '@/firebase/questionnaire';
 import { auth } from '@/firebase/auth';
 import { useI18n } from '@/composables/useI18n';
 import type { Questionnaire } from '@shared/models/Questionnaire';
+import FilterInput from '@/components/FilterInput.vue';
 
 const router = useRouter();
 const { t } = useI18n();
 const questionnaires = ref<Questionnaire[]>([]);
 const loading = ref(true);
+const searchText = ref('');
+
+const filteredQuestionnaires = computed(() => {
+  const query = searchText.value.trim().toLowerCase();
+  if (!query) return questionnaires.value;
+  return questionnaires.value.filter(q => q.title.toLowerCase().includes(query));
+});
 
 const loadQuestionnaires = async () => {
   try {
@@ -171,11 +180,15 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .questionnaires-view {
   max-width: 1200px;
   margin: 0 auto;
   padding: 1rem;
+
+  &__filter {
+    margin-bottom: 1rem;
+  }
 }
 
 .header {
