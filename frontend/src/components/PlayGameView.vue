@@ -372,9 +372,6 @@ const handleSubmitAnswer = async () => {
 
 .container {
   max-width: 700px;
-  margin: 0 auto;
-  overflow: auto;
-  height: 100%;
 }
 
 .start-card,

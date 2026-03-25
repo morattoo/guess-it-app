@@ -4,6 +4,7 @@
       <HeaderLogo />
       <BaseLoader v-model="loading" overlay :text="t.join.loading" :size="60" color="#10b981" />
       <div v-if="gameSession" class="join-card">
+        <img src="@/assets/logo.png" alt="Think battle Logo" class="join-game-view__logo" />
         <h1>{{ t.join.joinGame }}</h1>
 
         <div class="session-info">
@@ -232,11 +233,19 @@ const goToPlay = () => {
   justify-content: center;
   width: 100%;
   height: 100%;
+
+  &__logo {
+    width: 200px;
+    height: auto;
+    display: block;
+    margin: 0 auto 1.5rem;
+  }
 }
 
 .container {
   max-width: 500px;
   width: 100%;
+  padding: 1rem;
 }
 
 .join-card {

@@ -5,7 +5,7 @@ import LanguageSelector from './LanguageSelector.vue';
 <template>
   <header class="header-logo">
     <router-link to="/"
-      ><img src="@/assets/logo-guessit.png" alt="GuessIt Logo" class="logo"
+      ><img src="@/assets/logo-header.png" alt="GuessIt Logo" class="logo"
     /></router-link>
     <language-selector />
   </header>
@@ -20,8 +20,6 @@ import LanguageSelector from './LanguageSelector.vue';
   padding: 1rem;
 
   .logo {
-    width: 150px;
-    height: auto;
     display: block;
     margin-left: auto;
     margin-right: auto;
