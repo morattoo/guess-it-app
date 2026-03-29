@@ -11,7 +11,7 @@ const { t } = useI18n();
 
     <section class="home__container">
       <div class="intro">
-        <h1>{{ t.home.title }}</h1>
+        <img src="@/assets/logo.png" alt="Think battle" class="logo" />
         <p>{{ t.home.subtitle }}</p>
       </div>
       <div class="auth-links">

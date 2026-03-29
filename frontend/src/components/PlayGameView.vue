@@ -1,5 +1,5 @@
 <template>
-  <div class="play-game-view">
+  <div class="play-game-view" :class="{ 'initial-state': !gameStarted }">
     <SuccessAnimation :show="showSuccess" />
     <ErrorAnimation :show="showError" />
 
@@ -367,11 +367,16 @@ const handleSubmitAnswer = async () => {
   min-height: 100vh;
   display: flex;
   justify-content: center;
-  align-items: center;
 }
 
 .container {
-  max-width: 700px;
+  max-width: 500px;
+  width: 100%;
+  height: 100%;
+  padding: 1rem 1rem 2rem;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
 .start-card,
@@ -381,7 +386,6 @@ const handleSubmitAnswer = async () => {
   padding: 2.5rem;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  margin: 1.5rem 1rem 1rem;
 }
 
 .start-card {
