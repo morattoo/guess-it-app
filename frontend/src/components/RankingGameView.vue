@@ -277,8 +277,10 @@ onMounted(() => {
 .ranking-view {
   display: flex;
   flex-direction: column;
+  min-height: 100%;
   padding: 1rem;
-  margin-bottom: 2rem;
+  padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
 }
 
 .ranking-header {

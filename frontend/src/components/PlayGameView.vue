@@ -364,7 +364,7 @@ const handleSubmitAnswer = async () => {
 
 <style scoped lang="scss">
 .play-game-view {
-  min-height: 100vh;
+  min-height: 100%;
   display: flex;
   justify-content: center;
 }
@@ -372,7 +372,6 @@ const handleSubmitAnswer = async () => {
 .container {
   max-width: 500px;
   width: 100%;
-  height: 100%;
   padding: 1rem 1rem 2rem;
   display: flex;
   flex-direction: column;

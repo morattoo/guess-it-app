@@ -229,10 +229,12 @@ const goToPlay = () => {
 <style scoped lang="scss">
 .join-game-view {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   width: 100%;
-  height: 100%;
+  min-height: 100%;
+  padding: 1rem 0;
+  box-sizing: border-box;
 
   &__logo {
     width: 200px;
@@ -246,6 +248,7 @@ const goToPlay = () => {
   max-width: 500px;
   width: 100%;
   padding: 1rem;
+  margin: auto;
 }
 
 .join-card {

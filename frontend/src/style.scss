@@ -30,7 +30,6 @@ body {
   margin: 0;
   padding: 0;
   min-width: 320px;
-  min-height: 100vh;
   background-color: white;
   color: black;
 }
@@ -55,6 +54,9 @@ body {
   box-sizing: border-box;
   display: grid;
   overflow: auto;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 h1 {
