@@ -17,6 +17,7 @@ import { createQuestionsApi } from "./api/questions";
 import { createQuestionnairesApi } from "./api/questionnaires";
 import { createPublicGameApi } from "./api/publicGame";
 import { createUsersApi } from "./api/users";
+import { createDashboardApi } from "./api/dashboard";
 
 const db = getFirestore();
 
@@ -25,3 +26,4 @@ export const questions = onRequest(createQuestionsApi(db));
 export const questionnaires = onRequest(createQuestionnairesApi(db));
 export const publicGame = onRequest(createPublicGameApi(db));
 export const users = onRequest(createUsersApi(db));
+export const dashboard = onRequest(createDashboardApi(db));

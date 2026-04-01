@@ -80,6 +80,20 @@ export default {
       gameSessions: 'Sesiones de juego',
     },
     logout: 'Cerrar sesión',
+    stats: {
+      loading: 'Cargando panel...',
+      loadError: 'Error al cargar los datos del panel',
+      activeSessions: 'Sesiones activas',
+      noActiveSessions: 'No hay sesiones activas',
+      players: 'Jugadores',
+      finished: 'Terminaron',
+      questions: 'Preguntas',
+      totalQuestionnaires: 'Cuestionarios',
+      totalQuestions: 'Banco de preguntas',
+      statusWaiting: 'En espera',
+      statusRunning: 'En progreso',
+      viewSession: 'Ver',
+    },
   },
   // Page Not Found
   notFound: {

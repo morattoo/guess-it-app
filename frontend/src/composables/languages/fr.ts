@@ -78,6 +78,20 @@ export default {
       gameSessions: 'Sessions de jeu',
     },
     logout: 'Déconnexion',
+    stats: {
+      loading: 'Chargement du tableau de bord...',
+      loadError: 'Erreur lors du chargement des données',
+      activeSessions: 'Sessions actives',
+      noActiveSessions: 'Aucune session active',
+      players: 'Joueurs',
+      finished: 'Terminé',
+      questions: 'Questions',
+      totalQuestionnaires: 'Questionnaires',
+      totalQuestions: 'Banque de questions',
+      statusWaiting: 'En attente',
+      statusRunning: 'En cours',
+      viewSession: 'Voir',
+    },
   },
   // Page Not Found
   notFound: {

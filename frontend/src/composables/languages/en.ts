@@ -80,6 +80,20 @@ export default {
       gameSessions: 'Game Sessions',
     },
     logout: 'Logout',
+    stats: {
+      loading: 'Loading dashboard...',
+      loadError: 'Error loading dashboard data',
+      activeSessions: 'Active Sessions',
+      noActiveSessions: 'No active sessions',
+      players: 'Players',
+      finished: 'Finished',
+      questions: 'Questions',
+      totalQuestionnaires: 'Questionnaires',
+      totalQuestions: 'Questions Pool',
+      statusWaiting: 'Waiting',
+      statusRunning: 'In Progress',
+      viewSession: 'View',
+    },
   },
   // Page Not Found
   notFound: {

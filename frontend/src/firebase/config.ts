@@ -16,6 +16,7 @@ export const API_ENDPOINTS = {
   questionnaires: `${BASE_URL}/questionnaires`,
   publicGame: `${BASE_URL}/publicGame`,
   users: `${BASE_URL}/users`,
+  dashboard: `${BASE_URL}/dashboard`,
 };
 
 export { PROJECT_ID, REGION };
