@@ -14,7 +14,9 @@
         <span class="burger-line"></span>
       </button>
 
-      <h1 class="dashboard-title">{{ pageTitle }}</h1>
+      <div>
+        <img class="dashboard-logo-header" src="@/assets/logo-texte.png" alt="Think Battle Logo" />
+      </div>
 
       <button class="back-btn" @click="goBack" aria-label="Go back">
         <svg
@@ -44,6 +46,7 @@
         <LanguageSelector />
       </div>
       <div class="sidebar-content">
+        <img class="dashboard-logo" src="@/assets/logo.png" alt="Think Battle Logo" />
         <!-- User Info -->
         <div class="user-info">
           <div class="user-avatar">
@@ -256,15 +259,6 @@ const userInitials = computed(() => {
     .slice(0, 2);
 });
 
-const pageTitle = computed(() => {
-  const route = router.currentRoute.value;
-  // Personalizar según la ruta
-  if (route.path.includes('questions-pool')) return t.value.dashboard.menu.questionsPool;
-  if (route.path.includes('questionnaire')) return t.value.dashboard.menu.questionnaires;
-  if (route.path.includes('sessions')) return t.value.dashboard.menu.gameSessions;
-  return t.value.dashboard.title;
-});
-
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value;
 };
@@ -298,6 +292,12 @@ const handleLogout = async () => {
   overflow: hidden;
 }
 
+.dashboard-logo {
+  width: 120px;
+  height: auto;
+  margin: 0 auto;
+}
+
 // Header
 .dashboard-header {
   display: flex;
@@ -309,13 +309,9 @@ const handleLogout = async () => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
 
-  .dashboard-title {
-    flex: 1;
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    text-align: center;
-    color: #333;
+  .dashboard-logo-header {
+    width: 100px;
+    height: auto;
   }
 
   .burger-btn,
@@ -406,7 +402,6 @@ const handleLogout = async () => {
   max-height: 100%;
   background-color: white;
   border-right: 1px solid #e0e0e0;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
   z-index: 200;
   transition: left 0.3s ease-in-out;
   display: flex;

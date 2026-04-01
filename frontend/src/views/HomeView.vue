@@ -53,10 +53,15 @@ const { t } = useI18n();
       text-align: center;
     }
 
+    img {
+      margin: 0 auto;
+    }
+
     p {
       font-size: $font-size-md;
       color: $text-secondary;
       margin: 0;
+      text-align: center;
     }
   }
 

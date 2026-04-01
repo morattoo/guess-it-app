@@ -5,7 +5,7 @@ import LanguageSelector from './LanguageSelector.vue';
 <template>
   <header class="header-logo">
     <router-link to="/"
-      ><img src="@/assets/logo-header.png" alt="GuessIt Logo" class="logo"
+      ><img src="@/assets/logo-texte.png" alt="GuessIt Logo" class="logo"
     /></router-link>
     <language-selector />
   </header>
