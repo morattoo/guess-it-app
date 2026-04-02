@@ -145,6 +145,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  padding: 1rem;
 }
 
 .dashboard-header {

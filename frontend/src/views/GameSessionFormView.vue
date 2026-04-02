@@ -1,13 +1,15 @@
 <template>
   <div class="game-session-form-view">
-    <h2>{{ isEdit ? 'Editar Sesión' : 'Nueva Sesión de Juego' }}</h2>
+    <div class="game-session-form-view__header">
+      <h2>{{ isEdit ? t.gameSessions.editTitle : t.gameSessions.newTitle }}</h2>
+    </div>
 
-    <div v-if="loading" class="loading">Cargando...</div>
+    <div v-if="loading" class="loading">{{ t.common.loading }}</div>
 
     <div v-else-if="error" class="error">
       <p>{{ error }}</p>
       <button @click="router.push('/dashboard/game-sessions')" class="btn-primary">
-        Volver a sesiones
+        {{ t.gameSessions.backToSessions }}
       </button>
     </div>
 
@@ -45,14 +47,14 @@
         </div>
 
         <div v-if="!isEdit" class="form-group">
-          <label>Selecciona un Cuestionario *</label>
+          <label>{{ t.gameSessions.selectQuestionnaireLabel }}</label>
           <div v-if="loadingQuestionnaires" class="loading-questionnaires">
-            Cargando cuestionarios...
+            {{ t.gameSessions.loadingQuestionnaires }}
           </div>
           <div v-else-if="questionnaires.length === 0" class="no-questionnaires">
-            <p>No tienes cuestionarios creados.</p>
+            <p>{{ t.gameSessions.noQuestionnaires }}</p>
             <router-link to="/dashboard/questionnaire/new" class="btn-secondary">
-              Crear un cuestionario
+              {{ t.gameSessions.createQuestionnaire }}
             </router-link>
           </div>
           <div v-else class="questionnaires-list">
@@ -67,7 +69,9 @@
                 <span class="questionnaire-title">{{ q.title }}</span>
                 <span class="questionnaire-count">
                   {{ q.questionIds.length }}
-                  {{ q.questionIds.length === 1 ? 'pregunta' : 'preguntas' }}
+                  {{
+                    q.questionIds.length === 1 ? t.gameSessions.question : t.gameSessions.questions
+                  }}
                 </span>
               </div>
               <div class="radio-indicator" v-if="selectedQuestionnaireId === q.id">✓</div>
@@ -77,20 +81,20 @@
 
         <div v-if="isEdit && gameSession" class="session-info">
           <div class="info-card">
-            <h3>Información de la Sesión</h3>
+            <h3>{{ t.gameSessions.sessionInfoTitle }}</h3>
             <div class="info-grid">
               <div class="info-item">
-                <span class="info-label">Estado:</span>
+                <span class="info-label">{{ t.gameSessions.statusLabel }}</span>
                 <span class="status-badge" :class="`status-${gameSession.status.toLowerCase()}`">
                   {{ getStatusLabel(gameSession.status) }}
                 </span>
               </div>
               <div class="info-item">
-                <span class="info-label">Preguntas:</span>
+                <span class="info-label">{{ t.gameSessions.questionsLabel }}</span>
                 <span class="info-value">{{ gameSession.questions.length }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Creada:</span>
+                <span class="info-label">{{ t.gameSessions.created }}</span>
                 <span class="info-value">{{ formatDate(gameSession.startedAt) }}</span>
               </div>
             </div>
@@ -98,7 +102,7 @@
 
           <div v-if="gameSession.status === 'WAITING'" class="refresh-section">
             <p class="hint">
-              Puedes actualizar las preguntas del cuestionario si este ha sido modificado.
+              {{ t.gameSessions.refreshHint }}
             </p>
             <button
               type="button"
@@ -106,12 +110,12 @@
               @click="handleRefreshQuestions"
               :disabled="refreshing"
             >
-              {{ refreshing ? 'Actualizando...' : 'Actualizar Preguntas' }}
+              {{ refreshing ? t.gameSessions.refreshing : t.gameSessions.refreshQuestions }}
             </button>
           </div>
 
           <div class="questions-preview">
-            <h4>Preguntas en esta sesión:</h4>
+            <h4>{{ t.gameSessions.questionsInSession }}</h4>
             <div class="questions-list">
               <div
                 v-for="(question, index) in gameSession.questions"
@@ -120,7 +124,7 @@
               >
                 <span class="question-number">{{ index + 1 }}</span>
                 <span class="question-title">{{ question.title }}</span>
-                <span class="question-points">{{ question.points }} pts</span>
+                <span class="question-points">{{ question.points }} {{ t.gameSessions.pts }}</span>
               </div>
             </div>
           </div>
@@ -132,7 +136,7 @@
             class="btn-secondary"
             @click="router.push('/dashboard/game-sessions')"
           >
-            Volver
+            {{ t.common.back }}
           </button>
           <button
             v-if="!isEdit"
@@ -140,7 +144,7 @@
             class="btn-primary"
             :disabled="!selectedQuestionnaireId || !selectedMode || !sessionTitle.trim()"
           >
-            Crear Sesión
+            {{ t.gameSessions.createSession }}
           </button>
         </div>
       </form>
@@ -192,10 +196,11 @@ const modeOptions = computed(() => [
 ]);
 
 const getStatusLabel = (status: string) => {
+  const s = t.value.gameSessions.status;
   const labels: Record<string, string> = {
-    WAITING: 'Esperando',
-    RUNNING: 'En curso',
-    FINISHED: 'Finalizada',
+    WAITING: s.waiting,
+    RUNNING: s.running,
+    FINISHED: s.finished,
   };
   return labels[status] || status;
 };
@@ -227,19 +232,19 @@ const formatDate = (timestamp: any) => {
 };
 
 const handleRefreshQuestions = async () => {
-  if (!confirm('¿Actualizar las preguntas de esta sesión?')) return;
+  if (!confirm(t.value.gameSessions.confirmations.refresh)) return;
 
   refreshing.value = true;
   try {
     const count = await refreshGameSessionQuestions(sessionId);
-    alert(`${count} preguntas actualizadas`);
+    alert(t.value.gameSessions.alerts.questionsUpdated.replace('{count}', String(count)));
     // Recargar la sesión
     if (gameSession.value) {
       gameSession.value = await getGameSession(sessionId);
     }
   } catch (err) {
     console.error('Error al actualizar preguntas:', err);
-    alert('Error al actualizar las preguntas');
+    alert(t.value.gameSessions.alerts.refreshError);
   } finally {
     refreshing.value = false;
   }
@@ -259,7 +264,7 @@ const handleSubmit = async () => {
     router.push('/dashboard/game-sessions');
   } catch (err) {
     console.error('Error al crear sesión:', err);
-    alert('Error al crear la sesión de juego');
+    alert(t.value.gameSessions.alerts.createError);
   }
 };
 
@@ -272,12 +277,12 @@ onMounted(async () => {
       const session = await getGameSession(sessionId);
 
       if (!session) {
-        error.value = 'Sesión no encontrada';
+        error.value = t.value.gameSessions.alerts.sessionNotFound;
         return;
       }
 
       if (session.createdBy !== currentUser.uid) {
-        error.value = 'No tienes permiso para ver esta sesión';
+        error.value = t.value.gameSessions.alerts.noPermission;
         return;
       }
 
@@ -288,7 +293,7 @@ onMounted(async () => {
       loadingQuestionnaires.value = false;
     }
   } catch (err) {
-    error.value = 'Error al cargar datos';
+    error.value = t.value.gameSessions.alerts.loadDataError;
     console.error(err);
   } finally {
     loading.value = false;
@@ -296,15 +301,19 @@ onMounted(async () => {
 });
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .game-session-form-view {
   max-width: 900px;
   margin: 0 auto;
-}
+  padding: 0 0 1rem;
 
-h2 {
-  margin: 0 0 1.5rem 0;
-  color: #333;
+  &__header {
+    h2 {
+      margin: 0 0 0.25rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+  }
 }
 
 .loading,
@@ -324,8 +333,9 @@ h2 {
 }
 
 .form-container {
+  margin-top: 1rem;
   background-color: white;
-  padding: 2rem;
+  padding: 1rem;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }

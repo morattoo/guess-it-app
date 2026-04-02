@@ -405,7 +405,7 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .game-sessions-view {
   max-width: 1200px;
   margin: 0 auto;
@@ -421,11 +421,12 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
-}
 
-h2 {
-  margin: 0;
-  color: #333;
+  h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
 }
 
 .loading,

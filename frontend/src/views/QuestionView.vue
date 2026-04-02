@@ -1,6 +1,8 @@
 <template>
   <div class="question-view">
-    <h2>{{ t.createQuestion.title }}</h2>
+    <div class="question-view__header">
+      <h2>{{ t.createQuestion.title }}</h2>
+    </div>
 
     <div class="form-group">
       <label for="question-type">{{ t.createQuestion.typeLabel }}</label>
@@ -69,16 +71,19 @@ const handleCancel = () => {
 };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .question-view {
   max-width: 800px;
   margin: 0 auto;
-  padding: 2rem;
-}
+  padding: 1rem;
 
-h2 {
-  margin-bottom: 2rem;
-  color: #333;
+  &__header {
+    h2 {
+      margin: 0 0 0.25rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+  }
 }
 
 .form-group {

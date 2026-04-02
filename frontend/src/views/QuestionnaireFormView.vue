@@ -1,6 +1,8 @@
 <template>
   <div class="questionnaire-form-view">
-    <h2>{{ isEdit ? t.questionnaireForm.editTitle : t.questionnaireForm.createTitle }}</h2>
+    <div class="questionnaire-form-view__header">
+      <h2>{{ isEdit ? t.questionnaireForm.editTitle : t.questionnaireForm.createTitle }}</h2>
+    </div>
 
     <div v-if="loading" class="loading">{{ t.questionnaireForm.loading }}</div>
 
@@ -218,11 +220,15 @@ onMounted(async () => {
 .questionnaire-form-view {
   max-width: 900px;
   margin: 0 auto;
-}
+  padding: 0 0 1rem;
 
-h2 {
-  margin: 0 0 1.5rem 0;
-  color: #333;
+  &__header {
+    h2 {
+      margin: 0 0 0.25rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+  }
 }
 
 .loading,
@@ -243,9 +249,10 @@ h2 {
 
 .form-container {
   background-color: white;
-  padding: 2rem;
+  padding: 1rem;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 1rem;
 }
 
 .form-group {

@@ -89,7 +89,7 @@ const { t } = useI18n();
       }
 
       &:last-child {
-        background-color: transparent;
+        background-color: $action-blue-light;
         color: $action-blue;
         border: $border-width solid $action-blue;
 
