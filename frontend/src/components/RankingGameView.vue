@@ -1,18 +1,13 @@
 <template>
   <div class="ranking-view">
+    <!-- ── HEADER ── -->
     <header class="ranking-header">
       <button class="back-btn" @click="goBack" aria-label="Volver">
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
           <path
             d="M19 12H5M5 12L12 19M5 12L12 5"
-            stroke="#000000"
-            stroke-width="2"
+            stroke="currentColor"
+            stroke-width="2.5"
             stroke-linecap="round"
             stroke-linejoin="round"
           />
@@ -21,166 +16,189 @@
       <h1>{{ t.ranking.title }}</h1>
     </header>
 
+    <!-- ── LOADING ── -->
     <div v-if="loading" class="loading">
       <div class="spinner"></div>
       <p>{{ t.ranking.loadingRanking }}</p>
     </div>
 
-    <div v-else-if="error" class="error-message" role="alert">
-      {{ error }}
-    </div>
+    <!-- ── ERROR ── -->
+    <div v-else-if="error" class="error-message" role="alert">{{ error }}</div>
 
+    <!-- ── MAIN CONTENT ── -->
     <div v-else class="ranking-content">
-      <!-- Game Info -->
-      <div class="game-info">
-        <p class="session-status" :class="sessionStatus.toLowerCase()">
-          <span class="status-dot"></span>
-          {{ statusText }}
-        </p>
-        <p class="players-count">{{ players.length }} {{ t.ranking.participants }}</p>
+      <!-- STATUS BAR (always on top) -->
+      <div class="status-bar">
+        <div class="status-bar__left">
+          <p class="session-status" :class="sessionStatus.toLowerCase()">
+            <span class="status-dot"></span>
+            {{ statusText }}
+          </p>
+          <p class="participants-count">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+              <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" />
+              <path
+                d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+            {{ players.length }} {{ t.ranking.participants }}
+          </p>
+        </div>
+        <div class="status-bar__right">
+          <p v-if="lastUpdateTime" class="last-update">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+              <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            {{ lastUpdateTime }}
+          </p>
+          <button class="refresh-btn" @click="refreshRanking" :disabled="loading">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              :class="{ spinning: loading }"
+            >
+              <path
+                d="M1 4V10H7M23 20V14H17M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            {{ t.ranking.refresh }}
+          </button>
+        </div>
       </div>
 
-      <!-- Last Update Time -->
-      <div v-if="lastUpdateTime" class="last-update">
-        {{ t.ranking.lastUpdate }}: {{ lastUpdateTime }}
+      <!-- EMPTY STATE -->
+      <div v-if="players.length === 0" class="empty-state">
+        <p>{{ t.ranking.noPlayers }}</p>
       </div>
-      <!-- Refresh Button -->
-      <button class="refresh-btn" @click="refreshRanking" :disabled="loading">
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          :class="{ spinning: loading }"
-        >
-          <path
-            d="M1 4V10H7M23 20V14H17M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-        {{ t.ranking.refresh }}
-      </button>
 
-      <!-- Ranking List -->
-      <div class="ranking-list" role="list">
-        <div
-          v-for="(player, index) in rankedPlayers"
-          :key="player.userId"
-          class="player-card"
-          :class="{
-            'is-current-user': player.userId === currentUserId,
-            'is-finished': player.finishedAt,
-            'podium-first': index === 0,
-            'podium-second': index === 1,
-            'podium-third': index === 2,
-          }"
-          role="listitem"
-        >
-          <!-- Position Badge -->
-          <div class="position-badge">
-            <span v-if="index < 3" class="medal">
-              <svg
-                v-if="index === 0"
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                  fill="#FFD700"
-                  stroke="#FFA500"
-                  stroke-width="2"
-                />
-              </svg>
-              <svg
-                v-else-if="index === 1"
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                  fill="#C0C0C0"
-                  stroke="#A8A8A8"
-                  stroke-width="2"
-                />
-              </svg>
-              <svg
-                v-else
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                  fill="#CD7F32"
-                  stroke="#B87333"
-                  stroke-width="2"
-                />
-              </svg>
-            </span>
-            <span v-else class="position-number">{{ index + 1 }}</span>
+      <template v-else>
+        <!-- ── PODIUM (top 3) ── -->
+        <div class="podium-section">
+          <div class="podium-stage">
+            <!-- 2nd place -->
+            <div class="podium-col podium-col--2" v-if="podiumPlayers[1]">
+              <div class="podium-player-info">
+                <div class="podium-avatar podium-avatar--silver">
+                  {{ getInitials(podiumPlayers[1].displayName) }}
+                </div>
+                <p class="podium-name">{{ getShortName(podiumPlayers[1].displayName) }}</p>
+                <p class="podium-score">{{ podiumPlayers[1].score.toLocaleString() }}</p>
+                <div class="podium-meta">
+                  <span>{{ podiumPlayers[1].currentQuestionIndex }}/{{ totalQuestions }}</span>
+                  <span>⏱ {{ formatTime(podiumPlayers[1].totalTime) }}</span>
+                </div>
+              </div>
+              <div class="podium-block podium-block--2">
+                <span class="podium-rank-num">2</span>
+              </div>
+            </div>
+
+            <!-- 1st place -->
+            <div class="podium-col podium-col--1" v-if="podiumPlayers[0]">
+              <div class="podium-crown">🏆</div>
+              <div class="podium-player-info">
+                <div class="podium-avatar podium-avatar--gold">
+                  {{ getInitials(podiumPlayers[0].displayName) }}
+                </div>
+                <p class="podium-name podium-name--gold">
+                  {{ getShortName(podiumPlayers[0].displayName) }}
+                </p>
+                <p class="podium-score podium-score--gold">
+                  {{ podiumPlayers[0].score.toLocaleString() }}
+                </p>
+                <div class="podium-meta podium-meta--gold">
+                  <span>{{ podiumPlayers[0].currentQuestionIndex }}/{{ totalQuestions }}</span>
+                  <span>⏱ {{ formatTime(podiumPlayers[0].totalTime) }}</span>
+                </div>
+              </div>
+              <div class="podium-block podium-block--1">
+                <span class="podium-rank-num">1</span>
+              </div>
+            </div>
+
+            <!-- 3rd place -->
+            <div class="podium-col podium-col--3" v-if="podiumPlayers[2]">
+              <div class="podium-player-info">
+                <div class="podium-avatar podium-avatar--bronze">
+                  {{ getInitials(podiumPlayers[2].displayName) }}
+                </div>
+                <p class="podium-name">{{ getShortName(podiumPlayers[2].displayName) }}</p>
+                <p class="podium-score">{{ podiumPlayers[2].score.toLocaleString() }}</p>
+                <div class="podium-meta">
+                  <span>{{ podiumPlayers[2].currentQuestionIndex }}/{{ totalQuestions }}</span>
+                  <span>⏱ {{ formatTime(podiumPlayers[2].totalTime) }}</span>
+                </div>
+              </div>
+              <div class="podium-block podium-block--3">
+                <span class="podium-rank-num">3</span>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <!-- Player Info -->
-          <div class="player-info">
-            <div class="player-header">
-              <h3 class="player-name">
-                {{ player.displayName || `Jugador ${player.userId.slice(0, 6)}` }}
+        <!-- ── CONTENDERS ── -->
+        <div class="contenders-section" v-if="contenders.length > 0">
+          <div class="contenders-header">
+            <h2 class="contenders-title">CONTENDERS</h2>
+          </div>
+          <div
+            v-for="(player, idx) in contenders"
+            :key="player.userId"
+            class="contender-card"
+            :class="{ 'is-current-user': player.userId === currentUserId }"
+            :style="{ animationDelay: `${0.8 + idx * 0.1}s` }"
+          >
+            <span class="contender-rank">{{ podiumPlayers.length + idx + 1 }}</span>
+            <div class="contender-avatar">{{ getInitials(player.displayName) }}</div>
+            <div class="contender-info">
+              <p class="contender-name">
+                {{ player.displayName }}
                 <span v-if="player.userId === currentUserId" class="you-badge">{{
                   t.ranking.you
                 }}</span>
-              </h3>
+              </p>
+              <p class="contender-questions">
+                {{ player.currentQuestionIndex }}/{{ totalQuestions }}
+                {{ t.ranking.currentQuestion }}
+              </p>
+              <div class="progress-bar">
+                <div
+                  class="progress-fill"
+                  :style="{ width: player.progressPercentage + '%' }"
+                ></div>
+              </div>
+            </div>
+            <div class="contender-stats">
+              <p class="contender-score">
+                {{ player.score.toLocaleString() }}<span class="pts"> pts</span>
+              </p>
+              <p class="contender-time">⏱ {{ formatTime(player.totalTime) }}</p>
               <span
-                class="status-badge"
+                class="contender-status-badge"
                 :class="player.finishedAt ? 'finished' : 'playing'"
-                :aria-label="player.finishedAt ? 'Finalizado' : 'Jugando'"
               >
                 {{ player.finishedAt ? t.ranking.finished : t.ranking.playing }}
               </span>
             </div>
-
-            <div class="player-stats">
-              <div class="stat">
-                <span class="stat-label">{{ t.ranking.points }}</span>
-                <span class="stat-value points">{{ player.score }}</span>
-              </div>
-              <div class="stat">
-                <span class="stat-label">{{ t.ranking.currentQuestion }}</span>
-                <span class="stat-value">{{ player.currentQuestionIndex }}</span>
-              </div>
-              <div class="stat">
-                <span class="stat-label">{{ t.ranking.time }}</span>
-                <span class="stat-value time">{{ formatTime(player.totalTime) }}</span>
-              </div>
-              <div v-if="player.totalPenaltySeconds > 0" class="stat">
-                <span class="stat-label">Penalización</span>
-                <span class="stat-value penalty">+{{ player.totalPenaltySeconds }}s</span>
-              </div>
-            </div>
-
-            <!-- Progress Bar -->
-            <div class="progress-bar">
-              <div class="progress-fill" :style="{ width: player.progressPercentage + '%' }"></div>
-            </div>
           </div>
         </div>
-
-        <!-- Empty State -->
-        <div v-if="players.length === 0" class="empty-state">
-          <p>{{ t.ranking.noPlayers }}</p>
-        </div>
-      </div>
+      </template>
     </div>
   </div>
 </template>
@@ -214,19 +232,32 @@ const statusText = computed(() => {
 });
 
 const rankedPlayers = computed(() => players.value);
+const podiumPlayers = computed(() => rankedPlayers.value.slice(0, 3));
+const contenders = computed(() => rankedPlayers.value.slice(3));
+
+const getInitials = (name: string): string => {
+  if (!name) return '?';
+  const parts = name.trim().split(' ');
+  if (parts.length >= 2 && parts[0] && parts[1]) return (parts[0][0]! + parts[1][0]!).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+};
+
+const getShortName = (name: string): string => {
+  if (!name) return '';
+  const parts = name.trim().split(' ');
+  if (parts.length >= 2 && parts[0] && parts[1]) return `${parts[0]} ${parts[1][0]!}.`;
+  return name;
+};
 
 const formatTime = (seconds: number): string => {
-  if (!seconds || isNaN(seconds) || seconds < 0) {
-    return '0:00';
-  }
+  if (!seconds || isNaN(seconds) || seconds < 0) return '0:00';
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
 const formatLastUpdate = (timestamp: number): string => {
-  const date = new Date(timestamp);
-  return date.toLocaleTimeString();
+  return new Date(timestamp).toLocaleTimeString();
 };
 
 const loadRanking = async () => {
@@ -234,11 +265,9 @@ const loadRanking = async () => {
     loading.value = true;
     error.value = null;
 
-    // Get current user
     const user = await getCurrentUser();
     currentUserId.value = user?.uid || null;
 
-    // Load ranking from API
     const rankingData = await getPublicRanking(sessionId);
 
     if (!rankingData) {
@@ -246,12 +275,10 @@ const loadRanking = async () => {
       return;
     }
 
-    // Update state
     sessionStatus.value = rankingData.status;
     totalQuestions.value = rankingData.totalQuestions;
     players.value = rankingData.players;
     lastUpdateTime.value = formatLastUpdate(rankingData.timestamp);
-
     loading.value = false;
   } catch (err) {
     console.error('Error loading ranking:', err);
@@ -260,130 +287,39 @@ const loadRanking = async () => {
   }
 };
 
-const refreshRanking = () => {
-  loadRanking();
-};
+const refreshRanking = () => loadRanking();
+const goBack = () => router.back();
 
-const goBack = () => {
-  router.back();
-};
-
-onMounted(() => {
-  loadRanking();
-});
+onMounted(() => loadRanking());
 </script>
 
 <style scoped lang="scss">
-.ranking-view {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-  padding: 1rem;
-  padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
-  box-sizing: border-box;
-}
-
-.ranking-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-
-  .back-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    transition: opacity 0.2s;
-    padding: 0;
-
-    &:hover {
-      opacity: 0.7;
-    }
-
-    &:focus {
-      outline: 2px solid #667eea;
-      outline-offset: 2px;
-    }
+// ── Animations ──────────────────────────────────────────────────
+@keyframes riseUp {
+  from {
+    transform: translateY(90px);
+    opacity: 0;
   }
-
-  h1 {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 700;
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 
-.loading,
-.error-message {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1rem;
-  text-align: center;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+@keyframes fadeSlideUp {
+  from {
+    transform: translateY(18px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 @keyframes spin {
   to {
     transform: rotate(360deg);
-  }
-}
-
-.ranking-content {
-  flex: 1;
-}
-
-.game-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-
-  .session-status {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0;
-    font-weight: 600;
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
-
-    &.running .status-dot {
-      background: #4ade80;
-      animation: pulse 2s infinite;
-    }
-
-    &.finished .status-dot {
-      background: #60a5fa;
-    }
-  }
-
-  .players-count {
-    margin: 0;
-    font-size: 0.875rem;
-    opacity: 0.9;
   }
 }
 
@@ -393,171 +329,441 @@ onMounted(() => {
     opacity: 1;
   }
   50% {
-    opacity: 0.5;
+    opacity: 0.35;
   }
 }
 
-.last-update {
-  padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 8px;
-  margin-bottom: 0.5rem;
-  text-align: center;
-  font-size: 0.875rem;
-  opacity: 0.9;
+@keyframes glowPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(255, 215, 0, 0.9);
+  }
 }
 
-.ranking-list {
+// ── Layout ──────────────────────────────────────────────────────
+.ranking-view {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  min-height: 100%;
+  padding: 1rem;
+  padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
 }
 
-.player-card {
-  display: flex;
-  gap: 1rem;
-  padding: 1.25rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-
-  &.is-current-user {
-    border: 2px solid #667eea;
-    background: linear-gradient(135deg, #f8f9ff 0%, #fff 100%);
-  }
-
-  &.podium-first {
-    background: linear-gradient(135deg, #fffbeb 0%, #fff 100%);
-    border: 2px solid #fbbf24;
-  }
-
-  &.podium-second {
-    background: linear-gradient(135deg, #f5f5f5 0%, #fff 100%);
-    border: 2px solid #9ca3af;
-  }
-
-  &.podium-third {
-    background: linear-gradient(135deg, #fff5f0 0%, #fff 100%);
-    border: 2px solid #f97316;
-  }
-}
-
-.position-badge {
+// ── Header ──────────────────────────────────────────────────────
+.ranking-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  gap: 0.875rem;
+  margin-bottom: 1rem;
 
-  .position-number {
+  .back-btn {
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    background: #e5e7eb;
-    color: #374151;
-    font-weight: 700;
-    font-size: 1.125rem;
-    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    border: 1px solid rgb(94, 94, 94);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+    padding: 0;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+    &:focus {
+      outline: 2px solid #a78bfa;
+      outline-offset: 2px;
+    }
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
   }
 }
 
-.player-info {
+// ── Loading & Error ──────────────────────────────────────────────
+.loading,
+.error-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+// ── Ranking content ──────────────────────────────────────────────
+.ranking-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+// ── Status Bar ───────────────────────────────────────────────────
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgb(222, 222, 222);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgb(215, 215, 215);
+  border-radius: 16px;
+  flex-wrap: wrap;
+
+  &__left,
+  &__right {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+}
+
+.session-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #9ca3af;
+    flex-shrink: 0;
+  }
+
+  &.running .status-dot {
+    background: #4ade80;
+    animation: pulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 6px #4ade80;
+  }
+
+  &.finished .status-dot {
+    background: #60a5fa;
+  }
+  &.waiting .status-dot {
+    background: #fbbf24;
+    animation: pulse 2s ease-in-out infinite;
+  }
+}
+
+.participants-count {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+.last-update {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  font-size: 0.68rem;
+}
+
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.7rem;
+  background: white;
+  border: 1px solid gray;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.28);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  svg.spinning {
+    animation: spin 1s linear infinite;
+  }
+}
+
+// ── Podium ───────────────────────────────────────────────────────
+.podium-section {
+  padding-top: 0.5rem;
+}
+
+.podium-stage {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.podium-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  max-width: 115px;
+  animation: riseUp 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  &--1 {
+    animation-delay: 0.55s;
+  }
+  &--2 {
+    animation-delay: 0.2s;
+  }
+  &--3 {
+    animation-delay: 0.38s;
+  }
+}
+
+.podium-crown {
+  font-size: 1.4rem;
+  margin-bottom: 0.2rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.podium-player-info {
+  text-align: center;
+  width: 100%;
+  padding: 0 2px;
+  margin-bottom: 0.5rem;
+}
+
+.podium-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.3rem;
+
+  &--gold {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #ffe066 0%, #f59e0b 100%);
+    border-color: #ffd700;
+    color: #7a4f00;
+    font-size: 1.1rem;
+    box-shadow: 0 0 14px rgba(255, 215, 0, 0.55);
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+
+  &--silver {
+    background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%);
+    border-color: #cbd5e1;
+    color: #334155;
+  }
+
+  &--bronze {
+    background: linear-gradient(135deg, #d4956a 0%, #9f5a2a 100%);
+    border-color: #cd7f32;
+    color: #3e1f00;
+  }
+}
+
+.podium-name {
+  margin: 0 0 0.1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+
+  &--gold {
+    font-size: 0.82rem;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+  }
+}
+
+.podium-score {
+  margin: 0 0 0.2rem;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.podium-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.08rem;
+  font-size: 0.62rem;
+}
+
+.podium-block {
+  width: 100%;
+  border-radius: 10px 10px 3px 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &--1 {
+    height: 110px;
+    background: linear-gradient(180deg, #ffd700 0%, #f59e0b 100%);
+    box-shadow:
+      0 -4px 18px rgba(255, 215, 0, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  &--2 {
+    height: 80px;
+    background: linear-gradient(180deg, #e2e8f0 0%, #94a3b8 100%);
+    box-shadow:
+      0 -3px 12px rgba(148, 163, 184, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+
+  &--3 {
+    height: 60px;
+    background: linear-gradient(180deg, #d4956a 0%, #9f5a2a 100%);
+    box-shadow:
+      0 -3px 12px rgba(212, 149, 106, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+}
+
+.podium-rank-num {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.25);
+  letter-spacing: -0.03em;
+  user-select: none;
+}
+
+// ── Contenders ───────────────────────────────────────────────────
+.contenders-section {
+  flex: 1;
+}
+
+.contenders-header {
+  padding: 0.25rem 0 0.6rem;
+}
+
+.contenders-title {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.12em;
+}
+
+.contender-card {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.8rem 0.9rem;
+  background: white;
+  border-radius: 14px;
+  margin-bottom: 0.65rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  animation: fadeSlideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  &.is-current-user {
+    border: 2px solid #7c3aed;
+    background: linear-gradient(135deg, #f5f3ff 0%, #fff 100%);
+  }
+}
+
+.contender-rank {
+  flex-shrink: 0;
+  width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.contender-avatar {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffffff 0%, #c1c1c1 100%);
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contender-info {
   flex: 1;
   min-width: 0;
 }
 
-.player-header {
+.contender-name {
+  margin: 0 0 0.1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1f2937;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-
-  .player-name {
-    margin: 0;
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #1f2937;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-
-    .you-badge {
-      display: inline-block;
-      padding: 0.125rem 0.5rem;
-      background: #667eea;
-      color: white;
-      font-size: 0.75rem;
-      font-weight: 600;
-      border-radius: 4px;
-    }
-  }
-
-  .status-badge {
-    padding: 0.25rem 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border-radius: 12px;
-    white-space: nowrap;
-
-    &.finished {
-      background: #d1fae5;
-      color: #065f46;
-    }
-
-    &.playing {
-      background: #fef3c7;
-      color: #92400e;
-    }
-  }
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
 }
 
-.player-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+.you-badge {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  background: #7c3aed;
+  font-size: 0.62rem;
+  font-weight: 700;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
 
-  .stat {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-
-    .stat-label {
-      font-size: 0.75rem;
-      color: #6b7280;
-      font-weight: 500;
-    }
-
-    .stat-value {
-      font-size: 1rem;
-      font-weight: 700;
-      color: #1f2937;
-
-      &.points {
-        color: #667eea;
-      }
-
-      &.time {
-        color: #f59e0b;
-      }
-
-      &.penalty {
-        color: #ef4444;
-      }
-    }
-  }
+.contender-questions {
+  margin: 0 0 0.3rem;
+  font-size: 0.67rem;
+  color: #9ca3af;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .progress-bar {
@@ -570,48 +776,68 @@ onMounted(() => {
   .progress-fill {
     height: 100%;
     background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-    transition: width 0.3s ease;
+    border-radius: 2px;
+    transition: width 0.5s ease;
   }
 }
 
+.contender-stats {
+  flex-shrink: 0;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+}
+
+.contender-score {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #1f2937;
+  white-space: nowrap;
+  line-height: 1;
+
+  .pts {
+    font-size: 0.68rem;
+    color: #6b7280;
+    font-weight: 600;
+  }
+}
+
+.contender-time {
+  margin: 0;
+  font-size: 0.72rem;
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.contender-status-badge {
+  font-size: 0.62rem;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+
+  &.finished {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &.playing {
+    background: #fef3c7;
+    color: #92400e;
+  }
+}
+
+// ── Empty ─────────────────────────────────────────────────────────
 .empty-state {
   padding: 3rem 1rem;
   text-align: center;
-  font-size: 1.125rem;
-  opacity: 0.8;
-}
-
-.refresh-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
   font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  svg.spinning {
-    animation: spin 1s linear infinite;
-  }
+  color: rgba(255, 255, 255, 0.65);
 }
 
+// ── Responsive ───────────────────────────────────────────────────
 @media (min-width: 640px) {
   .ranking-view {
     max-width: 768px;
@@ -620,11 +846,26 @@ onMounted(() => {
   }
 
   .ranking-header h1 {
-    font-size: 2rem;
+    font-size: 1.75rem;
   }
 
-  .player-stats {
-    grid-template-columns: repeat(4, 1fr);
+  .podium-col {
+    max-width: 150px;
+  }
+
+  .podium-avatar--gold {
+    width: 64px;
+    height: 64px;
+  }
+
+  .podium-block--1 {
+    height: 130px;
+  }
+  .podium-block--2 {
+    height: 95px;
+  }
+  .podium-block--3 {
+    height: 72px;
   }
 }
 </style>
