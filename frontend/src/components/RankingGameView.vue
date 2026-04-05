@@ -17,13 +17,7 @@
     </header>
 
     <!-- ── LOADING ── -->
-    <div v-if="loading" class="loading">
-      <div class="spinner"></div>
-      <p>{{ t.ranking.loadingRanking }}</p>
-    </div>
-
-    <!-- ── ERROR ── -->
-    <div v-else-if="error" class="error-message" role="alert">{{ error }}</div>
+    <BaseLoader v-if="loading" v-model="loading" :text="t.ranking.loadingRanking" :overlay="true" />
 
     <!-- ── MAIN CONTENT ── -->
     <div v-else class="ranking-content">
@@ -54,30 +48,37 @@
           </p>
         </div>
         <div class="status-bar__right">
-          <p v-if="lastUpdateTime" class="last-update">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
-              <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-            </svg>
-            {{ lastUpdateTime }}
-          </p>
-          <button class="refresh-btn" @click="refreshRanking" :disabled="loading">
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              :class="{ spinning: loading }"
-            >
-              <path
-                d="M1 4V10H7M23 20V14H17M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            {{ t.ranking.refresh }}
+          <button class="btn-success --refresh" @click="refreshRanking" :disabled="loading">
+            <span>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                :class="{ spinning: loading }"
+              >
+                <path
+                  d="M1 4V10H7M23 20V14H17M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              {{ t.ranking.refresh }}
+            </span>
+            <span v-if="lastUpdateTime" class="last-update">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+                <path
+                  d="M12 6v6l4 2"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+              {{ lastUpdateTime }}
+            </span>
           </button>
         </div>
       </div>
@@ -210,6 +211,10 @@ import { getCurrentUser } from '@/firebase/auth';
 import { getPublicRanking } from '@/firebase/publicGame';
 import { useI18n } from '@/composables/useI18n';
 import type { RankingPlayer } from '@shared/models/GameSession';
+import BaseLoader from './BaseLoader.vue';
+
+import { useErrorHandler } from '@/composables/useErrorHandler';
+const { showError } = useErrorHandler();
 
 const { t } = useI18n();
 
@@ -221,7 +226,6 @@ const players = ref<RankingPlayer[]>([]);
 const sessionStatus = ref('');
 const totalQuestions = ref(0);
 const loading = ref(true);
-const error = ref<string | null>(null);
 const currentUserId = ref<string | null>(null);
 const lastUpdateTime = ref<string>('');
 
@@ -263,7 +267,6 @@ const formatLastUpdate = (timestamp: number): string => {
 const loadRanking = async () => {
   try {
     loading.value = true;
-    error.value = null;
 
     const user = await getCurrentUser();
     currentUserId.value = user?.uid || null;
@@ -271,7 +274,7 @@ const loadRanking = async () => {
     const rankingData = await getPublicRanking(sessionId);
 
     if (!rankingData) {
-      error.value = t.value.ranking.errors.sessionNotFound;
+      showError(t.value.ranking.errors.sessionNotFound);
       return;
     }
 
@@ -280,9 +283,8 @@ const loadRanking = async () => {
     players.value = rankingData.players;
     lastUpdateTime.value = formatLastUpdate(rankingData.timestamp);
     loading.value = false;
-  } catch (err) {
-    console.error('Error loading ranking:', err);
-    error.value = t.value.ranking.errors.loadError;
+  } catch (_err) {
+    showError(t.value.ranking.errors.loadError);
     loading.value = false;
   }
 };
@@ -390,28 +392,6 @@ onMounted(() => loadRanking());
   }
 }
 
-// ── Loading & Error ──────────────────────────────────────────────
-.loading,
-.error-message {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1rem;
-  text-align: center;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(255, 255, 255, 0.2);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
 // ── Ranking content ──────────────────────────────────────────────
 .ranking-content {
   flex: 1;
@@ -427,10 +407,9 @@ onMounted(() => loadRanking());
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  background: rgb(222, 222, 222);
+  background: rgb(241, 241, 241);
   backdrop-filter: blur(12px);
-  border: 1px solid rgb(215, 215, 215);
-  border-radius: 16px;
+  border-radius: 8px;
   flex-wrap: wrap;
 
   &__left,
@@ -452,6 +431,8 @@ onMounted(() => loadRanking());
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  padding: 0.25rem;
+  border-radius: 6px;
 
   .status-dot {
     width: 7px;
@@ -461,18 +442,34 @@ onMounted(() => loadRanking());
     flex-shrink: 0;
   }
 
-  &.running .status-dot {
-    background: #4ade80;
-    animation: pulse 1.5s ease-in-out infinite;
-    box-shadow: 0 0 6px #4ade80;
+  &.running {
+    background: #d1e1fa;
+    color: #4a97de;
+
+    .status-dot {
+      background: #4a97de;
+      animation: pulse 1.5s ease-in-out infinite;
+      box-shadow: 0 0 6px #4a8fde;
+    }
   }
 
-  &.finished .status-dot {
-    background: #60a5fa;
+  &.finished {
+    background: #d1fae5;
+    color: #065f46;
+
+    .status-dot {
+      background: #065f46;
+    }
   }
-  &.waiting .status-dot {
-    background: #fbbf24;
-    animation: pulse 2s ease-in-out infinite;
+
+  &.waiting {
+    background: #fef3c7;
+    color: #b45309;
+
+    .status-dot {
+      background: #fbbf24;
+      animation: pulse 2s ease-in-out infinite;
+    }
   }
 }
 
@@ -492,31 +489,9 @@ onMounted(() => loadRanking());
   font-size: 0.68rem;
 }
 
-.refresh-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.7rem;
-  background: white;
-  border: 1px solid gray;
-  border-radius: 8px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s;
-  white-space: nowrap;
-
-  &:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.28);
-  }
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  svg.spinning {
-    animation: spin 1s linear infinite;
-  }
+.--refresh {
+  flex-direction: column;
+  padding: 0.8rem;
 }
 
 // ── Podium ───────────────────────────────────────────────────────
