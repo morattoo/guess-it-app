@@ -274,6 +274,45 @@ describe("PublicGame API", () => {
         .send({ questionIndex: 0, answer: "Paris" });
       expect(res.status).toBe(403);
     });
+
+    it("400: player has already finished", async () => {
+      const db = buildSessionDb({ mode: "LEARNING" });
+      db._data[`gameSessions/${SESSION_ID}/players`] = {
+        [USER_ID]: {
+          userId: USER_ID,
+          currentQuestionIndex: 1,
+          score: 10,
+          totalPenaltySeconds: 0,
+          startedAt: { seconds: 1000, nanoseconds: 0 },
+          finishedAt: { seconds: 2000, nanoseconds: 0 },
+        },
+      };
+      const app = createPublicGameApi(db as any);
+      const res = await request(app)
+        .post(`/game/${SESSION_ID}/players/${USER_ID}/answer`)
+        .set(APP_CHECK_HEADER)
+        .send({ questionIndex: 1, answer: "Paris" });
+      expect(res.status).toBe(400);
+    });
+
+    it("400: game session is already FINISHED", async () => {
+      const db = buildSessionDb({ mode: "LEARNING", status: "FINISHED" });
+      db._data[`gameSessions/${SESSION_ID}/players`] = {
+        [USER_ID]: {
+          userId: USER_ID,
+          currentQuestionIndex: 0,
+          score: 0,
+          totalPenaltySeconds: 0,
+          startedAt: { seconds: 1000, nanoseconds: 0 },
+        },
+      };
+      const app = createPublicGameApi(db as any);
+      const res = await request(app)
+        .post(`/game/${SESSION_ID}/players/${USER_ID}/answer`)
+        .set(APP_CHECK_HEADER)
+        .send({ questionIndex: 0, answer: "Paris" });
+      expect(res.status).toBe(400);
+    });
   });
 
   describe("POST /game/:id/players/:userId/answer (EVALUATION mode)", () => {

@@ -302,6 +302,53 @@ describe("GameSessions API", () => {
     });
   });
 
+  // ─── PUT /gameSessions/:id/status – finish all players ──────────────────────
+
+  describe("PUT /gameSessions/:id/status – FINISHED marks all unfinished players", () => {
+    it("sets finishedAt on players that had not finished yet", async () => {
+      const db = buildMockDb({
+        gameSessions: {
+          gs1: {
+            title: "Session 1",
+            status: "RUNNING",
+            createdBy: USER_ID,
+            questionnaireId: "qn1",
+            questions: [],
+            isOpen: true,
+            players: [],
+            mode: "LEARNING",
+          },
+        },
+        "gameSessions/gs1/players": {
+          "player-1": { userId: "player-1", currentQuestionIndex: 1 },
+          "player-2": {
+            userId: "player-2",
+            currentQuestionIndex: 2,
+            finishedAt: 9999,
+          },
+        },
+        gameSessionsMeta: { gs1: { status: "RUNNING", isOpen: true } },
+        questionnaires: {},
+        questions: {},
+      });
+      const app = createGameSessionsApi(db as any);
+      const res = await request(app)
+        .put("/gameSessions/gs1/status")
+        .set(AUTH_HEADER)
+        .send({ status: "FINISHED", userId: USER_ID });
+
+      expect(res.status).toBe(200);
+      // player-1 should now have finishedAt
+      expect(
+        db._data["gameSessions/gs1/players"]["player-1"].finishedAt,
+      ).toBeDefined();
+      // player-2 already had finishedAt=9999, should remain unchanged
+      expect(db._data["gameSessions/gs1/players"]["player-2"].finishedAt).toBe(
+        9999,
+      );
+    });
+  });
+
   // ─── PUT /gameSessions/:id/refresh-questions ────────────────────────────────
 
   describe("PUT /gameSessions/:id/refresh-questions", () => {
@@ -394,6 +441,106 @@ describe("GameSessions API", () => {
         .delete("/gameSessions/ghost")
         .set(AUTH_HEADER)
         .query({ userId: USER_ID });
+      expect(res.status).toBe(404);
+    });
+  });
+
+  // ─── POST /gameSessions/:id/validate-answer ─────────────────────────────────
+
+  describe("POST /gameSessions/:id/validate-answer", () => {
+    function buildDbWithPlayerAndSession(sessionStatus = "RUNNING") {
+      return buildMockDb({
+        gameSessions: {
+          gs1: {
+            title: "Session 1",
+            status: sessionStatus,
+            createdBy: USER_ID,
+            questionnaireId: "qn1",
+            questions: [
+              {
+                id: "q1",
+                type: "NUMBER",
+                title: "What is 2+2?",
+                description: "",
+                points: 10,
+                penaltySeconds: 0,
+                validation: {
+                  type: "NUMBER",
+                  expectedAnswer: { value: 4, tolerance: 0 },
+                },
+              },
+            ],
+            isOpen: true,
+            players: [],
+            mode: "LEARNING",
+          },
+        },
+        "gameSessions/gs1/players": {
+          [USER_ID]: {
+            userId: USER_ID,
+            gameSessionId: "gs1",
+            currentQuestionIndex: 0,
+            startedAt: Date.now(),
+          },
+        },
+        gameSessionsMeta: { gs1: { status: sessionStatus, isOpen: true } },
+        questionnaires: {},
+        questions: {},
+      });
+    }
+
+    it("200: correct answer advances the player", async () => {
+      const db = buildDbWithPlayerAndSession("RUNNING");
+      const app = createGameSessionsApi(db as any);
+      const res = await request(app)
+        .post("/gameSessions/gs1/validate-answer")
+        .set(AUTH_HEADER)
+        .send({ userId: USER_ID, answer: 4 });
+      expect(res.status).toBe(200);
+      expect(res.body.correct).toBe(true);
+      expect(res.body.currentQuestionIndex).toBe(1);
+      expect(res.body.finished).toBe(true);
+    });
+
+    it("200: wrong answer does not advance the player", async () => {
+      const db = buildDbWithPlayerAndSession("RUNNING");
+      const app = createGameSessionsApi(db as any);
+      const res = await request(app)
+        .post("/gameSessions/gs1/validate-answer")
+        .set(AUTH_HEADER)
+        .send({ userId: USER_ID, answer: 99 });
+      expect(res.status).toBe(200);
+      expect(res.body.correct).toBe(false);
+      expect(res.body.currentQuestionIndex).toBe(0);
+    });
+
+    it("400: session is already FINISHED", async () => {
+      const db = buildDbWithPlayerAndSession("FINISHED");
+      const app = createGameSessionsApi(db as any);
+      const res = await request(app)
+        .post("/gameSessions/gs1/validate-answer")
+        .set(AUTH_HEADER)
+        .send({ userId: USER_ID, answer: 4 });
+      expect(res.status).toBe(400);
+    });
+
+    it("400: missing userId", async () => {
+      const db = buildDbWithPlayerAndSession("RUNNING");
+      const app = createGameSessionsApi(db as any);
+      const res = await request(app)
+        .post("/gameSessions/gs1/validate-answer")
+        .set(AUTH_HEADER)
+        .send({ answer: 4 });
+      expect(res.status).toBe(400);
+    });
+
+    it("404: player not found", async () => {
+      const db = buildDbWithPlayerAndSession("RUNNING");
+      const app = createGameSessionsApi(db as any);
+      const res = await request(app)
+        .post("/gameSessions/gs1/validate-answer")
+        .set(AUTH_HEADER)
+        .send({ userId: "unknown-player", answer: 4 });
       expect(res.status).toBe(404);
     });
   });

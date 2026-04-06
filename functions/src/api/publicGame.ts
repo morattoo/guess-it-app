@@ -3,6 +3,7 @@ import cors from "cors";
 import { Firestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import { appCheckMiddleware } from "../middlewares/appCheck";
 import { validateAnswer } from "../services/answerValidator";
+import { convertTimestamp } from "../utils/timestamps";
 
 export function createPublicGameApi(db: Firestore) {
   const api = express();
@@ -60,8 +61,8 @@ export function createPublicGameApi(db: Firestore) {
         questions: questionsWithoutAnswers,
         status: gameSessionData.status,
         createdBy: gameSessionData.createdBy,
-        startedAt: gameSessionData.startedAt,
-        endedAt: gameSessionData.endedAt,
+        startedAt: convertTimestamp(gameSessionData.startedAt),
+        endedAt: convertTimestamp(gameSessionData.endedAt),
         isOpen: gameSessionData.isOpen,
         mode: gameSessionData.mode || "LEARNING",
         title: gameSessionData.title || "",
@@ -197,10 +198,7 @@ export function createPublicGameApi(db: Firestore) {
         return res.json({
           success: true,
           alreadyStarted: true,
-          startedAt: {
-            seconds: playerData.startedAt.seconds,
-            nanoseconds: playerData.startedAt.nanoseconds,
-          },
+          startedAt: convertTimestamp(playerData.startedAt),
         });
       }
 
@@ -213,7 +211,7 @@ export function createPublicGameApi(db: Firestore) {
       return res.json({
         success: true,
         alreadyStarted: false,
-        startedAt: { seconds: now.seconds, nanoseconds: now.nanoseconds },
+        startedAt: convertTimestamp(now),
       });
     } catch (error) {
       console.error("Error starting game for player:", error);
@@ -240,8 +238,12 @@ export function createPublicGameApi(db: Firestore) {
         return res.json(null);
       }
 
+      const playerData = playerSnap.data()!;
       res.json({
-        ...playerSnap.data(),
+        ...playerData,
+        startedAt: convertTimestamp(playerData.startedAt),
+        finishedAt: convertTimestamp(playerData.finishedAt),
+        lastAnswerAt: convertTimestamp(playerData.lastAnswerAt),
       });
     } catch (error) {
       console.error("Error getting player progress:", error);
@@ -284,6 +286,11 @@ export function createPublicGameApi(db: Firestore) {
         return res.status(403).send("Game has not been started by player");
       }
 
+      // Verificar que el jugador no haya terminado ya
+      if (playerData.finishedAt) {
+        return res.status(400).send("Player has already finished the game");
+      }
+
       // Verificar que el índice de la pregunta coincida
       if (playerData.currentQuestionIndex !== questionIndex) {
         return res.status(400).send("Invalid question index");
@@ -300,6 +307,12 @@ export function createPublicGameApi(db: Firestore) {
       }
 
       const gameSessionData = gameSessionSnap.data()!;
+
+      // Verificar que la sesión no haya terminado
+      if (gameSessionData.status === "FINISHED") {
+        return res.status(400).send("Game session is already finished");
+      }
+
       const question = gameSessionData.questions[questionIndex];
 
       if (!question) {
@@ -441,8 +454,8 @@ export function createPublicGameApi(db: Firestore) {
           displayName: data.displayName || "Jugador Anónimo",
           score: data.score || 0,
           totalPenaltySeconds: data.totalPenaltySeconds || 0,
-          finishedAt: data.finishedAt || null,
-          startedAt: data.startedAt || null,
+          finishedAt: convertTimestamp(data.finishedAt),
+          startedAt: convertTimestamp(data.startedAt),
           currentQuestionIndex: data.currentQuestionIndex || 0,
           totalTime,
           progressPercentage,

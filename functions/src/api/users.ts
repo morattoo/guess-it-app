@@ -3,6 +3,7 @@ import cors from "cors";
 import { Firestore, FieldValue } from "firebase-admin/firestore";
 import { authMiddleware, AuthRequest } from "../middlewares/auth";
 import { appCheckMiddleware } from "../middlewares/appCheck";
+import { convertTimestamp } from "../utils/timestamps";
 
 export function createUsersApi(db: Firestore) {
   const api = express();
@@ -69,7 +70,7 @@ export function createUsersApi(db: Firestore) {
       res.json({
         name: userData.name,
         email: userData.email,
-        createdAt: userData.createdAt,
+        createdAt: convertTimestamp(userData.createdAt),
       });
     } catch (error) {
       console.error("Error getting user profile:", error);

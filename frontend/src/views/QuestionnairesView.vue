@@ -114,6 +114,7 @@ import { auth } from '@/firebase/auth';
 import { useI18n } from '@/composables/useI18n';
 import type { Questionnaire } from '@shared/models/Questionnaire';
 import FilterInput from '@/components/FilterInput.vue';
+import type { FirebaseTimestamp } from '@shared/models/GameSession';
 
 const router = useRouter();
 const { t } = useI18n();
@@ -154,19 +155,11 @@ const handleDelete = async (questionnaireId: string) => {
   }
 };
 
-const formatDate = (timestamp: any) => {
+const formatDate = (timestamp: FirebaseTimestamp) => {
+  console.log('Formatting timestamp:', timestamp);
   if (!timestamp) return '';
 
-  let date: Date;
-  if (timestamp.toDate) {
-    date = timestamp.toDate();
-  } else if (timestamp instanceof Date) {
-    date = timestamp;
-  } else if (typeof timestamp === 'number') {
-    date = new Date(timestamp);
-  } else {
-    return '';
-  }
+  const date = new Date(timestamp.seconds * 1000);
 
   return new Intl.DateTimeFormat('es-ES', {
     year: 'numeric',

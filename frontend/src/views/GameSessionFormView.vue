@@ -4,16 +4,9 @@
       <h2>{{ isEdit ? t.gameSessions.editTitle : t.gameSessions.newTitle }}</h2>
     </div>
 
-    <div v-if="loading" class="loading">{{ t.common.loading }}</div>
+    <BaseLoader v-model="loading" overlay :text="t.common.loading" :size="60" color="#10b981" />
 
-    <div v-else-if="error" class="error">
-      <p>{{ error }}</p>
-      <button @click="router.push('/dashboard/game-sessions')" class="btn-primary">
-        {{ t.gameSessions.backToSessions }}
-      </button>
-    </div>
-
-    <div v-else class="form-container">
+    <div v-if="!loading" class="form-container">
       <form @submit.prevent="handleSubmit">
         <div v-if="!isEdit" class="form-group">
           <label>{{ t.gameSessions.sessionTitleLabel }}</label>
@@ -162,9 +155,14 @@ import {
 } from '@/firebase/gameSession';
 import { getQuestionnairesByUser } from '@/firebase/questionnaire';
 import { auth } from '@/firebase/auth';
-import type { GameSession, GameSessionMode } from '@shared/models/GameSession';
+import type { FirebaseTimestamp, GameSession, GameSessionMode } from '@shared/models/GameSession';
 import type { Questionnaire } from '@shared/models/Questionnaire';
 import { useI18n } from '@/composables/useI18n';
+import { useErrorHandler } from '@/composables/useErrorHandler';
+import { formatError } from '@/utils/errorUtils';
+import BaseLoader from '@/components/BaseLoader.vue';
+
+const { showError } = useErrorHandler();
 
 const router = useRouter();
 const route = useRoute();
@@ -180,7 +178,6 @@ const gameSession = ref<GameSession | null>(null);
 const loading = ref(false);
 const loadingQuestionnaires = ref(true);
 const refreshing = ref(false);
-const error = ref('');
 
 const modeOptions = computed(() => [
   {
@@ -205,22 +202,10 @@ const getStatusLabel = (status: string) => {
   return labels[status] || status;
 };
 
-const formatDate = (timestamp: any) => {
+const formatDate = (timestamp: FirebaseTimestamp) => {
   if (!timestamp) return '';
 
-  let date: Date;
-  if (timestamp.toDate) {
-    date = timestamp.toDate();
-  } else if (timestamp instanceof Date) {
-    date = timestamp;
-  } else if (typeof timestamp === 'number') {
-    date = new Date(timestamp);
-  } else if (timestamp._seconds !== undefined) {
-    // Formato JSON de Firestore desde API
-    date = new Date(timestamp._seconds * 1000);
-  } else {
-    return '';
-  }
+  const date = new Date(timestamp.seconds * 1000);
 
   return new Intl.DateTimeFormat('es-ES', {
     year: 'numeric',
@@ -243,8 +228,7 @@ const handleRefreshQuestions = async () => {
       gameSession.value = await getGameSession(sessionId);
     }
   } catch (err) {
-    console.error('Error al actualizar preguntas:', err);
-    alert(t.value.gameSessions.alerts.refreshError);
+    showError(formatError(err, t.value.gameSessions.alerts.refreshError));
   } finally {
     refreshing.value = false;
   }
@@ -263,8 +247,7 @@ const handleSubmit = async () => {
     );
     router.push('/dashboard/game-sessions');
   } catch (err) {
-    console.error('Error al crear sesión:', err);
-    alert(t.value.gameSessions.alerts.createError);
+    showError(formatError(err, t.value.gameSessions.alerts.createError));
   }
 };
 
@@ -277,12 +260,12 @@ onMounted(async () => {
       const session = await getGameSession(sessionId);
 
       if (!session) {
-        error.value = t.value.gameSessions.alerts.sessionNotFound;
+        showError(t.value.gameSessions.alerts.sessionNotFound);
         return;
       }
 
       if (session.createdBy !== currentUser.uid) {
-        error.value = t.value.gameSessions.alerts.noPermission;
+        showError(t.value.gameSessions.alerts.noPermission);
         return;
       }
 
@@ -293,8 +276,7 @@ onMounted(async () => {
       loadingQuestionnaires.value = false;
     }
   } catch (err) {
-    error.value = t.value.gameSessions.alerts.loadDataError;
-    console.error(err);
+    showError(formatError(err, t.value.gameSessions.alerts.loadDataError));
   } finally {
     loading.value = false;
   }
@@ -314,22 +296,6 @@ onMounted(async () => {
       font-weight: 700;
     }
   }
-}
-
-.loading,
-.error {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: #666;
-}
-
-.error {
-  color: #d33;
-}
-
-.error p {
-  margin-bottom: 1.5rem;
-  font-size: 1.125rem;
 }
 
 .form-container {

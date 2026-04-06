@@ -3,6 +3,7 @@ import cors from "cors";
 import { Firestore, FieldValue } from "firebase-admin/firestore";
 import { authMiddleware } from "../middlewares/auth";
 import { appCheckMiddleware } from "../middlewares/appCheck";
+import { convertTimestamp } from "../utils/timestamps";
 
 export function createQuestionnairesApi(db: Firestore) {
   const api = express();
@@ -52,13 +53,18 @@ export function createQuestionnairesApi(db: Firestore) {
         .get();
 
       const questionnaires = snap.docs
-        .map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }))
+        .map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            createdAt: convertTimestamp(data.createdAt),
+            updatedAt: convertTimestamp(data.updatedAt),
+          };
+        })
         .sort((a: any, b: any) => {
-          const aTime = a.createdAt?.toMillis?.() || 0;
-          const bTime = b.createdAt?.toMillis?.() || 0;
+          const aTime = a.createdAt?.seconds || 0;
+          const bTime = b.createdAt?.seconds || 0;
           return bTime - aTime;
         });
 
@@ -83,9 +89,12 @@ export function createQuestionnairesApi(db: Firestore) {
         return res.status(404).send("Questionnaire not found");
       }
 
+      const data = questionnaireSnap.data()!;
       res.json({
         id: questionnaireSnap.id,
-        ...questionnaireSnap.data(),
+        ...data,
+        createdAt: convertTimestamp(data.createdAt),
+        updatedAt: convertTimestamp(data.updatedAt),
       });
     } catch (error) {
       console.error("Error getting questionnaire:", error);

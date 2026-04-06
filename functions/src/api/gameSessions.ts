@@ -5,14 +5,7 @@ import { authMiddleware } from "../middlewares/auth";
 import { appCheckMiddleware } from "../middlewares/appCheck";
 import { mapQuestionForSession } from "../services/questionMapper";
 import { validateAnswer } from "../services/answerValidator";
-
-const convertTimestamp = (timestamp: any) => {
-  if (!timestamp) return null;
-  if (timestamp.toDate) {
-    return { seconds: timestamp.seconds, nanoseconds: timestamp.nanoseconds };
-  }
-  return timestamp;
-};
+import { convertTimestamp } from "../utils/timestamps";
 
 export function createGameSessionsApi(db: Firestore) {
   const api = express();
@@ -216,6 +209,17 @@ export function createGameSessionsApi(db: Firestore) {
       }
 
       await gameSessionRef.update(updates);
+
+      // Si la sesión terminó, marcar como finalizados todos los jugadores que aún no lo estén
+      if (status === "FINISHED") {
+        const playersSnap = await gameSessionRef.collection("players").get();
+        const now = Date.now();
+        await Promise.all(
+          playersSnap.docs
+            .filter((doc) => !doc.data().finishedAt)
+            .map((doc) => doc.ref.update({ finishedAt: now })),
+        );
+      }
 
       // Sincronizar metadata pública
       const metaUpdates: any = { status };
@@ -472,6 +476,12 @@ export function createGameSessionsApi(db: Firestore) {
     }
 
     const gameSessionData = gameSessionSnap.data()!;
+
+    // Verificar que la sesión no ha terminado
+    if (gameSessionData.status === "FINISHED") {
+      return res.status(400).send("Game session is already finished");
+    }
+
     const questions = gameSessionData.questions || [];
     const question = questions[currentIndex];
 
