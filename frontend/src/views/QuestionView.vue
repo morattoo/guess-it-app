@@ -72,10 +72,11 @@ const handleCancel = () => {
 </script>
 
 <style scoped lang="scss">
+@import '@/styles/variables';
+@import '@/styles/mixins';
+
 .question-view {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 1rem;
+  @include page-view(800px);
 
   &__header {
     h2 {
@@ -87,34 +88,15 @@ const handleCancel = () => {
 }
 
 .form-group {
-  margin-bottom: 2rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #333;
+  @include form-group-base;
 }
 
 .question-type-select {
-  width: 100%;
-  padding: 0.75rem;
-  font-size: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background-color: white;
+  @include form-control-base;
   cursor: pointer;
-  transition: border-color 0.2s;
-}
-
-.question-type-select:focus {
-  outline: none;
-  border-color: #2f8cff;
-  box-shadow: 0 0 0 3px rgba(47, 140, 255, 0.1);
 }
 
 .question-form {
-  margin-top: 2rem;
+  margin-top: $spacing-xl;
 }
 </style>

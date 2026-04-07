@@ -174,10 +174,11 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
+@import '@/styles/variables';
+@import '@/styles/mixins';
+
 .questionnaires-view {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem;
+  @include page-view(1200px);
 
   &__filter {
     margin-bottom: 1rem;
@@ -185,50 +186,26 @@ onMounted(() => {
 }
 
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-
-  h2 {
-    margin: 0 0 0.25rem;
-    font-size: 1.5rem;
-    font-weight: 700;
-  }
+  @include page-header;
 }
 
 .loading,
 .empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: #666;
+  @include loading-state;
 }
 
 .empty-state p {
   margin-bottom: 1.5rem;
-  font-size: 1.125rem;
+  font-size: $font-size-lg;
 }
 
 .questionnaires-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.5rem;
+  @include cards-grid(320px);
 }
 
 .questionnaire-card {
-  position: relative;
-  background-color: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-}
-
-.questionnaire-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  @include card-base;
+  @include card-hover;
 }
 
 .questionnaire-header {
@@ -242,26 +219,22 @@ onMounted(() => {
 .questionnaire-title {
   margin: 0;
   font-size: 1.25rem;
-  color: #333;
+  color: $text-strong;
   line-height: 1.4;
   flex: 1;
 }
 
 .question-count {
-  padding: 0.25rem 0.75rem;
-  background-color: #e3f2ff;
-  color: #2f8cff;
-  border-radius: 12px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  white-space: nowrap;
+  @include badge-base;
+  background-color: $action-blue-light;
+  color: $action-blue;
 }
 
 .questionnaire-footer {
   padding-top: 1rem;
-  border-top: 1px solid #e0e0e0;
-  font-size: 0.8125rem;
-  color: #999;
+  border-top: 1px solid $border-separator;
+  font-size: $font-size-sm;
+  color: $text-muted;
 }
 
 .questionnaire-actions {
@@ -269,9 +242,9 @@ onMounted(() => {
   bottom: 1rem;
   right: 1rem;
   display: flex;
-  gap: 0.5rem;
+  gap: $spacing-xs;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity $transition-normal;
 }
 
 .questionnaire-card:hover .questionnaire-actions {

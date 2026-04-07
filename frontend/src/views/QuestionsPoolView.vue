@@ -173,10 +173,11 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
+@import '@/styles/variables';
+@import '@/styles/mixins';
+
 .questions-pool-view {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem;
+  @include page-view(1200px);
 
   &__filter {
     margin-bottom: 1rem;
@@ -184,50 +185,26 @@ onMounted(() => {
 }
 
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-
-  h2 {
-    margin: 0 0 0.25rem;
-    font-size: 1.5rem;
-    font-weight: 700;
-  }
+  @include page-header;
 }
 
 .loading,
 .empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: #666;
+  @include loading-state;
 }
 
 .empty-state p {
   margin-bottom: 1.5rem;
-  font-size: 1.125rem;
+  font-size: $font-size-lg;
 }
 
 .questions-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.5rem;
+  @include cards-grid(320px);
 }
 
 .question-card {
-  position: relative;
-  background-color: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-}
-
-.question-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  @include card-base;
+  @include card-hover;
 }
 
 .question-header {
@@ -237,52 +214,25 @@ onMounted(() => {
   margin-bottom: 1rem;
 }
 
-.question-type {
-  padding: 0.25rem 0.75rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.type-ordering {
-  background-color: #e8f5e9;
-  color: #43a047;
-}
-
-.type-text {
-  background-color: #e3f2ff;
-  color: #2f8cff;
-}
-
-.type-number {
-  background-color: #fff3e0;
-  color: #ff8c00;
-}
-
-.type-choice {
-  background-color: #f3e5f5;
-  color: #9c27b0;
-}
+// .question-type + .type-* colors are provided by _utilities.scss globally
 
 .question-points {
   font-weight: 600;
-  color: #666;
-  font-size: 0.875rem;
+  color: $text-secondary;
+  font-size: $font-size-md;
 }
 
 .question-title {
   margin: 0 0 0.75rem 0;
-  font-size: 1.125rem;
-  color: #333;
+  font-size: $font-size-lg;
+  color: $text-strong;
   line-height: 1.4;
 }
 
 .question-description {
   margin: 0 0 1rem 0;
-  color: #666;
-  font-size: 0.875rem;
+  color: $text-secondary;
+  font-size: $font-size-md;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -295,15 +245,15 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding-top: 1rem;
-  border-top: 1px solid #e0e0e0;
-  font-size: 0.8125rem;
-  color: #999;
+  border-top: 1px solid $border-separator;
+  font-size: $font-size-sm;
+  color: $text-muted;
 }
 
 .time-limit {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: $spacing-xxs;
 }
 
 .question-actions {
@@ -311,7 +261,7 @@ onMounted(() => {
   justify-content: flex-end;
 
   .btn-icon {
-    margin-left: 0.5rem;
+    margin-left: $spacing-xs;
   }
 }
 

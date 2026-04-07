@@ -217,10 +217,12 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
+@import '@/styles/variables';
+@import '@/styles/mixins';
+
 .questionnaire-form-view {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 0 0 1rem;
+  @include page-view(900px);
+  padding-top: 0;
 
   &__header {
     h2 {
@@ -233,61 +235,35 @@ onMounted(async () => {
 
 .loading,
 .error {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: #666;
+  @include loading-state;
 }
 
 .error {
-  color: #d33;
+  color: $error-color;
 }
 
 .error p {
   margin-bottom: 1.5rem;
-  font-size: 1.125rem;
+  font-size: $font-size-lg;
 }
 
 .form-container {
-  background-color: white;
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-top: 1rem;
+  @include form-container;
 }
 
 .form-group {
-  margin-bottom: 2rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #333;
-  font-size: 0.875rem;
+  @include form-group-base;
 }
 
 .form-group input[type='text'] {
-  width: 100%;
-  padding: 0.75rem;
-  font-size: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  box-sizing: border-box;
-  transition: border-color 0.2s;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #2f8cff;
-  box-shadow: 0 0 0 3px rgba(47, 140, 255, 0.1);
+  @include form-control-base;
 }
 
 .loading-questions,
 .no-questions {
   text-align: center;
   padding: 2rem;
-  color: #666;
+  color: $text-secondary;
 }
 
 .no-questions p {
@@ -302,15 +278,15 @@ onMounted(async () => {
 
 .selected-questions,
 .available-questions {
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
+  border: 1px solid $border-separator;
+  border-radius: $border-radius;
   padding: 1rem;
 }
 
 .available-questions h4 {
   margin: 0 0 1rem 0;
-  color: #666;
-  font-size: 0.875rem;
+  color: $text-secondary;
+  font-size: $font-size-md;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -319,11 +295,11 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem;
-  margin-bottom: 0.5rem;
-  background-color: #f9f9f9;
-  border-radius: 6px;
-  transition: all 0.2s;
+  padding: $spacing-sm;
+  margin-bottom: $spacing-xs;
+  background-color: $bg-item;
+  border-radius: $border-radius;
+  transition: all $transition-normal;
 }
 
 .question-actions {
@@ -337,11 +313,11 @@ onMounted(async () => {
 }
 
 .question-item:hover {
-  background-color: #f0f0f0;
+  background-color: $bg-hover;
 }
 
 .question-item.selected {
-  background-color: #e3f2ff;
+  background-color: $action-blue-light;
   cursor: default;
 }
 
@@ -351,51 +327,17 @@ onMounted(async () => {
   flex: 1;
 }
 
-.question-type {
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.type-text {
-  background-color: #e3f2ff;
-  color: #2f8cff;
-}
-
-.type-number {
-  background-color: #fff3e0;
-  color: #ff8c00;
-}
-
-.type-choice {
-  background-color: #f3e5f5;
-  color: #9c27b0;
-}
-
-.type-ordering {
-  background-color: #e8f5e9;
-  color: #4caf50;
-}
-
-.type-choice,
-.type-number,
-.type-ordering,
-.type-text {
-  max-width: 320px;
-}
+// .question-type + .type-* colors are provided by _utilities.scss globally
 
 .question-title {
   flex: 1;
-  font-size: 0.875rem;
-  color: #333;
+  font-size: $font-size-md;
+  color: $text-strong;
 }
 
 .question-points {
-  font-size: 0.8125rem;
-  color: #666;
+  font-size: $font-size-sm;
+  color: $text-secondary;
   font-weight: 600;
 }
 
@@ -408,32 +350,21 @@ onMounted(async () => {
   border-radius: 14px;
   border: none;
   cursor: pointer;
-  font-size: 1.125rem;
+  font-size: $font-size-lg;
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
-  background-color: #2f8cff;
+  transition: all $transition-normal;
+  background-color: $action-blue;
   color: white;
 
   &:hover {
-    background-color: #1a7ae8;
+    background-color: $action-blue-hover;
   }
 }
 
 .form-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e0e0e0;
-}
-
-@media (max-width: 640px) {
-  .form-actions {
-    flex-direction: column-reverse;
-  }
+  @include form-actions;
 }
 </style>

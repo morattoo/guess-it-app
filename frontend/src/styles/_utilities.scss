@@ -1,0 +1,71 @@
+@import './variables';
+@import './mixins';
+
+// ─── Question Type Badges ─────────────────────────────────────────────────────
+// Usage: <span class="question-type type-text">TEXT</span>
+
+.question-type {
+  @include type-badge-base;
+}
+
+.type-text {
+  background-color: $type-text-bg;
+  color: $type-text-color;
+}
+
+.type-number {
+  background-color: $type-number-bg;
+  color: $type-number-color;
+}
+
+.type-choice {
+  background-color: $type-choice-bg;
+  color: $type-choice-color;
+}
+
+.type-ordering {
+  background-color: $type-ordering-bg;
+  color: $type-ordering-color;
+}
+
+// ─── Status Badges ────────────────────────────────────────────────────────────
+// Usage: <span class="status-badge status-running">RUNNING</span>
+
+.status-badge {
+  @include badge-base;
+}
+
+.status-waiting {
+  background-color: $status-waiting-bg;
+  color: $status-waiting-color;
+}
+
+.status-running {
+  background-color: $status-running-bg;
+  color: $status-running-color;
+}
+
+.status-finished {
+  background-color: $status-finished-bg;
+  color: $status-finished-color;
+}
+
+// ─── Mode Badges ──────────────────────────────────────────────────────────────
+// Usage: <span class="mode-badge mode-evaluation">EVALUATION</span>
+
+.mode-badge {
+  @include badge-base;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.mode-evaluation {
+  background-color: $mode-evaluation-bg;
+  color: $mode-evaluation-color;
+}
+
+.mode-learning {
+  background-color: $mode-learning-bg;
+  color: $mode-learning-color;
+}

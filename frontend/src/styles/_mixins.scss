@@ -1,0 +1,155 @@
+@import './variables';
+
+// ─── Layout ──────────────────────────────────────────────────────────────────
+
+/// View container: centered, max-width constrained, base padding
+@mixin page-view($max-width: 1200px) {
+  max-width: $max-width;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/// Page header: title on left, action button on right
+@mixin page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+
+  h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+}
+
+/// Responsive page header stacks on mobile
+@mixin page-header-responsive {
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+}
+
+// ─── States ───────────────────────────────────────────────────────────────────
+
+/// Empty/loading placeholder block
+@mixin loading-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: $text-secondary;
+}
+
+// ─── Card ─────────────────────────────────────────────────────────────────────
+
+/// White card surface with shadow
+@mixin card-base {
+  position: relative;
+  background-color: $bg-card;
+  padding: 1.5rem;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-card;
+  transition:
+    transform $transition-normal,
+    box-shadow $transition-normal;
+}
+
+/// Lift-on-hover behaviour for a card
+@mixin card-hover {
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-card-hover;
+  }
+}
+
+/// Form / detail panel container (lighter card without hover)
+@mixin form-container {
+  background-color: $bg-card;
+  padding: 1rem;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-card;
+  margin-top: 1rem;
+}
+
+// ─── Grid ─────────────────────────────────────────────────────────────────────
+
+/// Responsive auto-fill card grid
+@mixin cards-grid($min-width: 320px) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax($min-width, 1fr));
+  gap: 1.5rem;
+}
+
+// ─── Badge ────────────────────────────────────────────────────────────────────
+
+/// Base pill-shaped badge — combine with a color modifier
+@mixin badge-base {
+  display: inline-block;
+  width: fit-content;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/// Smaller badge variant used for type chips (border-radius 4px)
+@mixin type-badge-base {
+  display: inline-block;
+  width: fit-content;
+  padding: 0.25rem 0.5rem;
+  border-radius: $border-radius-sm;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+// ─── Forms ────────────────────────────────────────────────────────────────────
+
+/// Bottom border + flex row for primary/secondary action buttons
+@mixin form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $border-separator;
+
+  @media (max-width: 640px) {
+    flex-direction: column-reverse;
+  }
+}
+
+/// Standard form-group (label + input block)
+@mixin form-group-base {
+  margin-bottom: 2rem;
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: $text-strong;
+    font-size: $font-size-md;
+  }
+}
+
+/// Standard text input / select base styles
+@mixin form-control-base {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: $font-size-base;
+  border: 1px solid $border-input;
+  border-radius: $border-radius;
+  background-color: $bg-card;
+  box-sizing: border-box;
+  transition: border-color $transition-normal;
+
+  &:focus {
+    outline: none;
+    border-color: $action-blue;
+    box-shadow: 0 0 0 3px $focus-shadow-color;
+  }
+}

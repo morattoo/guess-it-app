@@ -406,10 +406,11 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
+@import '@/styles/variables';
+@import '@/styles/mixins';
+
 .game-sessions-view {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem;
+  @include page-view(1200px);
 }
 
 .game-sessions-view__filter {
@@ -417,50 +418,26 @@ onMounted(() => {
 }
 
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-
-  h2 {
-    margin: 0 0 0.25rem;
-    font-size: 1.5rem;
-    font-weight: 700;
-  }
+  @include page-header;
 }
 
 .loading,
 .empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: #666;
+  @include loading-state;
 }
 
 .empty-state p {
   margin-bottom: 1.5rem;
-  font-size: 1.125rem;
+  font-size: $font-size-lg;
 }
 
 .sessions-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.5rem;
+  @include cards-grid(320px);
 }
 
 .session-card {
-  position: relative;
-  background-color: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-}
-
-.session-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  @include card-base;
+  @include card-hover;
 }
 
 .session-header {
@@ -474,26 +451,15 @@ onMounted(() => {
 .session-info {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: $spacing-xs;
   flex: 1;
 }
 
 .session-title {
   margin: 0;
-  font-size: 1.125rem;
-  color: #333;
+  font-size: $font-size-lg;
+  color: $text-strong;
   font-family: monospace;
-}
-
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: inline-block;
-  width: fit-content;
 }
 
 .session-badges {
@@ -503,78 +469,38 @@ onMounted(() => {
   align-items: center;
 }
 
-.mode-badge {
-  padding: 0.2rem 0.6rem;
-  border-radius: 12px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: inline-block;
-  width: fit-content;
-}
-
-.mode-evaluation {
-  background-color: #fce4ec;
-  color: #c62828;
-}
-
-.mode-learning {
-  background-color: #e8f5e9;
-  color: #2e7d32;
-}
-
-.status-waiting {
-  background-color: #fff3e0;
-  color: #ff8c00;
-}
-
-.status-running {
-  background-color: #e3f2ff;
-  color: #2f8cff;
-}
-
-.status-finished {
-  background-color: #e8f5e9;
-  color: #4caf50;
-}
-
 .question-count {
-  padding: 0.25rem 0.75rem;
+  @include badge-base;
   background-color: #f5f5f5;
-  color: #666;
-  border-radius: 12px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  white-space: nowrap;
+  color: $text-secondary;
 }
 
 .session-details {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: $spacing-xs;
   padding-top: 1rem;
-  border-top: 1px solid #e0e0e0;
-  margin-bottom: 0.5rem;
+  border-top: 1px solid $border-separator;
+  margin-bottom: $spacing-xs;
 }
 
 .detail-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.875rem;
+  font-size: $font-size-md;
 }
 
 .detail-label {
-  color: #999;
+  color: $text-muted;
 }
 
 .detail-value {
-  color: #333;
+  color: $text-strong;
   font-weight: 500;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: $spacing-xs;
 }
 
 /* Toggle Switch */
@@ -600,7 +526,7 @@ onMounted(() => {
   right: 0;
   bottom: 0;
   background-color: #ccc;
-  transition: 0.3s;
+  transition: $transition-normal;
   border-radius: 20px;
 }
 
@@ -612,12 +538,12 @@ onMounted(() => {
   left: 3px;
   bottom: 3px;
   background-color: white;
-  transition: 0.3s;
+  transition: $transition-normal;
   border-radius: 50%;
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background-color: #4caf50;
+  background-color: $status-finished-color;
 }
 
 .toggle-switch input:checked + .toggle-slider:before {
@@ -632,7 +558,7 @@ onMounted(() => {
 .session-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: $spacing-xs;
 }
 
 @media (max-width: 640px) {

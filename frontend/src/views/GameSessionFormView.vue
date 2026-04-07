@@ -284,10 +284,12 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
+@import '@/styles/variables';
+@import '@/styles/mixins';
+
 .game-session-form-view {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 0 0 1rem;
+  @include page-view(900px);
+  padding-top: 0;
 
   &__header {
     h2 {
@@ -299,22 +301,14 @@ onMounted(async () => {
 }
 
 .form-container {
-  margin-top: 1rem;
-  background-color: white;
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  @include form-container;
 }
 
 .form-group {
-  margin-bottom: 2rem;
+  @include form-group-base;
 }
 
 .form-group label {
-  display: block;
-  margin-bottom: 0.75rem;
-  font-weight: 600;
-  color: #333;
   font-size: 0.9375rem;
 }
 
@@ -322,7 +316,7 @@ onMounted(async () => {
 .no-questionnaires {
   text-align: center;
   padding: 2rem;
-  color: #666;
+  color: $text-secondary;
 }
 
 .no-questionnaires p {
@@ -332,7 +326,7 @@ onMounted(async () => {
 .questionnaires-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: $spacing-sm;
 }
 
 .questionnaire-option {
@@ -340,21 +334,21 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
-  background-color: #f9f9f9;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
+  background-color: $bg-item;
+  border: 2px solid $border-separator;
+  border-radius: $border-radius-md;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all $transition-normal;
 }
 
 .questionnaire-option:hover {
-  background-color: #f0f0f0;
+  background-color: $bg-hover;
   border-color: #ccc;
 }
 
 .questionnaire-option.selected {
-  background-color: #e3f2ff;
-  border-color: #2f8cff;
+  background-color: $action-blue-light;
+  border-color: $action-blue;
 }
 
 .questionnaire-info {
@@ -366,13 +360,13 @@ onMounted(async () => {
 
 .questionnaire-title {
   font-weight: 600;
-  color: #333;
+  color: $text-strong;
 }
 
 .questionnaire-count {
-  font-size: 0.875rem;
-  color: #666;
-  padding: 0.25rem 0.75rem;
+  font-size: $font-size-md;
+  color: $text-secondary;
+  padding: $spacing-xxs $spacing-sm;
   background-color: white;
   border-radius: 12px;
 }
@@ -383,11 +377,11 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #2f8cff;
+  background-color: $action-blue;
   color: white;
   border-radius: 50%;
   font-weight: bold;
-  font-size: 0.875rem;
+  font-size: $font-size-md;
 }
 
 .session-info {
@@ -398,14 +392,14 @@ onMounted(async () => {
 
 .info-card {
   padding: 1.5rem;
-  background-color: #f9f9f9;
-  border-radius: 8px;
+  background-color: $bg-item;
+  border-radius: $border-radius-md;
 }
 
 .info-card h3 {
   margin: 0 0 1rem 0;
-  color: #333;
-  font-size: 1.125rem;
+  color: $text-strong;
+  font-size: $font-size-lg;
 }
 
 .info-grid {
@@ -417,68 +411,44 @@ onMounted(async () => {
 .info-item {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: $spacing-xxs;
 }
 
 .info-label {
-  font-size: 0.8125rem;
-  color: #999;
+  font-size: $font-size-sm;
+  color: $text-muted;
 }
 
 .info-value {
   font-weight: 600;
-  color: #333;
+  color: $text-strong;
 }
 
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: inline-block;
-  width: fit-content;
-}
-
-.status-waiting {
-  background-color: #fff3e0;
-  color: #ff8c00;
-}
-
-.status-running {
-  background-color: #e3f2ff;
-  color: #2f8cff;
-}
-
-.status-finished {
-  background-color: #e8f5e9;
-  color: #4caf50;
-}
+// .status-badge + .status-* colors are provided by _utilities.scss globally
 
 .refresh-section {
   padding: 1rem;
   background-color: #fffbf0;
-  border-left: 4px solid #ff8c00;
-  border-radius: 4px;
+  border-left: 4px solid $status-waiting-color;
+  border-radius: $border-radius-sm;
 }
 
 .refresh-section .hint {
   margin: 0 0 1rem 0;
-  color: #666;
-  font-size: 0.875rem;
+  color: $text-secondary;
+  font-size: $font-size-md;
 }
 
 .questions-preview h4 {
   margin: 0 0 1rem 0;
-  color: #333;
-  font-size: 1rem;
+  color: $text-strong;
+  font-size: $font-size-base;
 }
 
 .questions-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: $spacing-xs;
   max-height: 300px;
   overflow-y: auto;
 }
@@ -486,10 +456,10 @@ onMounted(async () => {
 .question-preview {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background-color: #f9f9f9;
-  border-radius: 6px;
+  gap: $spacing-sm;
+  padding: $spacing-sm;
+  background-color: $bg-item;
+  border-radius: $border-radius;
 }
 
 .question-number {
@@ -498,40 +468,31 @@ onMounted(async () => {
   justify-content: center;
   width: 28px;
   height: 28px;
-  background-color: #2f8cff;
+  background-color: $action-blue;
   color: white;
   border-radius: 50%;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: $font-size-md;
   flex-shrink: 0;
 }
 
 .question-title {
   flex: 1;
-  font-size: 0.875rem;
-  color: #333;
+  font-size: $font-size-md;
+  color: $text-strong;
 }
 
 .question-points {
-  font-size: 0.8125rem;
-  color: #666;
+  font-size: $font-size-sm;
+  color: $text-secondary;
   font-weight: 600;
 }
 
 .form-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e0e0e0;
+  @include form-actions;
 }
 
 @media (max-width: 640px) {
-  .form-actions {
-    flex-direction: column-reverse;
-  }
-
   .info-grid {
     grid-template-columns: 1fr;
   }
@@ -540,71 +501,41 @@ onMounted(async () => {
 .mode-options {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: $spacing-sm;
 }
 
 .mode-option {
   padding: 1rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
+  border: 2px solid $border-separator;
+  border-radius: $border-radius-md;
   cursor: pointer;
-  transition: all 0.2s;
-  background: #f9f9f9;
+  transition: all $transition-normal;
+  background: $bg-item;
 }
 
 .mode-option:hover {
   border-color: #ccc;
-  background: #f0f0f0;
+  background: $bg-hover;
 }
 
 .mode-option.selected {
-  border-color: #2f8cff;
-  background: #e3f2ff;
+  border-color: $action-blue;
+  background: $action-blue-light;
 }
 
 .mode-option-header {
   margin-bottom: 0.4rem;
 }
 
-.mode-badge {
-  padding: 0.2rem 0.6rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.mode-evaluation {
-  background-color: #fce4ec;
-  color: #c62828;
-}
-
-.mode-learning {
-  background-color: #e8f5e9;
-  color: #2e7d32;
-}
+// .mode-badge + .mode-* colors are provided by _utilities.scss globally
 
 .mode-description {
-  font-size: 0.875rem;
+  font-size: $font-size-md;
   color: #555;
   margin: 0;
 }
 
 .form-control {
-  width: 100%;
-  padding: 0.625rem 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.9375rem;
-  color: #333;
-  box-sizing: border-box;
-  transition: border-color 0.2s;
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: #2f8cff;
-  box-shadow: 0 0 0 3px rgba(47, 140, 255, 0.15);
+  @include form-control-base;
 }
 </style>
