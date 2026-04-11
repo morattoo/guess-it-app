@@ -88,6 +88,26 @@
         <p>{{ t.ranking.noPlayers }}</p>
       </div>
 
+      <!-- WAITING — simple participant list -->
+      <template v-else-if="sessionStatus === 'WAITING'">
+        <div class="waiting-player-list">
+          <div
+            v-for="(player, idx) in players"
+            :key="player.userId"
+            class="waiting-player-item"
+            :class="{ 'is-current-user': player.userId === currentUserId }"
+          >
+            <span class="waiting-player-rank">{{ idx + 1 }}</span>
+            <span class="waiting-player-name">
+              {{ player.displayName }}
+              <span v-if="player.userId === currentUserId" class="you-badge">{{
+                t.ranking.you
+              }}</span>
+            </span>
+          </div>
+        </div>
+      </template>
+
       <template v-else>
         <!-- ── PODIUM (top 3) ── -->
         <div class="podium-section">
@@ -802,6 +822,52 @@ onMounted(() => loadRanking());
     background: #fef3c7;
     color: #92400e;
   }
+}
+
+// ── Waiting player list ─────────────────────────────────────────
+.waiting-player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.waiting-player-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  &.is-current-user {
+    border: 2px solid #7c3aed;
+    background: linear-gradient(135deg, #f5f3ff 0%, #fff 100%);
+  }
+}
+
+.waiting-player-rank {
+  flex-shrink: 0;
+  width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.waiting-player-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
 }
 
 // ── Empty ─────────────────────────────────────────────────────────
