@@ -6,6 +6,7 @@ export type QuestionValidation = {
     tolerance?: number;
     optionId?: string;
     order?: string[];
+    booleanValue?: boolean;
   };
 };
 
@@ -101,6 +102,21 @@ export function validateAnswer(
         expectedOrder.length === submittedOrder.length &&
         expectedOrder.every((id, i) => id === submittedOrder[i]);
       return { ok: true, isCorrect };
+    }
+
+    case "BOOLEAN": {
+      const expectedValue = validation.expectedAnswer?.booleanValue;
+      if (typeof expectedValue !== "boolean") {
+        return {
+          ok: false,
+          error: "Invalid question validation: missing booleanValue",
+        };
+      }
+      const submittedValue =
+        typeof answer === "boolean"
+          ? answer
+          : String(answer).toLowerCase() === "true";
+      return { ok: true, isCorrect: submittedValue === expectedValue };
     }
 
     default:

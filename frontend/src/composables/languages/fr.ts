@@ -13,6 +13,8 @@ export default {
     confirm: 'Confirmer',
     yes: 'Oui',
     no: 'Non',
+    trueLabel: 'Vrai',
+    falseLabel: 'Faux',
     filterPlaceholder: 'Filtrer...',
   },
   // ErrorOverlay
@@ -280,6 +282,7 @@ export default {
       number: 'Nombre',
       choice: 'Choix',
       ordering: 'Ordonnancement',
+      boolean: 'Vrai/Faux',
     },
   },
   // Edit Question
@@ -333,6 +336,7 @@ export default {
     typeNumber: 'Question Numérique',
     typeChoice: 'Question à Choix',
     typeOrdering: "Question d'Ordonnancement",
+    typeBoolean: 'Question Vrai/Faux',
   },
   // Language selector
   language: {

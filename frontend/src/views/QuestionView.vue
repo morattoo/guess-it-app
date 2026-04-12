@@ -12,6 +12,7 @@
         <option value="NUMBER">{{ t.createQuestion.typeNumber }}</option>
         <option value="CHOICE">{{ t.createQuestion.typeChoice }}</option>
         <option value="ORDERING">{{ t.createQuestion.typeOrdering }}</option>
+        <option value="BOOLEAN">{{ t.createQuestion.typeBoolean }}</option>
       </select>
     </div>
 
@@ -29,6 +30,7 @@ import TextQuestionForm from '@/components/questions/TextQuestionForm.vue';
 import NumberQuestionForm from '@/components/questions/NumberQuestionForm.vue';
 import ChoiceQuestionForm from '@/components/questions/ChoiceQuestionForm.vue';
 import OrderingQuestionForm from '@/components/questions/OrderingQuestionForm.vue';
+import BooleanQuestionForm from '@/components/questions/BooleanQuestionForm.vue';
 import { createQuestion } from '@/firebase/question';
 import { auth } from '@/firebase/auth';
 import { useI18n } from '@/composables/useI18n';
@@ -47,6 +49,8 @@ const currentComponent = computed(() => {
       return ChoiceQuestionForm;
     case 'ORDERING':
       return OrderingQuestionForm;
+    case 'BOOLEAN':
+      return BooleanQuestionForm;
     default:
       return null;
   }

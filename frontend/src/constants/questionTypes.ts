@@ -6,6 +6,7 @@ export const QUESTION_TYPES = {
   IMAGE_UPLOAD: 'IMAGE_UPLOAD',
   AUDIO_UPLOAD: 'AUDIO_UPLOAD',
   ORDERING: 'ORDERING',
+  BOOLEAN: 'BOOLEAN',
 } as const;
 
 export type QuestionTypeValue = (typeof QUESTION_TYPES)[keyof typeof QUESTION_TYPES];

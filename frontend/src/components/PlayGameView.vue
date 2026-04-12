@@ -102,6 +102,13 @@
             :hint="t.play.arrangeItems"
           />
 
+          <!-- Pregunta de verdadero/falso -->
+          <BooleanQuestionAnswer
+            v-else-if="currentQuestion.type === QUESTION_TYPES.BOOLEAN"
+            v-model="currentAnswer"
+            :disabled="submitting"
+          />
+
           <button
             type="submit"
             class="btn btn-primary btn-large"
@@ -148,6 +155,7 @@ import TextQuestionAnswer from '@/components/questions/TextQuestionAnswer.vue';
 import NumberQuestionAnswer from '@/components/questions/NumberQuestionAnswer.vue';
 import ChoiceQuestionAnswer from '@/components/questions/ChoiceQuestionAnswer.vue';
 import OrderingQuestionAnswer from '@/components/questions/OrderingQuestionAnswer.vue';
+import BooleanQuestionAnswer from '@/components/questions/BooleanQuestionAnswer.vue';
 import { QUESTION_TYPES } from '@/constants/questionTypes';
 
 const { showError: showErrorOverlay } = useErrorHandler();
@@ -171,6 +179,7 @@ const submitting = ref(false);
 const isAnswerValid = computed(() => {
   const ans = currentAnswer.value;
   if (Array.isArray(ans)) return ans.length > 0;
+  if (typeof ans === 'boolean') return true;
   return Boolean(ans);
 });
 
@@ -325,7 +334,12 @@ const handleSubmitAnswer = async () => {
         gameCompleted.value = true;
       } else {
         // Pasar a la siguiente pregunta
-        currentAnswer.value = currentQuestion.value?.type === QUESTION_TYPES.ORDERING ? [] : '';
+        currentAnswer.value =
+          currentQuestion.value?.type === QUESTION_TYPES.ORDERING
+            ? []
+            : currentQuestion.value?.type === QUESTION_TYPES.BOOLEAN
+              ? null
+              : '';
       }
     } else if (result.advanced) {
       // Modo EVALUATION: respuesta incorrecta pero avanza igual
@@ -343,7 +357,12 @@ const handleSubmitAnswer = async () => {
       ) {
         gameCompleted.value = true;
       } else {
-        currentAnswer.value = currentQuestion.value?.type === QUESTION_TYPES.ORDERING ? [] : '';
+        currentAnswer.value =
+          currentQuestion.value?.type === QUESTION_TYPES.ORDERING
+            ? []
+            : currentQuestion.value?.type === QUESTION_TYPES.BOOLEAN
+              ? null
+              : '';
       }
     } else {
       // Modo LEARNING: respuesta incorrecta, se queda en la misma pregunta

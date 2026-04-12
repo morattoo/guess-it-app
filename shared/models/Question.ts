@@ -5,7 +5,8 @@ export type QuestionType =
   | "CHOICE"
   | "IMAGE_UPLOAD"
   | "AUDIO_UPLOAD"
-  | "ORDERING";
+  | "ORDERING"
+  | "BOOLEAN";
 
 export type BaseQuestion = {
   id?: string;
@@ -54,11 +55,19 @@ export type OrderingQuestion = BaseQuestion & {
   };
 };
 
+export type BooleanQuestion = BaseQuestion & {
+  type: "BOOLEAN";
+  expectedAnswer: {
+    booleanValue: boolean;
+  };
+};
+
 export type Question =
   | TextQuestion
   | NumberQuestion
   | ChoiceQuestion
-  | OrderingQuestion;
+  | OrderingQuestion
+  | BooleanQuestion;
 
 export type FirestoreTimestamp =
   | { seconds: number; nanoseconds: number }

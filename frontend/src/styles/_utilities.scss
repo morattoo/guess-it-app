@@ -28,6 +28,11 @@
   color: $type-ordering-color;
 }
 
+.type-boolean {
+  background-color: $type-boolean-bg;
+  color: $type-boolean-color;
+}
+
 // ─── Status Badges ────────────────────────────────────────────────────────────
 // Usage: <span class="status-badge status-running">RUNNING</span>
 

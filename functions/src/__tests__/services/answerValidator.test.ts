@@ -187,6 +187,59 @@ describe("validateAnswer", () => {
 
   // ─── UNKNOWN TYPE ────────────────────────────────────────────────────────────
 
+  // ─── BOOLEAN ────────────────────────────────────────────────────────────────
+
+  describe("BOOLEAN", () => {
+    const q = (booleanValue: boolean) => ({
+      type: "BOOLEAN",
+      points: 10,
+      validation: { expectedAnswer: { booleanValue } },
+    });
+
+    it("returns correct when boolean true matches", () => {
+      expect(validateAnswer(q(true), true)).toEqual({
+        ok: true,
+        isCorrect: true,
+      });
+    });
+
+    it("returns incorrect when boolean false submitted for true expected", () => {
+      expect(validateAnswer(q(true), false)).toEqual({
+        ok: true,
+        isCorrect: false,
+      });
+    });
+
+    it("returns correct when boolean false matches", () => {
+      expect(validateAnswer(q(false), false)).toEqual({
+        ok: true,
+        isCorrect: true,
+      });
+    });
+
+    it("accepts string 'true' as truthy answer", () => {
+      expect(validateAnswer(q(true), "true")).toEqual({
+        ok: true,
+        isCorrect: true,
+      });
+    });
+
+    it("accepts string 'false' as falsy answer", () => {
+      expect(validateAnswer(q(false), "false")).toEqual({
+        ok: true,
+        isCorrect: true,
+      });
+    });
+
+    it("returns error when booleanValue is missing", () => {
+      const r = validateAnswer(
+        { type: "BOOLEAN", points: 5, validation: { expectedAnswer: {} } },
+        true,
+      );
+      expect(r).toMatchObject({ ok: false });
+    });
+  });
+
   it("returns error for unknown question type", () => {
     const r = validateAnswer(
       { type: "UNKNOWN", points: 5, validation: { expectedAnswer: {} } },
