@@ -239,6 +239,16 @@ export default {
     gameCompleted: '¡Juego completado!',
     viewRanking: 'Ver ranking',
     waitingForHost: 'Esperando que el anfitrión inicie el juego...',
+    summary: {
+      title: 'Resumen del juego',
+      viewSummary: 'Ver resumen',
+      close: 'Cerrar',
+      loading: 'Cargando resumen...',
+      correctAnswer: 'Respuesta correcta',
+      booleanTrue: 'Verdadero',
+      booleanFalse: 'Falso',
+      correctOrder: 'Orden correcto',
+    },
     errors: {
       sessionNotFound: 'La sesión de juego no existe.',
       notJoined: 'No te has unido a esta sesión. Por favor, únete primero.',

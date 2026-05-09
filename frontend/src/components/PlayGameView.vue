@@ -124,11 +124,23 @@
         <div class="trophy-icon">🏆</div>
         <h1>{{ t.play.gameCompleted }}</h1>
 
-        <router-link :to="`/game/${sessionId}/ranking`" class="btn btn-primary btn-large">
-          {{ t.play.viewRanking }}
-        </router-link>
+        <div class="completed-actions">
+          <button class="btn btn-secondary btn-large" @click="openSummary">
+            {{ t.play.summary.viewSummary }}
+          </button>
+          <router-link :to="`/game/${sessionId}/ranking`" class="btn btn-primary btn-large">
+            {{ t.play.viewRanking }}
+          </router-link>
+        </div>
       </div>
     </div>
+
+    <GameSummaryDialog
+      :show="showSummary"
+      :loading="summaryLoading"
+      :questions="summaryQuestions"
+      @close="showSummary = false"
+    />
   </div>
 </template>
 
@@ -142,8 +154,14 @@ import {
   getPublicPlayerProgress,
   startPublicGameSession,
   submitPublicAnswer,
+  getPublicGameResults,
 } from '@/firebase/publicGame';
-import type { GameSession, GameSessionQuestion, PlayerProgress } from '@shared/models/GameSession';
+import type {
+  GameSession,
+  GameSessionQuestion,
+  PlayerProgress,
+  GameSummaryQuestion,
+} from '@shared/models/GameSession';
 import HeaderLogo from '@/components/layout/HeaderLogo.vue';
 import { useI18n } from '@/composables/useI18n';
 import BaseLoader from './BaseLoader.vue';
@@ -157,6 +175,7 @@ import ChoiceQuestionAnswer from '@/components/questions/ChoiceQuestionAnswer.vu
 import OrderingQuestionAnswer from '@/components/questions/OrderingQuestionAnswer.vue';
 import BooleanQuestionAnswer from '@/components/questions/BooleanQuestionAnswer.vue';
 import { QUESTION_TYPES } from '@/constants/questionTypes';
+import GameSummaryDialog from '@/components/GameSummaryDialog.vue';
 
 const { showError: showErrorOverlay } = useErrorHandler();
 const { showSuccess, showError, triggerSuccess, triggerError } = useFeedbackAnimation();
@@ -170,6 +189,10 @@ const loading = ref(true);
 const error = ref('');
 const gameStarted = ref(false);
 const gameCompleted = ref(false);
+
+const showSummary = ref(false);
+const summaryLoading = ref(false);
+const summaryQuestions = ref<GameSummaryQuestion[]>([]);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const currentAnswer = ref<any>('');
@@ -264,6 +287,22 @@ onMounted(async () => {
 onUnmounted(() => {
   unsubscribeStatusListener?.();
 });
+
+const openSummary = async () => {
+  showSummary.value = true;
+  if (summaryQuestions.value.length > 0) return; // already loaded
+  summaryLoading.value = true;
+  try {
+    const result = await getPublicGameResults(sessionId.value);
+    summaryQuestions.value = result.questions;
+  } catch (err: unknown) {
+    const errorMsg = (err as Error).message || t.value.play.errors.loadError;
+    showErrorOverlay(errorMsg);
+    showSummary.value = false;
+  } finally {
+    summaryLoading.value = false;
+  }
+};
 
 const startGame = async () => {
   try {
@@ -520,6 +559,12 @@ const handleSubmitAnswer = async () => {
     color: #2d3748;
     margin-bottom: 2rem;
     font-size: 2rem;
+  }
+
+  .completed-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
   }
 }
 

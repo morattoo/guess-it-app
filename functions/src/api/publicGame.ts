@@ -490,5 +490,76 @@ export function createPublicGameApi(db: Firestore) {
     }
   });
 
+  /**
+   * Obtener las respuestas correctas de la sesión (solo para jugadores que ya terminaron)
+   */
+  api.get("/game/:id/results", async (req, res) => {
+    const { id: gameSessionId } = req.params;
+    const { userId } = req.query;
+
+    if (!userId || typeof userId !== "string") {
+      return res.status(400).send("Missing userId query parameter");
+    }
+
+    try {
+      const [gameSessionSnap, playerSnap] = await Promise.all([
+        db.collection("gameSessions").doc(gameSessionId).get(),
+        db
+          .collection("gameSessions")
+          .doc(gameSessionId)
+          .collection("players")
+          .doc(userId)
+          .get(),
+      ]);
+
+      if (!gameSessionSnap.exists) {
+        return res.status(404).send("Game session not found");
+      }
+
+      if (!playerSnap.exists) {
+        return res.status(404).send("Player not found");
+      }
+
+      const gameSessionData = gameSessionSnap.data()!;
+      const playerData = playerSnap.data()!;
+      const totalQuestions = gameSessionData.questions.length;
+
+      // Solo jugadores que completaron todas las preguntas pueden ver los resultados
+      const hasFinished =
+        !!playerData.finishedAt ||
+        playerData.currentQuestionIndex >= totalQuestions;
+
+      if (!hasFinished) {
+        return res.status(403).send("Player has not finished the game yet");
+      }
+
+      const questions = gameSessionData.questions.map((q: any) => {
+        const summaryQuestion: any = {
+          id: q.id,
+          type: q.type,
+          title: q.title,
+          description: q.description,
+          points: q.points,
+          validation: q.validation,
+        };
+
+        if (q.type === "CHOICE") {
+          summaryQuestion.options = q.options ?? [];
+        }
+
+        if (q.type === "ORDERING") {
+          summaryQuestion.items = q.items ?? [];
+        }
+
+        return summaryQuestion;
+      });
+
+      return res.json({ questions });
+    } catch (error) {
+      console.error("Error getting game results:", error);
+      return res.status(500).send(`Error getting game results: ${error}`);
+    }
+  });
+
   return api;
 }

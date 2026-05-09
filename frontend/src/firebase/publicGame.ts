@@ -3,7 +3,12 @@ import { getCurrentUser, auth } from './auth';
 import { signInAnonymously, updateProfile } from 'firebase/auth';
 import { getToken } from 'firebase/app-check';
 import { getAppCheck } from './appCheck';
-import type { GameSession, PlayerProgress, GameRankingResponse } from '@shared/models/GameSession';
+import type {
+  GameSession,
+  PlayerProgress,
+  GameRankingResponse,
+  GameResultsResponse,
+} from '@shared/models/GameSession';
 
 const API_URL = API_ENDPOINTS.publicGame;
 
@@ -166,4 +171,19 @@ export const submitPublicAnswer = async (
 export const getPublicRanking = async (gameSessionId: string): Promise<GameRankingResponse> => {
   const response = await callPublicGameApi(`/game/${gameSessionId}/ranking`, 'GET');
   return response;
+};
+
+/**
+ * Obtener las respuestas correctas de la sesión (solo disponible tras completar el juego)
+ */
+export const getPublicGameResults = async (gameSessionId: string): Promise<GameResultsResponse> => {
+  const user = await getCurrentUser();
+  if (!user) {
+    throw new Error('Debes estar autenticado para ver los resultados');
+  }
+  const response = await callPublicGameApi(
+    `/game/${gameSessionId}/results?userId=${encodeURIComponent(user.uid)}`,
+    'GET'
+  );
+  return response as GameResultsResponse;
 };

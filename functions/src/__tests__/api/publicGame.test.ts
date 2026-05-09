@@ -378,4 +378,104 @@ describe("PublicGame API", () => {
       );
     });
   });
+
+  // ─── GET /game/:id/results ────────────────────────────────────────────────────
+
+  describe("GET /game/:id/results", () => {
+    function dbWithFinishedPlayer() {
+      const db = buildSessionDb();
+      db._data[`gameSessions/${SESSION_ID}/players`] = {
+        [USER_ID]: {
+          userId: USER_ID,
+          displayName: "Alice",
+          currentQuestionIndex: 2, // equals total questions (2)
+          score: 20,
+          totalPenaltySeconds: 0,
+          startedAt: { seconds: 1000, nanoseconds: 0 },
+          finishedAt: { seconds: 2000, nanoseconds: 0 },
+        },
+      };
+      return db;
+    }
+
+    it("200: returns questions with validation for a finished player (via finishedAt)", async () => {
+      const db = dbWithFinishedPlayer();
+      const app = createPublicGameApi(db as any);
+      const res = await request(app)
+        .get(`/game/${SESSION_ID}/results?userId=${USER_ID}`)
+        .set(APP_CHECK_HEADER);
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body.questions)).toBe(true);
+      expect(res.body.questions).toHaveLength(2);
+      // validation should be present
+      res.body.questions.forEach((q: any) => {
+        expect(q).toHaveProperty("validation");
+        expect(q.validation).toHaveProperty("expectedAnswer");
+      });
+    });
+
+    it("200: returns questions with validation when currentQuestionIndex >= total (no finishedAt)", async () => {
+      const db = buildSessionDb();
+      db._data[`gameSessions/${SESSION_ID}/players`] = {
+        [USER_ID]: {
+          userId: USER_ID,
+          currentQuestionIndex: 2, // equals total
+          score: 20,
+          startedAt: { seconds: 1000, nanoseconds: 0 },
+          // no finishedAt
+        },
+      };
+      const app = createPublicGameApi(db as any);
+      const res = await request(app)
+        .get(`/game/${SESSION_ID}/results?userId=${USER_ID}`)
+        .set(APP_CHECK_HEADER);
+      expect(res.status).toBe(200);
+      expect(res.body.questions).toHaveLength(2);
+    });
+
+    it("400: missing userId query param", async () => {
+      const db = buildSessionDb();
+      const app = createPublicGameApi(db as any);
+      const res = await request(app)
+        .get(`/game/${SESSION_ID}/results`)
+        .set(APP_CHECK_HEADER);
+      expect(res.status).toBe(400);
+    });
+
+    it("404: session not found", async () => {
+      const db = buildMockDb({ gameSessions: {} });
+      const app = createPublicGameApi(db as any);
+      const res = await request(app)
+        .get(`/game/ghost/results?userId=${USER_ID}`)
+        .set(APP_CHECK_HEADER);
+      expect(res.status).toBe(404);
+    });
+
+    it("404: player not found in session", async () => {
+      const db = buildSessionDb();
+      const app = createPublicGameApi(db as any);
+      const res = await request(app)
+        .get(`/game/${SESSION_ID}/results?userId=unknown-player`)
+        .set(APP_CHECK_HEADER);
+      expect(res.status).toBe(404);
+    });
+
+    it("403: player has not finished yet", async () => {
+      const db = buildSessionDb();
+      db._data[`gameSessions/${SESSION_ID}/players`] = {
+        [USER_ID]: {
+          userId: USER_ID,
+          currentQuestionIndex: 1, // still on question 1 of 2
+          score: 10,
+          startedAt: { seconds: 1000, nanoseconds: 0 },
+          // no finishedAt
+        },
+      };
+      const app = createPublicGameApi(db as any);
+      const res = await request(app)
+        .get(`/game/${SESSION_ID}/results?userId=${USER_ID}`)
+        .set(APP_CHECK_HEADER);
+      expect(res.status).toBe(403);
+    });
+  });
 });

@@ -52,7 +52,8 @@ export type QuestionValidation =
   | TextValidation
   | NumberValidation
   | ChoiceValidation
-  | OrderingValidation;
+  | OrderingValidation
+  | BooleanValidation;
 
 export type TextValidation = {
   type: "TEXT";
@@ -86,6 +87,13 @@ export type OrderingValidation = {
   options: { id: string; label: string }[]; // items exposed to player (no order info)
 };
 
+export type BooleanValidation = {
+  type: "BOOLEAN";
+  expectedAnswer: {
+    booleanValue: boolean;
+  };
+};
+
 // Ranking API Response Types
 export type RankingPlayer = {
   userId: string;
@@ -105,4 +113,20 @@ export type GameRankingResponse = {
   totalQuestions: number;
   players: RankingPlayer[];
   timestamp: number;
+};
+
+// Game Results (correct answers — only accessible after a player has finished)
+export type GameSummaryQuestion = {
+  id: string;
+  type: QuestionType;
+  title: string;
+  description?: string;
+  points: number;
+  validation: QuestionValidation;
+  options?: { id: string; label: string }[]; // CHOICE
+  items?: { id: string; label: string }[]; // ORDERING
+};
+
+export type GameResultsResponse = {
+  questions: GameSummaryQuestion[];
 };

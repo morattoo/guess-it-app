@@ -239,6 +239,16 @@ export default {
     gameCompleted: 'Game completed!',
     viewRanking: 'View ranking',
     waitingForHost: 'Waiting for the host to start the game...',
+    summary: {
+      title: 'Game Summary',
+      viewSummary: 'View Summary',
+      close: 'Close',
+      loading: 'Loading summary...',
+      correctAnswer: 'Correct answer',
+      booleanTrue: 'True',
+      booleanFalse: 'False',
+      correctOrder: 'Correct order',
+    },
     errors: {
       sessionNotFound: 'The game session does not exist.',
       notJoined: 'You have not joined this session. Please join first.',
