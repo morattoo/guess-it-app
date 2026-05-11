@@ -23,10 +23,12 @@ export function createGameSessionsApi(db: Firestore) {
       return res.status(400).send("Missing data");
     }
 
-    if (!mode || !["EVALUATION", "LEARNING"].includes(mode)) {
+    if (!mode || !["EVALUATION", "LEARNING", "CHALLENGE"].includes(mode)) {
       return res
         .status(400)
-        .send("Missing or invalid mode. Must be EVALUATION or LEARNING");
+        .send(
+          "Missing or invalid mode. Must be EVALUATION, LEARNING or CHALLENGE",
+        );
     }
 
     if (!title || !title.trim()) {
@@ -545,6 +547,225 @@ export function createGameSessionsApi(db: Firestore) {
     } catch (error) {
       console.error("Error getting ranking:", error);
       res.status(500).send("Internal Server Error");
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Challenge mode host-control endpoints (mode === "CHALLENGE")
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Inicializar el reto: crea el documento gameSessionChallenge y pone la
+   * sesión en RUNNING para que los jugadores puedan ingresar al lobby.
+   */
+  api.put("/gameSessions/:id/challenge/initialize", async (req, res) => {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    if (!userId) return res.status(400).send("Missing userId");
+
+    try {
+      const gameSessionRef = db.collection("gameSessions").doc(id);
+      const snap = await gameSessionRef.get();
+
+      if (!snap.exists) return res.status(404).send("Game session not found");
+
+      const data = snap.data()!;
+
+      if (data.createdBy !== userId)
+        return res.status(403).send("Unauthorized");
+      if (data.mode !== "CHALLENGE")
+        return res.status(400).send("Session is not in CHALLENGE mode");
+      if (data.status === "FINISHED")
+        return res.status(400).send("Session is already finished");
+
+      // Build initial players map from already-joined players
+      const playersSnap = await gameSessionRef.collection("players").get();
+      const playersMap: Record<
+        string,
+        { displayName: string; score: number; answeredCurrentQuestion: boolean }
+      > = {};
+      for (const doc of playersSnap.docs) {
+        const p = doc.data();
+        playersMap[doc.id] = {
+          displayName: p.displayName || "Jugador Anónimo",
+          score: 0,
+          answeredCurrentQuestion: false,
+        };
+      }
+
+      await db.collection("gameSessionChallenge").doc(id).set({
+        currentQuestionIndex: 0,
+        status: "waiting",
+        players: playersMap,
+      });
+
+      // Transition game session to RUNNING so players see the lobby
+      await gameSessionRef.update({ status: "RUNNING" });
+      await db
+        .collection("gameSessionsMeta")
+        .doc(id)
+        .update({ status: "RUNNING" });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error initializing challenge:", error);
+      res.status(500).send("Error initializing challenge");
+    }
+  });
+
+  /**
+   * Iniciar/avanzar pregunta: cambia el estado a "playing" y registra el
+   * timestamp de inicio. Si venía de "showing_result", incrementa el índice.
+   */
+  api.put("/gameSessions/:id/challenge/play", async (req, res) => {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    if (!userId) return res.status(400).send("Missing userId");
+
+    try {
+      const gameSessionSnap = await db.collection("gameSessions").doc(id).get();
+      if (!gameSessionSnap.exists)
+        return res.status(404).send("Game session not found");
+
+      const gameSessionData = gameSessionSnap.data()!;
+      if (gameSessionData.createdBy !== userId)
+        return res.status(403).send("Unauthorized");
+
+      const challengeRef = db.collection("gameSessionChallenge").doc(id);
+      const challengeSnap = await challengeRef.get();
+      if (!challengeSnap.exists)
+        return res
+          .status(400)
+          .send("Challenge not initialized. Call /initialize first");
+
+      const challengeData = challengeSnap.data()!;
+
+      if (challengeData.status === "playing")
+        return res.status(400).send("Challenge is already playing");
+      if (challengeData.status === "finished")
+        return res.status(400).send("Challenge is already finished");
+
+      const totalQuestions = gameSessionData.questions.length;
+      let nextIndex = challengeData.currentQuestionIndex as number;
+
+      // Advance index when moving from showing_result → playing
+      if (challengeData.status === "showing_result") {
+        nextIndex += 1;
+      }
+
+      if (nextIndex >= totalQuestions) {
+        return res.status(400).send("No more questions");
+      }
+
+      // Reset answeredCurrentQuestion for all players
+      const currentPlayers = (challengeData.players || {}) as Record<
+        string,
+        {
+          displayName: string;
+          score: number;
+          answeredCurrentQuestion: boolean;
+          lastAnswerCorrect?: boolean;
+        }
+      >;
+      const resetPlayers: typeof currentPlayers = {};
+      for (const [uid, p] of Object.entries(currentPlayers)) {
+        resetPlayers[uid] = {
+          ...p,
+          answeredCurrentQuestion: false,
+          lastAnswerCorrect: undefined,
+        };
+      }
+
+      await challengeRef.update({
+        status: "playing",
+        currentQuestionIndex: nextIndex,
+        questionStartTime: FieldValue.serverTimestamp(),
+        players: resetPlayers,
+      });
+
+      res.json({ success: true, currentQuestionIndex: nextIndex });
+    } catch (error) {
+      console.error("Error advancing challenge question:", error);
+      res.status(500).send("Error advancing challenge question");
+    }
+  });
+
+  /**
+   * Mostrar resultados de la pregunta actual.
+   */
+  api.put("/gameSessions/:id/challenge/show-result", async (req, res) => {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    if (!userId) return res.status(400).send("Missing userId");
+
+    try {
+      const gameSessionSnap = await db.collection("gameSessions").doc(id).get();
+      if (!gameSessionSnap.exists)
+        return res.status(404).send("Game session not found");
+
+      if (gameSessionSnap.data()!.createdBy !== userId)
+        return res.status(403).send("Unauthorized");
+
+      const challengeRef = db.collection("gameSessionChallenge").doc(id);
+      const challengeSnap = await challengeRef.get();
+      if (!challengeSnap.exists)
+        return res.status(400).send("Challenge not initialized");
+
+      if (challengeSnap.data()!.status !== "playing")
+        return res.status(400).send("Challenge is not in playing state");
+
+      await challengeRef.update({ status: "showing_result" });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error showing challenge result:", error);
+      res.status(500).send("Error showing challenge result");
+    }
+  });
+
+  /**
+   * Finalizar el reto: marca el challenge como "finished" y la sesión como FINISHED.
+   */
+  api.put("/gameSessions/:id/challenge/finish", async (req, res) => {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    if (!userId) return res.status(400).send("Missing userId");
+
+    try {
+      const gameSessionRef = db.collection("gameSessions").doc(id);
+      const gameSessionSnap = await gameSessionRef.get();
+      if (!gameSessionSnap.exists)
+        return res.status(404).send("Game session not found");
+
+      if (gameSessionSnap.data()!.createdBy !== userId)
+        return res.status(403).send("Unauthorized");
+
+      const challengeRef = db.collection("gameSessionChallenge").doc(id);
+      const challengeSnap = await challengeRef.get();
+      if (!challengeSnap.exists)
+        return res.status(400).send("Challenge not initialized");
+
+      await challengeRef.update({ status: "finished" });
+
+      await gameSessionRef.update({
+        status: "FINISHED",
+        endedAt: FieldValue.serverTimestamp(),
+        isOpen: false,
+      });
+
+      await db
+        .collection("gameSessionsMeta")
+        .doc(id)
+        .update({ status: "FINISHED", isOpen: false });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error finishing challenge:", error);
+      res.status(500).send("Error finishing challenge");
     }
   });
 

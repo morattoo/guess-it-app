@@ -222,7 +222,11 @@ const handleJoin = async () => {
 };
 
 const goToPlay = () => {
-  router.push(`/game/${sessionId.value}/play`);
+  if (gameSession.value?.mode === 'CHALLENGE') {
+    router.push(`/game/${sessionId.value}/challenge`);
+  } else {
+    router.push(`/game/${sessionId.value}/play`);
+  }
 };
 </script>
 

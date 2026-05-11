@@ -1,3 +1,5 @@
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from './init';
 import { API_ENDPOINTS } from './config';
 import { getCurrentUser, auth } from './auth';
 import { signInAnonymously, updateProfile } from 'firebase/auth';
@@ -5,6 +7,7 @@ import { getToken } from 'firebase/app-check';
 import { getAppCheck } from './appCheck';
 import type {
   GameSession,
+  GameSessionChallenge,
   PlayerProgress,
   GameRankingResponse,
   GameResultsResponse,
@@ -186,4 +189,38 @@ export const getPublicGameResults = async (gameSessionId: string): Promise<GameR
     'GET'
   );
   return response as GameResultsResponse;
+};
+
+/**
+ * Suscribirse en tiempo real al documento de challenge (Firestore onSnapshot).
+ * Devuelve la función para cancelar la suscripción.
+ */
+export const subscribeToChallenge = (
+  gameSessionId: string,
+  callback: (challenge: GameSessionChallenge | null) => void
+): (() => void) => {
+  const challengeRef = doc(db, 'gameSessionChallenge', gameSessionId);
+  return onSnapshot(challengeRef, snap => {
+    if (snap.exists()) {
+      callback({ id: snap.id, ...snap.data() } as GameSessionChallenge);
+    } else {
+      callback(null);
+    }
+  });
+};
+
+/**
+ * Enviar respuesta en modo Challenge
+ */
+export const submitChallengeAnswer = async (
+  gameSessionId: string,
+  answer: string | number | boolean | string[]
+): Promise<{ correct: boolean; score: number }> => {
+  const user = await getCurrentUser();
+  if (!user) throw new Error('Debes estar autenticado para responder');
+
+  return callPublicGameApi(`/game/${gameSessionId}/challenge/answer`, 'POST', {
+    userId: user.uid,
+    answer,
+  });
 };

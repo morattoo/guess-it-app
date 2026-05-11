@@ -2,7 +2,7 @@ import { ensureAuth } from './auth';
 import { API_ENDPOINTS } from './config';
 import { getToken } from 'firebase/app-check';
 import { getAppCheck } from './appCheck';
-import type { GameSession } from '@shared/models/GameSession';
+import type { GameSession, GameSessionMode } from '@shared/models/GameSession';
 
 const API_URL = API_ENDPOINTS.gameSessions;
 
@@ -48,7 +48,7 @@ async function callGameSessionsApi(
 export const createGameSession = async (
   questionnaireId: string,
   userId: string,
-  mode: 'EVALUATION' | 'LEARNING',
+  mode: GameSessionMode,
   title: string
 ): Promise<string> => {
   const response = await callGameSessionsApi('/gameSessions', 'POST', {
@@ -184,4 +184,36 @@ export const submitAnswer = async (
     }
   );
   return response;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Challenge mode — host control
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const initializeChallenge = async (gameSessionId: string): Promise<void> => {
+  const user = await ensureAuth();
+  await callGameSessionsApi(`/gameSessions/${gameSessionId}/challenge/initialize`, 'PUT', {
+    userId: user.uid,
+  });
+};
+
+export const playChallengeQuestion = async (gameSessionId: string): Promise<void> => {
+  const user = await ensureAuth();
+  await callGameSessionsApi(`/gameSessions/${gameSessionId}/challenge/play`, 'PUT', {
+    userId: user.uid,
+  });
+};
+
+export const showChallengeResult = async (gameSessionId: string): Promise<void> => {
+  const user = await ensureAuth();
+  await callGameSessionsApi(`/gameSessions/${gameSessionId}/challenge/show-result`, 'PUT', {
+    userId: user.uid,
+  });
+};
+
+export const finishChallenge = async (gameSessionId: string): Promise<void> => {
+  const user = await ensureAuth();
+  await callGameSessionsApi(`/gameSessions/${gameSessionId}/challenge/finish`, 'PUT', {
+    userId: user.uid,
+  });
 };

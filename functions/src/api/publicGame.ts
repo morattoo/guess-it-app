@@ -399,6 +399,95 @@ export function createPublicGameApi(db: Firestore) {
   });
 
   /**
+   * Enviar respuesta en modo Challenge
+   * El jugador responde la pregunta actual; el host controla la transición entre preguntas.
+   */
+  api.post("/game/:id/challenge/answer", async (req, res) => {
+    const { id: gameSessionId } = req.params;
+    const { userId, answer } = req.body;
+
+    if (!userId || answer === undefined || answer === null) {
+      return res.status(400).send("Missing data");
+    }
+
+    try {
+      const challengeRef = db
+        .collection("gameSessionChallenge")
+        .doc(gameSessionId);
+      const challengeSnap = await challengeRef.get();
+
+      if (!challengeSnap.exists) {
+        return res.status(404).send("Challenge not found");
+      }
+
+      const challengeData = challengeSnap.data()!;
+
+      if (challengeData.status !== "playing") {
+        return res.status(400).send("Challenge is not in playing state");
+      }
+
+      const playerEntry = (challengeData.players || {})[userId] as
+        | {
+            displayName: string;
+            score: number;
+            answeredCurrentQuestion: boolean;
+          }
+        | undefined;
+
+      if (!playerEntry) {
+        return res.status(404).send("Player not found in challenge");
+      }
+
+      if (playerEntry.answeredCurrentQuestion) {
+        return res
+          .status(400)
+          .send("Player has already answered this question");
+      }
+
+      const currentQuestionIndex = challengeData.currentQuestionIndex as number;
+
+      // Get the question with validation data
+      const gameSessionSnap = await db
+        .collection("gameSessions")
+        .doc(gameSessionId)
+        .get();
+
+      if (!gameSessionSnap.exists) {
+        return res.status(404).send("Game session not found");
+      }
+
+      const gameSessionData = gameSessionSnap.data()!;
+      const question = gameSessionData.questions[currentQuestionIndex];
+
+      if (!question) {
+        return res.status(404).send("Question not found");
+      }
+
+      const validationResult = validateAnswer(question, answer);
+
+      if (!validationResult.ok) {
+        return res.status(400).send(validationResult.error);
+      }
+
+      const isCorrect = validationResult.isCorrect;
+      const pointsEarned = isCorrect ? question.points : 0;
+      const newScore = (playerEntry.score || 0) + pointsEarned;
+
+      // Update player entry in challenge doc using dot-notation to avoid overwriting other players
+      await challengeRef.update({
+        [`players.${userId}.answeredCurrentQuestion`]: true,
+        [`players.${userId}.lastAnswerCorrect`]: isCorrect,
+        [`players.${userId}.score`]: newScore,
+      });
+
+      res.json({ correct: isCorrect, score: newScore });
+    } catch (error) {
+      console.error("Error submitting challenge answer:", error);
+      res.status(500).send("Error submitting challenge answer");
+    }
+  });
+
+  /**
    * Obtener ranking de la sesión con información completa
    */
   api.get("/game/:id/ranking", async (req, res) => {

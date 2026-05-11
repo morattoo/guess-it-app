@@ -17,7 +17,7 @@ export type GameSession = {
 };
 
 export type GameSessionStatus = "WAITING" | "RUNNING" | "FINISHED";
-export type GameSessionMode = "EVALUATION" | "LEARNING";
+export type GameSessionMode = "EVALUATION" | "LEARNING" | "CHALLENGE";
 
 export type FirebaseTimestamp = { seconds: number; nanoseconds: number };
 
@@ -129,4 +129,19 @@ export type GameSummaryQuestion = {
 
 export type GameResultsResponse = {
   questions: GameSummaryQuestion[];
+};
+
+export type GameSessionChallenge = {
+  id: string;
+  currentQuestionIndex: number;
+  status: "waiting" | "playing" | "showing_result" | "finished";
+  questionStartTime?: FirebaseTimestamp;
+  players: {
+    [userId: string]: {
+      displayName: string;
+      score: number;
+      answeredCurrentQuestion: boolean;
+      lastAnswerCorrect?: boolean;
+    };
+  };
 };

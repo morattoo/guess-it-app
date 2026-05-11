@@ -10,6 +10,10 @@ const routes = [
   { path: '/', component: HomeView },
   { path: '/game/:sessionId', component: () => import('@/components/JoinGameView.vue') },
   { path: '/game/:sessionId/play', component: () => import('@/components/PlayGameView.vue') },
+  {
+    path: '/game/:sessionId/challenge',
+    component: () => import('@/components/ChallengeGameView.vue'),
+  },
   { path: '/game/:sessionId/ranking', component: () => import('@/components/RankingGameView.vue') },
   {
     path: '/auth',
