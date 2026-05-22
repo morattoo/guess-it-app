@@ -48,11 +48,7 @@
                 class="mode-badge"
                 :class="`mode-${session.mode.toLowerCase()}`"
               >
-                {{
-                  session.mode === 'EVALUATION'
-                    ? t.gameSessions.modeEvaluation
-                    : t.gameSessions.modeLearning
-                }}
+                {{ getModeLabel(session.mode) }}
               </span>
             </div>
           </div>
@@ -173,6 +169,22 @@
             </svg>
           </button>
           <button
+            v-if="session.mode === 'CHALLENGE' && session.status !== 'FINISHED'"
+            class="btn-icon btn-challenge"
+            :title="t.challenge.panel.title"
+            @click="openChallengeModal(session)"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M13 2L4 13h7l-2 7 9-11h-7l2-7z" fill="currentColor" />
+            </svg>
+          </button>
+          <button
             class="btn-icon btn-copy"
             :title="t.gameSessions.actions.copyLink"
             @click="handleCopyLink(session.id!)"
@@ -228,19 +240,147 @@
       </div>
     </div>
   </div>
+
+  <!-- Challenge Control Modal -->
+  <Teleport to="body">
+    <div v-if="challengeModalOpen" class="modal-overlay" @click.self="closeChallengeModal">
+      <div class="challenge-modal">
+        <div class="challenge-modal__header">
+          <h3>⚡ {{ t.challenge.panel.title }}</h3>
+          <span class="challenge-modal__session-name">{{ activeChallengeSession?.title }}</span>
+          <button class="btn-icon challenge-modal__close" @click="closeChallengeModal">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M4 4L16 16M16 4L4 16"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <div v-if="!challengeDoc" class="challenge-state-block">
+          <p class="challenge-hint">{{ t.challenge.panel.notInitialized }}</p>
+          <button
+            type="button"
+            class="btn-primary"
+            :disabled="challengeLoading"
+            @click="handleChallengeInitialize"
+          >
+            {{ challengeLoading ? t.common.loading : t.challenge.panel.initialize }}
+          </button>
+        </div>
+
+        <div v-else>
+          <div class="challenge-status-row">
+            <span class="challenge-status-badge" :class="`cs-${challengeDoc.status}`">
+              {{ t.challenge.panel.status[challengeDoc.status] }}
+            </span>
+            <span class="challenge-question-counter">
+              {{ t.play.question }}
+              {{ challengeDoc.currentQuestionIndex + 1 }}
+              {{ t.play.of }}
+              {{ activeChallengeSession?.questions.length }}
+            </span>
+          </div>
+
+          <div class="challenge-answered-summary">
+            <span>
+              {{ challengeAnsweredCount }} / {{ Object.keys(challengeDoc.players).length }}
+              {{ t.challenge.panel.answered }}
+            </span>
+            <div class="mini-player-list">
+              <span
+                v-for="[uid, p] in Object.entries(challengeDoc.players)"
+                :key="uid"
+                class="mini-player"
+                :class="{
+                  answered: p.answeredCurrentQuestion,
+                  correct: p.lastAnswerCorrect === true,
+                  incorrect: p.lastAnswerCorrect === false,
+                }"
+                :title="p.displayName"
+              >
+                {{ p.displayName.charAt(0).toUpperCase() }}
+              </span>
+            </div>
+          </div>
+
+          <div class="challenge-actions">
+            <button
+              v-if="challengeDoc.status === 'waiting'"
+              type="button"
+              class="btn-primary"
+              :disabled="challengeLoading"
+              @click="handleChallengePlay"
+            >
+              {{ challengeLoading ? t.common.loading : t.challenge.panel.startFirstQuestion }}
+            </button>
+            <button
+              v-if="challengeDoc.status === 'playing'"
+              type="button"
+              class="btn-secondary"
+              :disabled="challengeLoading"
+              @click="handleChallengeShowResult"
+            >
+              {{ challengeLoading ? t.common.loading : t.challenge.panel.showResult }}
+            </button>
+            <template v-if="challengeDoc.status === 'showing_result'">
+              <button
+                v-if="
+                  challengeDoc.currentQuestionIndex <
+                  (activeChallengeSession?.questions.length ?? 0) - 1
+                "
+                type="button"
+                class="btn-primary"
+                :disabled="challengeLoading"
+                @click="handleChallengePlay"
+              >
+                {{ challengeLoading ? t.common.loading : t.challenge.panel.nextQuestion }}
+              </button>
+              <button
+                type="button"
+                class="btn-danger"
+                :disabled="challengeLoading"
+                @click="handleChallengeFinish"
+              >
+                {{ challengeLoading ? t.common.loading : t.challenge.panel.finish }}
+              </button>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   getGameSessionsByUser,
   deleteGameSession,
   updateGameSessionStatus,
   toggleGameSessionOpen,
+  initializeChallenge,
+  playChallengeQuestion,
+  showChallengeResult,
+  finishChallenge,
 } from '@/firebase/gameSession';
+import { subscribeToChallenge } from '@/firebase/publicGame';
 import { auth } from '@/firebase/auth';
-import type { FirebaseTimestamp, GameSession } from '@shared/models/GameSession';
+import type {
+  FirebaseTimestamp,
+  GameSession,
+  GameSessionChallenge,
+} from '@shared/models/GameSession';
 import { useI18n } from '@/composables/useI18n';
 import { useErrorHandler } from '@/composables/useErrorHandler';
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
@@ -256,6 +396,85 @@ const { success, error: showToastError } = useToast();
 const gameSessions = ref<GameSession[]>([]);
 const loading = ref(true);
 const searchText = ref('');
+
+// ── Challenge modal ─────────────────────────────────────────────────────────────────
+const challengeModalOpen = ref(false);
+const activeChallengeSession = ref<GameSession | null>(null);
+const challengeDoc = ref<GameSessionChallenge | null>(null);
+const challengeLoading = ref(false);
+let unsubscribeChallenge: (() => void) | null = null;
+
+const challengeAnsweredCount = computed(() => {
+  if (!challengeDoc.value) return 0;
+  return Object.values(challengeDoc.value.players).filter(p => p.answeredCurrentQuestion).length;
+});
+
+const openChallengeModal = (session: GameSession) => {
+  activeChallengeSession.value = session;
+  challengeModalOpen.value = true;
+  challengeDoc.value = null;
+  unsubscribeChallenge = subscribeToChallenge(session.id!, doc => {
+    challengeDoc.value = doc;
+  });
+};
+
+const closeChallengeModal = () => {
+  challengeModalOpen.value = false;
+  activeChallengeSession.value = null;
+  challengeDoc.value = null;
+  unsubscribeChallenge?.();
+  unsubscribeChallenge = null;
+};
+
+const handleChallengeInitialize = async () => {
+  if (!activeChallengeSession.value?.id) return;
+  challengeLoading.value = true;
+  try {
+    await initializeChallenge(activeChallengeSession.value.id);
+  } catch (_error: unknown) {
+    showError(formatError(_error, t.value.challenge.panel.errors.initError));
+  } finally {
+    challengeLoading.value = false;
+  }
+};
+
+const handleChallengePlay = async () => {
+  if (!activeChallengeSession.value?.id) return;
+  challengeLoading.value = true;
+  try {
+    await playChallengeQuestion(activeChallengeSession.value.id);
+  } catch (_error: unknown) {
+    showError(formatError(_error, t.value.challenge.panel.errors.playError));
+  } finally {
+    challengeLoading.value = false;
+  }
+};
+
+const handleChallengeShowResult = async () => {
+  if (!activeChallengeSession.value?.id) return;
+  challengeLoading.value = true;
+  try {
+    await showChallengeResult(activeChallengeSession.value.id);
+  } catch (_error: unknown) {
+    showError(formatError(_error, t.value.challenge.panel.errors.showResultError));
+  } finally {
+    challengeLoading.value = false;
+  }
+};
+
+const handleChallengeFinish = async () => {
+  if (!activeChallengeSession.value?.id) return;
+  challengeLoading.value = true;
+  try {
+    await finishChallenge(activeChallengeSession.value.id);
+    closeChallengeModal();
+    await loadGameSessions();
+  } catch (_error: unknown) {
+    showError(formatError(_error, t.value.challenge.panel.errors.finishError));
+  } finally {
+    challengeLoading.value = false;
+  }
+};
 
 const filteredGameSessions = computed(() => {
   const query = searchText.value.trim().toLowerCase();
@@ -386,6 +605,15 @@ const getStatusLabel = (status: string) => {
   return statusMap[status] || status;
 };
 
+const getModeLabel = (mode: string) => {
+  const modeMap: Record<string, string> = {
+    EVALUATION: t.value.gameSessions.modeEvaluation,
+    LEARNING: t.value.gameSessions.modeLearning,
+    CHALLENGE: t.value.gameSessions.modeChallenge,
+  };
+  return modeMap[mode] || mode;
+};
+
 const formatDate = (timestamp: FirebaseTimestamp) => {
   if (!timestamp || !timestamp.seconds) return '';
 
@@ -402,6 +630,10 @@ const formatDate = (timestamp: FirebaseTimestamp) => {
 
 onMounted(() => {
   loadGameSessions();
+});
+
+onUnmounted(() => {
+  unsubscribeChallenge?.();
 });
 </script>
 
@@ -559,6 +791,188 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: $spacing-xs;
+}
+
+// ── Challenge button ─────────────────────────────────────────────────────────────────
+.btn-challenge {
+  color: #7c3aed;
+
+  &:hover {
+    background-color: #ede9fe;
+  }
+}
+
+// ── Challenge Modal ────────────────────────────────────────────────────────────────
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.challenge-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.challenge-modal__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+
+  h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #4c1d95;
+    flex: 1;
+  }
+}
+
+.challenge-modal__session-name {
+  font-size: 0.85rem;
+  color: #6b7280;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.challenge-modal__close {
+  color: #6b7280;
+}
+
+.challenge-state-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.challenge-hint {
+  color: #5b21b6;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.challenge-status-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.challenge-status-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.25rem 0.7rem;
+  border-radius: 50px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  &.cs-waiting {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  &.cs-playing {
+    background: #d1fae5;
+    color: #065f46;
+  }
+  &.cs-showing_result {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+  &.cs-finished {
+    background: #f3f4f6;
+    color: #374151;
+  }
+}
+
+.challenge-question-counter {
+  font-size: 0.9rem;
+  color: #5b21b6;
+}
+
+.challenge-answered-summary {
+  margin-bottom: 1rem;
+
+  span {
+    font-size: 0.9rem;
+    color: #5b21b6;
+  }
+}
+
+.mini-player-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.mini-player {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ddd6fe;
+  color: #4c1d95;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: 2px solid transparent;
+  cursor: default;
+  transition: all 0.2s;
+
+  &.answered {
+    border-color: #6366f1;
+    background: #c7d2fe;
+  }
+  &.correct {
+    background: #bbf7d0;
+    color: #065f46;
+    border-color: #10b981;
+  }
+  &.incorrect {
+    background: #fecaca;
+    color: #7f1d1d;
+    border-color: #ef4444;
+  }
+}
+
+.challenge-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn-danger {
+  padding: 0.6rem 1.25rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #dc2626;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 @media (max-width: 640px) {

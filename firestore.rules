@@ -26,6 +26,10 @@ service cloud.firestore {
       allow read: if request.auth != null;
     }
 
+    match /gameSessionChallenge/{gameSessionId} {
+      allow read: if request.auth != null;
+    }
+
     // Nota: Las Cloud Functions usan el Admin SDK que bypasea
     // estas reglas de seguridad, por lo que pueden acceder sin problemas
   }
