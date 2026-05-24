@@ -110,7 +110,7 @@
             </svg>
           </button>
           <button
-            v-if="session.status === 'WAITING'"
+            v-if="session.mode !== 'CHALLENGE' && session.status === 'WAITING'"
             class="btn-icon btn-play"
             :title="t.gameSessions.actions.start"
             @click="handleStart(session.id!)"

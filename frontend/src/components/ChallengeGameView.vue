@@ -294,8 +294,7 @@ const isAnswerValid = computed(() => {
 });
 
 const timerPercent = computed(() => {
-  const limit = currentQuestion.value?.penaltySeconds ?? 30;
-  if (limit === 0) return 0;
+  const limit = currentQuestion.value?.penaltySeconds || 30;
   return Math.max(0, (timerSecondsLeft.value / limit) * 100);
 });
 
@@ -357,7 +356,7 @@ watch(phase, (newPhase, _oldPhase) => {
 
     // Start timer using questionStartTime from challenge doc
     const qStartTime = challengeDoc.value?.questionStartTime;
-    const timeLimitSec = currentQuestion.value?.penaltySeconds ?? 30;
+    const timeLimitSec = currentQuestion.value?.penaltySeconds || 30;
     if (qStartTime && 'seconds' in qStartTime) {
       startTimer(timeLimitSec, qStartTime.seconds + qStartTime.nanoseconds / 1e9);
     } else {
@@ -436,7 +435,7 @@ onMounted(async () => {
       if (doc?.status === 'playing') {
         const q = session.questions[doc.currentQuestionIndex];
         const qStartTime = doc.questionStartTime;
-        const timeLimitSec = q?.penaltySeconds ?? 30;
+        const timeLimitSec = q?.penaltySeconds || 30;
         if (
           qStartTime &&
           'seconds' in qStartTime &&

@@ -659,31 +659,21 @@ export function createGameSessionsApi(db: Firestore) {
         return res.status(400).send("No more questions");
       }
 
-      // Reset answeredCurrentQuestion for all players
-      const currentPlayers = (challengeData.players || {}) as Record<
-        string,
-        {
-          displayName: string;
-          score: number;
-          answeredCurrentQuestion: boolean;
-          lastAnswerCorrect?: boolean;
-        }
-      >;
-      const resetPlayers: typeof currentPlayers = {};
-      for (const [uid, p] of Object.entries(currentPlayers)) {
-        resetPlayers[uid] = {
-          ...p,
-          answeredCurrentQuestion: false,
-          lastAnswerCorrect: undefined,
-        };
-      }
-
-      await challengeRef.update({
+      // Reset per-player fields using dot-notation to avoid writing undefined
+      const playerIds = Object.keys(
+        (challengeData.players || {}) as Record<string, unknown>,
+      );
+      const updateData: Record<string, unknown> = {
         status: "playing",
         currentQuestionIndex: nextIndex,
         questionStartTime: FieldValue.serverTimestamp(),
-        players: resetPlayers,
-      });
+      };
+      for (const uid of playerIds) {
+        updateData[`players.${uid}.answeredCurrentQuestion`] = false;
+        updateData[`players.${uid}.lastAnswerCorrect`] = FieldValue.delete();
+      }
+
+      await challengeRef.update(updateData);
 
       res.json({ success: true, currentQuestionIndex: nextIndex });
     } catch (error) {
